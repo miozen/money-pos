@@ -2,18 +2,22 @@ package com.money.controller;
 
 import com.money.dto.pos.PosGoodsVO;
 import com.money.dto.pos.PosMemberVO;
+import com.money.dto.pos.PricingResult;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.pos.SettleTrialReqDTO;
-import com.money.dto.pos.PricingResult; // 🌟 引入全新的标准契约对象
 import com.money.service.PosService;
-import com.money.service.impl.PosCalculationEngine;
+import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -24,7 +28,7 @@ import java.util.List;
 public class PosController {
 
     private final PosService posService;
-    private final PosCalculationEngine posCalculationEngine;
+    private final PosPricingFacade posPricingFacade;
 
     @Operation(summary = "商品列表")
     @GetMapping("/goods")
@@ -50,9 +54,7 @@ public class PosController {
     @Operation(summary = "收银台实时试算 (不落库/防抖调用)")
     @PostMapping("/trial")
     @PreAuthorize("@rbac.hasPermission('pos:cashier')")
-    // 🌟 核心修改：将返回值从 SettleTrialResVO 替换为 PricingResult
     public PricingResult trialCalculate(@Validated @RequestBody SettleTrialReqDTO req) {
-        return posCalculationEngine.calculate(req);
+        return posPricingFacade.trial(req);
     }
-
 }

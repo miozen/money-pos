@@ -2,9 +2,9 @@ package com.money.controller;
 
 import com.money.dto.Finance.FinanceDataVO;
 import com.money.service.FinanceDashboardService;
-import com.money.service.FinanceProfitService;
+import com.money.feature.fin.application.analysis.FinanceProfitService;
 import com.money.service.FinanceShiftService;
-import com.money.service.FinanceRiskService;
+import com.money.feature.fin.application.analysis.FinanceRiskService;
 import com.money.service.printer.PosPrinterService; // 🌟 引入原生硬件打印驱动
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

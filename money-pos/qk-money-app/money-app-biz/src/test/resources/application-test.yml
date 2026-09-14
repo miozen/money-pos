@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${MONEY_TEST_DB_URL}
+    username: ${MONEY_TEST_DB_USERNAME}
+    password: ${MONEY_TEST_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: false
+    out-of-order: true
+
+local:
+  bucket: ${MONEY_TEST_LOCAL_BUCKET:/tmp/money-pos-test-assets/}
+  resource-handler: /assets/**
+
+money:
+  test:
+    database-name: ${MONEY_TEST_DB_NAME}

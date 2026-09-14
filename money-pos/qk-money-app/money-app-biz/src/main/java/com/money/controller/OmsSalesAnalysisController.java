@@ -8,7 +8,7 @@ import com.money.dto.OmsOrder.OmsSalesDataVO.SalesDashboardVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.CategorySalesVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.GoodsTrendVO; // 🌟 导入单品趋势 VO
 import com.money.dto.OmsOrder.ProfitAuditVO;
-import com.money.service.OmsSalesAnalysisService;
+import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.web.vo.PageVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
