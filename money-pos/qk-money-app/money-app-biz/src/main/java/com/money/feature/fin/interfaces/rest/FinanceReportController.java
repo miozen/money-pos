@@ -1,8 +1,8 @@
-package com.money.controller;
+package com.money.feature.fin.interfaces.rest;
 
 import com.money.dto.Finance.FinanceWaterfallQueryDTO;
 import com.money.dto.Finance.FinanceWaterfallVO;
-import com.money.service.FinanceReportService;
+import com.money.feature.fin.application.report.FinanceReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

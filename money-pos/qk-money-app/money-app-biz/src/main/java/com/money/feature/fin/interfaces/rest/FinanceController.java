@@ -1,9 +1,9 @@
-package com.money.controller;
+package com.money.feature.fin.interfaces.rest;
 
 import com.money.dto.Finance.FinanceDataVO;
-import com.money.service.FinanceDashboardService;
+import com.money.feature.fin.application.dashboard.FinanceDashboardService;
 import com.money.feature.fin.application.analysis.FinanceProfitService;
-import com.money.service.FinanceShiftService;
+import com.money.feature.fin.application.report.FinanceShiftService;
 import com.money.feature.fin.application.analysis.FinanceRiskService;
 import com.money.service.printer.PosPrinterService; // 🌟 引入原生硬件打印驱动
 import io.swagger.v3.oas.annotations.Operation;

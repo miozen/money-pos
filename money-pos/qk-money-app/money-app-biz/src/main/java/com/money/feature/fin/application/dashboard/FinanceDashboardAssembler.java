@@ -1,4 +1,4 @@
-package com.money.service.assembler;
+package com.money.feature.fin.application.dashboard;
 
 import com.money.constant.PayMethodEnum;
 import com.money.dto.Finance.FinanceDataVO.*;

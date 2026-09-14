@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.fin.application.dashboard;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -7,9 +7,10 @@ import com.money.constant.OrderStatusEnum;
 import com.money.dto.Finance.FinanceDataVO.*;
 import com.money.entity.*;
 import com.money.mapper.*;
-import com.money.service.FinanceDashboardService;
+import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
+import com.money.feature.fin.application.dashboard.FinanceDashboardService;
 import com.money.service.UmsMemberService;
-import com.money.service.assembler.FinanceDashboardAssembler; // 🌟 引入装配器
+import com.money.feature.fin.application.dashboard.FinanceDashboardAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.money.mapper;
+package com.money.feature.fin.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.money.constant.FinancialMetric;

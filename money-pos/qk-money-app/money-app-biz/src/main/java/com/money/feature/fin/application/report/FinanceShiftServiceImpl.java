@@ -1,11 +1,11 @@
-package com.money.service.impl;
+package com.money.feature.fin.application.report;
 
 import com.money.constant.BizErrorStatus; // 🌟 引入全局标准错误码
 import com.money.dto.Finance.FinanceDataVO.*;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
-import com.money.service.FinanceShiftService;
+import com.money.feature.fin.application.report.FinanceShiftService;
 import com.money.util.MoneyUtil;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;

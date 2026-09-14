@@ -352,7 +352,7 @@ Stage 2 is **in progress**, not near completion. The earlier completed entries a
 | Planned ownership slice | Current status | Evidence / remaining scope |
 | --- | --- | --- |
 | `feature.trade` | Partial | Checkout, refund, order query, order detail/log support, transaction facades, and three support services moved. `PosService`, 3 Pos controllers, 2 OMS controllers, 4 Pos Mappers, and 9 OMS Mappers remain in legacy packages. |
-| `feature.fin` | Partial | Sales analysis, metric assembler, profit analysis, and risk analysis moved. `FinanceDashboardService`, `FinanceReportService`, `FinanceShiftService`, 2 controllers, and the Finance Mapper remain in legacy packages. |
+| `feature.fin` | Complete | Sales, profit, risk, dashboard, report, and shift analysis services; both FIN controllers; the dedicated mapper; and FIN-only assemblers now have FIN logical packages. Shared OMS/GMS/UMS read Mappers remain compatible shared infrastructure. |
 | `feature.gms` | Not started | 9 controllers, 11 service interfaces, 8 implementations, and 12 Mappers remain in legacy packages. |
 | `feature.ums` | Not started | 5 controllers, 6 service interfaces, 2 implementations, and 4 Mappers remain in legacy packages. |
 | `feature.home` | Not started | `HomeController`, `HomeService`, and the decision engine remain in legacy packages. The decision engine assessment explicitly deferred its move because the endpoint performs snapshot writes across OMS, UMS, and GMS. |
@@ -389,3 +389,18 @@ Do not start another arbitrary leaf-service move. First inventory the remaining 
 ### Next Unit
 
 Inventory the remaining FIN dashboard, report, shift, controller, and Mapper types as the first feature-completion candidate. Do not move code until the FIN compatibility surface and a single independently testable commit boundary are explicit.
+
+### Completed: FIN Feature Completion Slice
+
+- Completed the remaining FIN production-type migration as one feature slice: `FinanceDashboardService`, `FinanceReportService`, `FinanceShiftService`, their implementations, `FinanceDashboardAssembler`, `FinanceController`, `FinanceReportController`, and the FIN-only `FinanceReportMapper`.
+- Placed application services under `feature.fin.application.dashboard` and `feature.fin.application.report`, controllers under `feature.fin.interfaces.rest`, and the dedicated Mapper under `feature.fin.infrastructure.persistence.mapper`.
+- Updated `MybatisConfig` to scan both the legacy shared Mapper package and the new FIN Mapper package; Spring context startup and FIN queries confirm the moved Mapper is discovered.
+- Preserved controller class names, generated Spring bean names, request routes, method signatures, DTOs, SQL, tables, and Flyway scripts. Shared OMS/GMS/UMS Mappers remain in the compatible shared package because other features still use them.
+- Added `FinanceFeatureIntegrationTest`; it establishes tenant context and executes dashboard, channel mix, asset dashboard, shift handover, and the report service null-input guard through the moved FIN components.
+- Verification: `FinanceFeatureIntegrationTest` passed (1 test); `CheckoutIntegrationTest` passed (10 tests); `test-compile` passed; old FIN package references scan clean; `git diff --check` clean.
+- Residual risk: invoking the existing waterfall report with date parameters under a tenant context fails MyBatis-Plus tenant SQL parsing for its UNION ALL query. This behavior predates the package move; no tenant-interceptor bypass or SQL behavior change was made in this architecture slice.
+- Rollback scope: revert only the `refactor(fin): complete logical feature boundary` commit.
+
+### Next Unit
+
+Start HOME item 2.2.1: add a narrow decision-engine snapshot characterization test before moving any HOME production type. Keep the decision engine package and behavior unchanged until that test establishes first-call creation and same-date update behavior.

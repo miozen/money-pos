@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.fin.application.dashboard;
 
 import com.money.dto.Finance.FinanceDataVO; // 🌟 修复：明确引入主类，不用 .*
 

@@ -28,11 +28,11 @@
 
 当前已迁移：销售分析、指标装配、利润分析、风险分析。
 
-- [ ] 2.1.1 盘点 `FinanceDashboardService`、`FinanceReportService`、`FinanceShiftService` 及实现、调用方和辅助类型。
-- [ ] 2.1.2 盘点 `FinanceController`、`FinanceReportController`（如存在）及所有 FIN Mapper 的 `@MapperScan` 兼容面。
-- [ ] 2.1.3 在不改变接口的前提下迁移一组完整 FIN 服务及其专属辅助类型。
-- [ ] 2.1.4 迁移 FIN Controller 与 FIN 专属 Mapper；共享 OMS 分析/审计 Mapper 保持兼容层，除非扫描与调用面证明可安全归属。
-- [ ] 2.1.5 完成 FIN HTTP 特征测试或直接服务数据断言，编译、Spring 上下文、阶段 0 回归，并单独提交。
+- [x] 2.1.1 已盘点 3 个服务对、`FinanceDashboardAssembler`、2 个 Controller 和 1 个 FIN 专属 Mapper；Controller 是服务的唯一直接调用方。
+- [x] 2.1.2 已盘点两个 Controller 与 `FinanceReportMapper`；扫描配置已由单一旧包扩展为旧共享 Mapper 包与 FIN Mapper 包。
+- [x] 2.1.3 已迁移剩余 FIN 服务对及专属装配器。
+- [x] 2.1.4 已迁移两个 FIN Controller 与 `FinanceReportMapper`；共享 OMS/GMS/UMS Mapper 保留兼容层。
+- [x] 2.1.5 已完成 FIN 服务执行性集成测试、编译、Spring 上下文与阶段 0 回归；FIN Feature 以独立提交收口。带日期参数的瀑布流 SQL 与租户拦截器冲突记录为既有残余风险。
 
 ## 2.2 HOME Feature 完整切片
 

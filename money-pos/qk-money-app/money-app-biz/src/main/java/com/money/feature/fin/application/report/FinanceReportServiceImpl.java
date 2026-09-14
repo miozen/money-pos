@@ -1,9 +1,9 @@
-package com.money.service.impl;
+package com.money.feature.fin.application.report;
 
 import com.money.dto.Finance.FinanceWaterfallQueryDTO;
 import com.money.dto.Finance.FinanceWaterfallVO;
-import com.money.mapper.FinanceReportMapper;
-import com.money.service.FinanceReportService;
+import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
+import com.money.feature.fin.application.report.FinanceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
