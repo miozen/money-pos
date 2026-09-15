@@ -6,7 +6,7 @@ import com.money.constant.PayMethodEnum;
 import com.money.dto.pos.PricingResult;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.entity.PosMemberCoupon;
-import com.money.service.UmsMemberAssetService;
+import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetConsumeRequest;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetRefundRequest;
 import com.money.feature.trade.application.support.PosAssetActionService;

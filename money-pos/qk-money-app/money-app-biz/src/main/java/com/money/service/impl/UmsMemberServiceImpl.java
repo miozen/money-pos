@@ -6,6 +6,8 @@ import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.entity.UmsMember;
+import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
+import com.money.feature.ums.application.memberasset.UmsMemberRechargeService;
 import com.money.mapper.UmsMemberMapper;
 import com.money.service.*;
 import com.money.web.vo.PageVO;

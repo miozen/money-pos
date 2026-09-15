@@ -1,9 +1,9 @@
-package com.money.controller;
+package com.money.feature.ums.interfaces.rest;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.entity.UmsMemberLog;
 import com.money.entity.UmsRechargeOrder;
-import com.money.service.UmsMemberAssetService; // 🌟 引入标准的资产服务
+import com.money.feature.ums.application.memberasset.UmsMemberAssetService; // 🌟 引入标准的资产服务
 import com.money.service.UmsMemberService;
 import com.money.web.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;

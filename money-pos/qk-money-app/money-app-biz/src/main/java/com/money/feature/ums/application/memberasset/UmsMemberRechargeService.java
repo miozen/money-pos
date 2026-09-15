@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.ums.application.memberasset;
 
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

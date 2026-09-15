@@ -534,3 +534,15 @@ Before moving a GMS catalog or price/stock service, define an explicit compatibi
 ### Next Unit
 
 Inventory the member asset and recharge write path as one transaction group before moving it. Preserve `MemberAssetFacade` as TRADE's write-side entry and do not move the shared member, log, or recharge Mappers until all external consumers are mapped.
+
+### Completed: UMS Member Asset and Recharge Slice
+
+- Confirmed the transaction group: `UmsMemberAssetService` supplies member log reads and settlement/refund asset operations; `UmsMemberRechargeService` creates and voids recharge transactions. `UmsMemberAssetController` exposes the related asset and recharge routes.
+- Moved both services to `com.money.feature.ums.application.memberasset` and the controller to `com.money.feature.ums.interfaces.rest`.
+- Updated `UmsMemberServiceImpl` and the existing TRADE `MemberAssetFacade` to depend on the moved UMS services. The Facade remains the only TRADE checkout/refund caller of the asset service; no TRADE implementation or Mapper dependency was introduced.
+- Retained `UmsMemberMapper`, `UmsMemberLogMapper`, and `UmsRechargeOrderMapper` in the shared compatibility package because member profile, import, FIN dashboard, TRADE support, and the moved services still use them. Transaction annotations and asset/recharge write behavior remain unchanged.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; the suite includes settlement and refund member-asset scenarios. Source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Inventory the UMS member-profile and import subdomains together before moving either. `UmsMemberService` remains the shared interface used by TRADE and FIN, so any move must preserve that compatibility surface; do not move `UmsMemberMapper` or `UmsMemberBrandLevelMapper` while HOME, TRADE, and import code use them.
