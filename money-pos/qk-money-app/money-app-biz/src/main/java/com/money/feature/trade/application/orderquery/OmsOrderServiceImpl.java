@@ -19,7 +19,7 @@ import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
 import com.money.feature.trade.application.orderquery.OmsOrderService;
-import com.money.service.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
 import com.money.web.exception.BaseException;

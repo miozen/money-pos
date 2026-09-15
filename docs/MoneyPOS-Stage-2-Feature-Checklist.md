@@ -67,7 +67,7 @@
 
 - [x] 2.5.1 已按会员档案、资产/券、充值与导入盘点 UMS 调用图；`UmsMemberService` 是 TRADE/FIN 共享查询入口，会员等级、会员、流水 Mapper 被多个 Feature 使用。
 - [x] 2.5.2 已确认 `MemberAssetFacade` 仍是 TRADE 结算与退款的写侧入口；`UmsMemberAssetService` 未被 TRADE 直接注入。
-- [ ] 2.5.3 已完成会员流水、会员资产与充值两个 UMS 子域：控制器和服务归入 `feature.ums`，共享 Mapper 因被 TRADE/FIN/HOME/导入等调用而保留兼容包；会员档案、导入与 POS 兼容入口仍待逐子域迁移和独立提交。
+- [ ] 2.5.3 已完成会员流水、会员资产/充值、会员档案/导入三个 UMS 子域：控制器和服务归入 `feature.ums`，共享 Mapper 因被 TRADE/FIN/HOME/GMS 导入等调用而保留兼容包；仅 `UmsMemberPosController` 因实际依赖 TRADE `PosService` 而待归入 TRADE 展示层。
 - [ ] 2.5.4 运行余额、优惠券、混合支付、退款资产恢复回归。
 
 ## 2.6 阶段 2 收口验证

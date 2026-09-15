@@ -7,7 +7,7 @@ import com.money.dto.pos.SettleAccountsDTO;
 import com.money.entity.GmsGoods;
 import com.money.entity.UmsMember;
 import com.money.service.GmsGoodsService;
-import com.money.service.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

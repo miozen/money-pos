@@ -12,7 +12,7 @@ import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberLogMapper;
-import com.money.service.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

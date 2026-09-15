@@ -7,6 +7,7 @@ import com.money.dto.pos.*;
 import com.money.entity.*;
 import com.money.mapper.*;
 import com.money.service.*;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
 import com.money.web.util.BeanMapUtil;
 import lombok.RequiredArgsConstructor;

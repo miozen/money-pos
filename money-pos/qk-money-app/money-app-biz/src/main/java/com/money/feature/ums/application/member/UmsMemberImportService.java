@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.ums.application.member;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;

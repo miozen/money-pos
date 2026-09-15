@@ -9,7 +9,7 @@ import com.money.entity.*;
 import com.money.mapper.*;
 import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
 import com.money.feature.fin.application.dashboard.FinanceDashboardService;
-import com.money.service.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.fin.application.dashboard.FinanceDashboardAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

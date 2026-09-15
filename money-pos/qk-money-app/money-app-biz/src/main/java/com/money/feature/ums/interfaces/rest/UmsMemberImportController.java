@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.ums.interfaces.rest;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -12,7 +12,7 @@ import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.SysDictDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
-import com.money.service.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.util.ExcelDropDownHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

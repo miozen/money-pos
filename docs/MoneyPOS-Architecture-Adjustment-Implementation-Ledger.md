@@ -546,3 +546,16 @@ Inventory the member asset and recharge write path as one transaction group befo
 ### Next Unit
 
 Inventory the UMS member-profile and import subdomains together before moving either. `UmsMemberService` remains the shared interface used by TRADE and FIN, so any move must preserve that compatibility surface; do not move `UmsMemberMapper` or `UmsMemberBrandLevelMapper` while HOME, TRADE, and import code use them.
+
+### Completed: UMS Member Profile and Import Slice
+
+- Confirmed the contained compatibility surface: `UmsMemberController` and `UmsMemberImportController` use the UMS member application interface; `UmsMemberServiceImpl` orchestrates the profile, asset, recharge, and import subdomains. TRADE and FIN use only `UmsMemberService`.
+- Moved `UmsMemberService`, its implementation, `UmsMemberProfileService`, and `UmsMemberImportService` to `com.money.feature.ums.application.member`; moved both controllers to `com.money.feature.ums.interfaces.rest`.
+- Updated TRADE, FIN, and UMS controller imports to the relocated `UmsMemberService` interface. The `UmsMemberServiceImpl.MemberGoodsRankVO` compatibility type moved together with its implementation; its service and controller references were updated without changing the public method signature.
+- Retained `UmsMemberMapper`, `UmsMemberBrandLevelMapper`, `UmsMemberLogMapper`, `GmsBrandMapper`, and coupon-related Mappers in the shared compatibility package because HOME, TRADE, FIN, GMS import, and the UMS subdomains still use them.
+- Preserved all `/ums/member` routes, generated component names, method signatures, transaction annotations, DTO/entity packages, Excel import/export behavior, and database contracts.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Classify and move `UmsMemberPosController` with the TRADE presentation boundary: it exposes `/ums/member/pos-search` and coupon-rule routes but only depends on TRADE `PosService`, so it is not UMS-owned. Then reassess the remaining legacy UMS Mapper compatibility reasons and run the UMS functional regression gate.

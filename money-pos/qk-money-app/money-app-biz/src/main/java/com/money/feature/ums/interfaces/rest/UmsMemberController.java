@@ -1,11 +1,11 @@
-package com.money.controller;
+package com.money.feature.ums.interfaces.rest;
 
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.mapper.UmsMemberMapper;
-import com.money.service.UmsMemberService;
-import com.money.service.impl.UmsMemberServiceImpl.MemberGoodsRankVO;
+import com.money.feature.ums.application.member.UmsMemberService;
+import com.money.feature.ums.application.member.UmsMemberServiceImpl.MemberGoodsRankVO;
 import com.money.web.dto.ValidGroup;
 import com.money.web.vo.PageVO;
 import io.swagger.v3.oas.annotations.Operation;

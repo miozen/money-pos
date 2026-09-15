@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.ums.application.member;
 
 import com.money.entity.UmsMember;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -6,7 +6,6 @@ import com.money.web.vo.PageVO;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
-import com.money.service.impl.UmsMemberServiceImpl;
 
 import java.math.BigDecimal;
 import java.util.Set;

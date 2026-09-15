@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.ums.application.member;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -18,7 +18,9 @@ import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
-import com.money.service.impl.UmsMemberServiceImpl.MemberGoodsRankVO;
+import com.money.feature.ums.application.member.UmsMemberServiceImpl.MemberGoodsRankVO;
+import com.money.service.GmsBrandService;
+import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
 import com.money.web.exception.BaseException;
 import com.money.web.vo.PageVO;
