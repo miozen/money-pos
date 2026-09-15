@@ -559,3 +559,14 @@ Inventory the UMS member-profile and import subdomains together before moving ei
 ### Next Unit
 
 Classify and move `UmsMemberPosController` with the TRADE presentation boundary: it exposes `/ums/member/pos-search` and coupon-rule routes but only depends on TRADE `PosService`, so it is not UMS-owned. Then reassess the remaining legacy UMS Mapper compatibility reasons and run the UMS functional regression gate.
+
+### Completed: TRADE Member POS Presentation and UMS Compatibility Review
+
+- Confirmed `UmsMemberPosController` has no callers and depends only on the TRADE-owned `PosService`; its `/ums/member/pos-search` and `/ums/member/coupon-rules` routes are TRADE presentation capabilities despite their UMS URL prefix.
+- Moved that controller to `com.money.feature.trade.interfaces.rest`, preserving its class/component name, routes, DTO/entity types, and public methods.
+- Reconfirmed every remaining UMS Mapper compatibility reason: `UmsMemberMapper` is used across UMS member subdomains; `UmsMemberLogMapper` is read by FIN and written by TRADE support and UMS; `UmsMemberBrandLevelMapper` is read by HOME and TRADE as well as UMS; `UmsRechargeOrderMapper` belongs to the moved asset/recharge services. All remain in `com.money.mapper` until a later shared-infrastructure boundary is introduced.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former controller package.
+
+### Next Unit
+
+Run the UMS functional regression gate for member profile, import/export, recharge/void, asset logs, POS member search, and coupon rules when an authenticated HTTP or desktop environment is available. It remains a Stage 2 acceptance requirement; no further UMS package move is necessary before that verification.

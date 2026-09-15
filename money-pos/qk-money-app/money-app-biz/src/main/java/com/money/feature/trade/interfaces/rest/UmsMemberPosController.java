@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.trade.interfaces.rest;
 
 import com.money.feature.trade.application.pos.PosService;
 import io.swagger.v3.oas.annotations.Operation;
