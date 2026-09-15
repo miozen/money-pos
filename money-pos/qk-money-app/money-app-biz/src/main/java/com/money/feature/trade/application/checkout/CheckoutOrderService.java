@@ -13,7 +13,7 @@ import com.money.entity.GmsGoodsCategory;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
-import com.money.service.GmsGoodsCategoryService;
+import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

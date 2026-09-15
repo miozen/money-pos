@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.catalog;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -16,7 +16,6 @@ import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;
 import com.money.oss.core.FolderPath;
 import com.money.oss.local.LocalOSS;
-import com.money.service.GmsBrandService;
 import com.money.util.PageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

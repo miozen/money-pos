@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.money.web.dto.ValidGroup;
 import com.money.web.vo.PageVO;
@@ -6,7 +6,7 @@ import com.money.dto.GmsBrand.GmsBrandDTO;
 import com.money.dto.GmsBrand.GmsBrandQueryDTO;
 import com.money.dto.GmsBrand.GmsBrandVO;
 import com.money.dto.SelectVO;
-import com.money.service.GmsBrandService;
+import com.money.feature.gms.application.catalog.GmsBrandService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

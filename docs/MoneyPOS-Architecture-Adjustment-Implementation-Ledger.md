@@ -581,3 +581,15 @@ Run the UMS functional regression gate for member profile, import/export, rechar
 ### Next Unit
 
 Move the GMS brand-and-category metadata slice: `GmsBrandController`, `GmsBrandService` and implementation, `GmsGoodsCategoryController`, `GmsGoodsCategoryService` and implementation, plus the category Mapper. Update GMS goods/Excel callers and TRADE/UMS interface imports; preserve routes, component names, transaction behavior, and shared `GmsBrandMapper` compatibility.
+
+### Completed: GMS Catalog Metadata Slice
+
+- Moved `GmsBrandController` and `GmsGoodsCategoryController` to `com.money.feature.gms.interfaces.rest`; moved `GmsBrandService`, `GmsGoodsCategoryService`, and their implementations to `com.money.feature.gms.application.catalog`.
+- Moved `GmsGoodsCategoryMapper` to `com.money.feature.gms.infrastructure.persistence.mapper`. The existing GMS Mapper scan root discovers it; GMS Excel now imports the moved Mapper.
+- Updated GMS product/Excel callers and TRADE/UMS interface callers to depend on the relocated brand/category service interfaces. Routes, Spring component names, public signatures, transaction annotations, DTO/entity packages, SQL, and Excel behavior remain unchanged.
+- Retained `GmsBrandMapper` in `com.money.mapper` because UMS member import and GMS Excel still use it. Product, combo, price, stock, and log Mappers remain shared compatibility infrastructure.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Perform a no-change compatibility design for the high-coupling `GmsGoodsService` group before moving it. Its TRADE checkout/POS/support, HOME, GMS inventory/analysis, and Excel callers require an explicit interface boundary; do not move the product, combo, price, stock, or log Mappers independently.

@@ -8,7 +8,7 @@ import com.money.entity.GmsGoodsCategory;
 import com.money.entity.PosSkuLevelPrice;
 import com.money.entity.SysDictDetail;
 import com.money.mapper.GmsBrandMapper;
-import com.money.mapper.GmsGoodsCategoryMapper;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.mapper.SysDictDetailMapper;
 import com.money.service.GmsGoodsPriceService;
 import com.money.service.GmsGoodsService;

@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.catalog;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -8,12 +8,11 @@ import com.money.dto.GmsGoodsCategory.GmsGoodsCategoryDTO;
 import com.money.dto.SelectVO;
 import com.money.dto.TreeNodeVO;
 import com.money.entity.GmsGoodsCategory;
-import com.money.mapper.GmsGoodsCategoryMapper;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;
 import com.money.oss.core.FolderPath;
 import com.money.oss.local.LocalOSS;
-import com.money.service.GmsGoodsCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.gms.application.catalog;
 
 import com.money.dto.SelectVO;
 import com.money.entity.GmsBrand;

@@ -1,10 +1,10 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.money.web.dto.ValidGroup;
 import com.money.dto.GmsGoodsCategory.GmsGoodsCategoryDTO;
 import com.money.dto.SelectVO;
 import com.money.dto.TreeNodeVO;
-import com.money.service.GmsGoodsCategoryService;
+import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
