@@ -593,3 +593,15 @@ Move the GMS brand-and-category metadata slice: `GmsBrandController`, `GmsBrandS
 ### Next Unit
 
 Perform a no-change compatibility design for the high-coupling `GmsGoodsService` group before moving it. Its TRADE checkout/POS/support, HOME, GMS inventory/analysis, and Excel callers require an explicit interface boundary; do not move the product, combo, price, stock, or log Mappers independently.
+
+### Completed: GMS Product Core Compatibility Design (No Code Move)
+
+- `GmsGoodsService` is the temporary cross-feature product compatibility interface. TRADE checkout/POS/support, HOME, GMS stock analysis, GMS Excel, and the product controllers use it; several callers also use inherited `IService` methods such as `listByIds` and query chains. Replacing it with a narrower Facade would alter the established API and is out of scope for Stage 2.
+- The service implementation is the GMS product-core transaction orchestrator: it coordinates brand/category counters, product persistence, member-price matrix, combo BOM, and stock updates. Its public `add`, `update`, and `delete` methods retain the existing class-level transaction boundary.
+- `GmsGoodsComboService`, `GmsGoodsPriceService`, and `GmsGoodsStockService` are internal product-core helpers. `GmsGoodsExcelManager` and `GmsGoodsExcelController` form the same product-catalog compatibility surface because import/export calls the product and price services.
+- Boundary decision: move the product service interface/implementation, three helpers, goods controller, Excel controller, and Excel manager together into GMS logical packages; retain `GmsGoodsMapper`, `GmsGoodsComboMapper`, `PosSkuLevelPriceMapper`, `GmsStockLogMapper`, and `GmsBrandMapper` in the shared Mapper package. Existing TRADE direct Mapper use is recorded compatibility debt and must not be expanded in this stage.
+- `GmsStockLogService` is excluded from this slice: it is the existing TRADE batch-log write API and stays compatible until the shared stock-log persistence boundary is addressed.
+
+### Next Unit
+
+Move the GMS product-core logical slice with compatibility imports only: `GmsGoodsController`, `GmsGoodsService` and implementation, `GmsGoodsComboService`, `GmsGoodsPriceService`, `GmsGoodsStockService`, `GmsGoodsExcelManager`, and `GmsGoodsExcelController`. Preserve all routes, `IService` compatibility, transactions, SQL, Excel behavior, and shared Mapper packages; verify compilation and the Stage 0 suite before committing.
