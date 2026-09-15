@@ -1,7 +1,7 @@
-package com.money.controller;
+package com.money.feature.home.interfaces.rest;
 
-import com.money.service.DecisionEngineService;
-import com.money.service.HomeService;
+import com.money.feature.home.application.DecisionEngineService;
+import com.money.feature.home.application.HomeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

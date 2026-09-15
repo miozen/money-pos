@@ -404,3 +404,40 @@ Inventory the remaining FIN dashboard, report, shift, controller, and Mapper typ
 ### Next Unit
 
 Start HOME item 2.2.1: add a narrow decision-engine snapshot characterization test before moving any HOME production type. Keep the decision engine package and behavior unchanged until that test establishes first-call creation and same-date update behavior.
+
+### Completed: HOME Snapshot Characterization
+
+- Added `HomeCountSnapshotCharacterizationTest` for the existing `HomeController.homeCountVO()` entry used by `GET /home/count`.
+- The test deletes only the current-day test snapshot, verifies the first call creates it, modifies the persisted value, then verifies the second same-day call keeps the same snapshot ID and recalculates its content rather than inserting a duplicate.
+- The test fixes the existing dashboard response shape at six top-level keys: `today`, `month`, `year`, `total`, `inventoryValue`, and `alerts`.
+- Preserved all HOME production packages, Spring component names, routes, SQL, mapper usage, snapshot write timing, and transaction behavior.
+- Verified with `mvn -B -ntp -pl qk-money-app/money-app-biz -am test -Dtest=HomeCountSnapshotCharacterizationTest -Dsurefire.failIfNoSpecifiedTests=false`: 1 test passed against `money_pos_test`.
+- Residual risk remains explicit: the endpoint writes daily snapshots on read and its application-level select-then-insert path has no synchronization. The database `UNIQUE(record_date)` constraint prevents duplicate rows, but concurrent first access can still surface a unique-key failure; this test characterizes the behavior but does not change it.
+
+### Next Unit
+
+Complete HOME item 2.2.2: inventory every direct dependency and read/write operation of `HomeController`, `HomeService`, and `DecisionEngineService` before moving any production type.
+
+### Completed: HOME Dependency Inventory
+
+- `HomeController` is the only production caller of `DecisionEngineService.getComprehensiveDashboard()` through `GET /home/count`; `GET /home/charts` is the only production caller of `HomeService.getChartsData(String)`. `HomeService.homeCount()` has no production caller and remains a compatibility API.
+- `HomeServiceImpl` is read-only: it reads order aggregates through `OmsOrderMapper`, trend and brand data through `OmsOrderDetailMapper`, member-level chart data through `UmsMemberBrandLevelMapper`, and inventory value through the GMS-facing `GmsGoodsService` interface.
+- `DecisionEngineServiceImpl` is the HOME write-on-read component: it reads order analysis through `OmsOrderAnalysisMapper`, member/order and historical-summary aggregates through `JdbcTemplate`, reads inventory value through `GmsGoodsService`, and creates or updates `OmsDailySummary` through `OmsDailySummaryMapper`.
+- The snapshot table has `UNIQUE(record_date)`. There is no service-level transaction annotation or application synchronization around the select-then-insert branch, so the existing concurrent-first-request risk must be retained during a package-only move.
+- No other production type injects either HOME service; the controller, both service interfaces and implementations, and the decision engine form a contained compatibility surface. The controller routes, shared GMS interface, shared OMS/UMS mappers, DTOs, entities, and JDBC SQL remain unchanged for the next unit.
+
+### Next Unit
+
+Move the contained HOME controller, service interfaces and implementations, and decision engine to `feature.home` with compatibility imports only. Preserve existing Spring bean names, routes, direct mapper/JDBC access, and write-on-read snapshot behavior; then run the HOME characterization test plus the stage 0 checkout suite before creating the HOME-only commit.
+
+### Completed: HOME Logical Package Move
+
+- Moved `HomeController` to `com.money.feature.home.interfaces.rest` and moved `HomeService`, `DecisionEngineService`, and both implementations to `com.money.feature.home.application`.
+- Updated only the controller and HOME characterization-test imports. Class names, generated Spring bean names, HTTP routes, public methods, DTO/entity packages, mapper packages, JDBC SQL, snapshot write timing, and transaction annotations remain unchanged.
+- Verified the full Spring context resolves the moved components and ran `HomeCountSnapshotCharacterizationTest` plus `CheckoutIntegrationTest`: 11 tests passed, with 0 failures and 0 errors, against `money_pos_test`.
+- Verified no source or test code imports the former HOME controller/service packages and `git diff --check` is clean.
+- Residual risk remains unchanged: `GET /home/count` writes snapshots on read; the database unique key rejects duplicate dates but concurrent first access can still encounter a unique-key failure. Manual browser smoke of `/home/count` and `/home/charts` remains required before Stage 2 completion.
+
+### Next Unit
+
+Perform the HOME route manual smoke. The current HOME-only commit is the rollback scope; after the smoke, start TRADE item 2.3.1 with a call-surface and mapper-scan inventory, and do not move TRADE production types before it is explicit.

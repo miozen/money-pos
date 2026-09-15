@@ -36,10 +36,10 @@
 
 ## 2.2 HOME Feature 完整切片
 
-- [ ] 2.2.1 为 `GET /home/count` 补快照特征测试：首次创建、同日更新、输出结构。
-- [ ] 2.2.2 盘点 `HomeController`、`HomeService`、`DecisionEngineService` 的所有跨域读取与写入。
-- [ ] 2.2.3 在不改变现有写时机、SQL、唯一键处理或事务行为的前提下，迁移 HOME 控制器、服务和决策引擎到 `feature.home`。
-- [ ] 2.2.4 验证首页路由、快照写入、Spring Bean 与阶段 0 回归，并单独提交。
+- [x] 2.2.1 为 `GET /home/count` 补快照特征测试：首次创建、同日更新、输出结构。`HomeCountSnapshotCharacterizationTest` 验证首次调用创建当天快照、同日再次调用保持同一快照 ID 并更新内容，以及 `today`、`month`、`year`、`total`、`inventoryValue`、`alerts` 六个顶层字段。
+- [x] 2.2.2 已盘点 `HomeController`、`HomeService`、`DecisionEngineService` 的所有跨域读取与写入：`/home/count` 是决策引擎唯一生产调用方，`/home/charts` 是图表服务唯一生产调用方；HOME 读取 GMS 服务接口及 OMS/UMS Mapper，决策引擎保留通过 Mapper/JDBC 的快照写入。`oms_daily_summary` 有 `UNIQUE(record_date)`，但现有先查再插路径没有应用层同步。
+- [x] 2.2.3 已在不改变现有写时机、SQL、唯一键处理或事务行为的前提下，迁移 HOME 控制器、服务和决策引擎到 `feature.home`：接口与实现位于 `feature.home.application`，控制器位于 `feature.home.interfaces.rest`。
+- [ ] 2.2.4 已完成 Spring 上下文、快照写入和阶段 0 自动回归，并以当前 HOME-only 提交收口；仍需执行浏览器中的首页路由手工冒烟。
 
 ## 2.3 TRADE Feature 完整切片
 
