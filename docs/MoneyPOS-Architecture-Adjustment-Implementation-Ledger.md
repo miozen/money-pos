@@ -668,6 +668,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - All Stage 2 package-boundary, static-discovery, automatic-test, and available web-functional acceptance items are complete. The deferred printer check remains traceable for the later hardware-enabled validation.
 - Stage 3 may begin. Preserve the existing local `dev` branch discipline: do not push or merge to `main` without the user's explicit request, and do not include the user's unrelated uncommitted front-end or local configuration changes in architecture commits.
 
+### Completed: Stage 3 Execution Checklist Created
+
+- Created `docs/MoneyPOS-Stage-3-Runtime-Capability-Checklist.md`, following the Stage 2 checklist format and the ledger-defined Stage 3 scope.
+- The checklist deliberately starts with no completed Stage 3 code items. It prioritizes workspace initialization, embedded MariaDB guarding, and local-file capability; backup, printer, POS WebSocket, and Electron main-process changes remain separately deferred.
+- The existing receipt-printer hardware acceptance remains traceable as a future environment check and does not block the other Stage 3 slices.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
