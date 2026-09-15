@@ -629,6 +629,17 @@ Run the GMS functional regression gate for catalog CRUD, category/brand selectio
 
 Run the remaining Stage 2 automatic closure checks: full `mvn test`, `mvn package`, and static Bean/Mapper/legacy-package scans. Keep the authenticated HTTP/desktop smoke list as the final manual acceptance gate.
 
+### Completed: Stage 2 Static Discovery and Compatibility Check
+
+- Scanned every Java import for a package vacated by a Stage 2 rename; no stale old-package import remains.
+- Production Java simple-class names are unique, so the default Spring component naming strategy has no duplicate-name candidate after the package moves. The existing integration suites have also started the full Spring context after the moves.
+- `MybatisConfig` scans the shared legacy Mapper package plus the FIN, GMS, and TRADE feature persistence packages. This covers every moved Mapper root.
+- Reconfirmed the remaining legacy GMS and UMS Mappers have multiple active consumers and remain documented compatibility infrastructure rather than accidental incomplete moves.
+
+### Next Unit
+
+Run the Stage 2 full automatic closure: `mvn test`, `mvn package`, and the Stage 0 suite. Do not stage or modify the user's existing front-end and local configuration changes while performing those checks.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
