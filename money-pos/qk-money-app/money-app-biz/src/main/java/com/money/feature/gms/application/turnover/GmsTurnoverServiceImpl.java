@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.turnover;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -6,10 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.TurnoverDataVO.*;
 import com.money.entity.GmsTurnoverWarningSnapshot;
 import com.money.entity.SysStrategy;
-import com.money.mapper.GmsTurnoverMapper;
-import com.money.mapper.GmsTurnoverWarningSnapshotMapper; // 🌟 新增的快照 Mapper
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverMapper;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverWarningSnapshotMapper; // 🌟 新增的快照 Mapper
 import com.money.mapper.SysStrategyMapper;
-import com.money.service.GmsTurnoverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

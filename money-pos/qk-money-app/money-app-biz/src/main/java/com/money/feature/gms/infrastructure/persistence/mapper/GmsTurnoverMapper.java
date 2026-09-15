@@ -1,4 +1,4 @@
-package com.money.mapper;
+package com.money.feature.gms.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.money.dto.GmsGoods.TurnoverDataVO.WarningItemVO;

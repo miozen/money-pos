@@ -55,8 +55,8 @@
 当前未开始：9 个 Controller、11 个服务接口、8 个实现、12 个 Mapper 仍在旧包。
 
 - [x] 2.4.1 已按商品目录、价格库存、库存单据/分析盘点 GMS 调用图。商品目录包含品牌、分类、商品、组合、导入和价格；价格库存包含商品库存计算、库存日志和 POS 等级价；库存单据/分析包含入出库单、库存单据、周转与库存分析。TRADE 继续经 Facade 使用商品与库存写侧；被 FIN、HOME、UMS 或 TRADE 复用的 Mapper 保留兼容包。
-- [ ] 2.4.2 先迁移不被 TRADE 直接注入的 GMS 内部类型；TRADE 写侧继续通过 Facade。
-- [ ] 2.4.3 迁移 GMS Controller、Service、实现和明确归属的 Mapper，逐子域验证并单独提交。
+- [x] 2.4.2 已先迁移不被 TRADE 直接注入的 GMS 周转预警子域；TRADE 写侧仍通过 Facade。
+- [x] 2.4.3 已完成周转预警子域的 Controller、Service、实现和专属 Mapper 迁移，并通过阶段 0 回归；其余 GMS 子域继续逐个迁移、验证与提交。
 - [ ] 2.4.4 运行商品、库存、POS 结算与退款回归。
 
 ## 2.5 UMS Feature 完整切片

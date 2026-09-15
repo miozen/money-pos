@@ -476,3 +476,15 @@ Run TRADE API-level regression for POS listing, member lookup, settlement trial,
 ### Next Unit
 
 Choose and inventory one isolated GMS internal candidate—prefer turnover or stock analysis—then move only that controller/service/implementation/Mapper set in a separately verified GMS commit. Keep catalog, price, and shared inventory Mappers in their compatibility packages until their cross-feature callers are addressed.
+
+### Completed: GMS Turnover Warning Slice
+
+- Moved `GmsTurnoverController` to `com.money.feature.gms.interfaces.rest`, `GmsTurnoverService` and its implementation to `com.money.feature.gms.application.turnover`, and the turnover query and snapshot Mappers to `com.money.feature.gms.infrastructure.persistence.mapper`.
+- The turnover controller/service/implementation and both Mappers have no callers outside this slice. Its remaining `SysStrategyMapper` dependency stays in the shared SYS compatibility package.
+- Extended `MybatisConfig` to scan the GMS persistence package while retaining the legacy shared, FIN, and TRADE Mapper scan roots.
+- Preserved controller class and component names, `/gms/analysis` routes, Excel export behavior, turnover SQL, snapshot write-on-read behavior, DTO/entity packages, and tenant-interceptor annotations.
+- Verified with `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; Spring startup confirms the moved GMS Mappers are scanned.
+
+### Next Unit
+
+Inventory the GMS stock-analysis controller/service as the next candidate, but keep `GmsStockLogMapper` compatible until all inventory-document and stock-log consumers are addressed. Do not move catalog or shared stock types together with it.

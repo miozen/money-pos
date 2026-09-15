@@ -1,10 +1,10 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.money.dto.GmsGoods.TurnoverDataVO.TurnoverDashboardVO;
 import com.money.dto.GmsGoods.TurnoverDataVO.WarningItemVO;
 import com.money.dto.GmsGoods.TurnoverReplenishExcelDTO;
 import com.money.dto.GmsGoods.TurnoverDeadStockExcelDTO;
-import com.money.service.GmsTurnoverService;
+import com.money.feature.gms.application.turnover.GmsTurnoverService;
 import com.money.util.ExcelUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
