@@ -1,4 +1,4 @@
-package com.money.mapper;
+package com.money.feature.trade.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.money.entity.OmsRefundIdempotent;

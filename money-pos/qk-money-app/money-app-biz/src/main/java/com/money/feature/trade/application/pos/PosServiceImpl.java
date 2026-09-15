@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.trade.application.pos;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

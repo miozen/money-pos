@@ -8,7 +8,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
-@MapperScan(basePackages = {"com.money.mapper", "com.money.feature.fin.infrastructure.persistence.mapper"})
+@MapperScan(basePackages = {
+        "com.money.mapper",
+        "com.money.feature.fin.infrastructure.persistence.mapper",
+        "com.money.feature.trade.infrastructure.persistence.mapper"
+})
 public class MybatisConfig {
 
     /**

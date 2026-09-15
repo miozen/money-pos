@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.trade.interfaces.rest;
 
 import com.money.dto.pos.PosGoodsVO;
 import com.money.dto.pos.PosMemberVO;
@@ -6,7 +6,7 @@ import com.money.dto.pos.PricingResult;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.pos.SettleTrialReqDTO;
-import com.money.service.PosService;
+import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

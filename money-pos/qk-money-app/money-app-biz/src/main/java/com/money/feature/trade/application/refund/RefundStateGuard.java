@@ -4,7 +4,7 @@ import com.money.constant.BizErrorStatus;
 import com.money.constant.OrderStatusEnum;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsRefundIdempotent;
-import com.money.mapper.OmsRefundIdempotentMapper;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsRefundIdempotentMapper;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

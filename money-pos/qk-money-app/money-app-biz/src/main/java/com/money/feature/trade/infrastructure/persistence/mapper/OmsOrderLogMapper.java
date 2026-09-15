@@ -1,4 +1,4 @@
-package com.money.mapper;
+package com.money.feature.trade.infrastructure.persistence.mapper;
 
 import com.money.entity.OmsOrderLog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

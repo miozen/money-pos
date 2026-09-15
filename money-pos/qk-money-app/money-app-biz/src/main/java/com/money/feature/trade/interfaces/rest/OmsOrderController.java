@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.trade.interfaces.rest;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.constant.BizErrorStatus;

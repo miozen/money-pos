@@ -440,4 +440,28 @@ Move the contained HOME controller, service interfaces and implementations, and 
 
 ### Next Unit
 
-Perform the HOME route manual smoke. The current HOME-only commit is the rollback scope; after the smoke, start TRADE item 2.3.1 with a call-surface and mapper-scan inventory, and do not move TRADE production types before it is explicit.
+The HOME route manual smoke is deferred until a Windows/Electron desktop environment is available because the current source workspace runs under WSL. The current HOME-only commit is the rollback scope. This acceptance item remains required for Stage 2 completion but does not block code-boundary work; start TRADE item 2.3.1 with a call-surface and mapper-scan inventory, and do not move TRADE production types before it is explicit.
+
+### Completed: TRADE Presentation and Persistence Inventory
+
+- `PosController`, `OmsOrderController`, and `PosService` are the contained TRADE presentation/application surface. `UmsMemberPosController` is their only external production caller and can retain a dependency on the TRADE-facing `PosService` interface.
+- `PosGoodsController` belongs to GMS because it only calls `GoodsPosFacade`; `PosCouponRuleController` belongs to UMS because it manages coupon rules and member coupons; `OmsSalesAnalysisController` belongs to FIN because it only calls the FIN-owned analysis service. None belongs in the TRADE move.
+- `OmsOrderLogMapper` is used only by the TRADE order-log service and `OmsRefundIdempotentMapper` only by the TRADE refund state guard. They are safe TRADE persistence candidates.
+- `OmsOrderMapper`, `OmsOrderDetailMapper`, and `OmsOrderPayMapper` remain shared compatibility Mappers because TRADE writes through them while HOME and FIN read them. `OmsDailySummaryMapper`, `OmsOrderAnalysisMapper`, and `OmsOrderTrafficMapper` are HOME/FIN-owned; POS coupon, member-coupon, member-level, and level-price Mappers remain UMS/GMS compatible types because other features use them.
+- `MybatisConfig` currently scans `com.money.mapper` and the FIN Mapper package. A TRADE Mapper move must add the TRADE persistence package while retaining both existing scan roots.
+
+### Next Unit
+
+Move only `PosController`, `OmsOrderController`, `PosService`, `PosServiceImpl`, `OmsOrderLogMapper`, and `OmsRefundIdempotentMapper` into TRADE packages. Update `UmsMemberPosController`, the two TRADE mapper consumers, and `MybatisConfig`; preserve all routes, component names, SQL, DTO/entity types, and transaction behavior.
+
+### Completed: TRADE Presentation and Dedicated Mapper Move
+
+- Moved `PosController` and `OmsOrderController` to `com.money.feature.trade.interfaces.rest`, and moved `PosService` with `PosServiceImpl` to `com.money.feature.trade.application.pos`.
+- Moved `OmsOrderLogMapper` and `OmsRefundIdempotentMapper` to `com.money.feature.trade.infrastructure.persistence.mapper`; updated their only TRADE consumers and extended `MybatisConfig` to scan the shared legacy, FIN, and TRADE Mapper roots.
+- Updated `UmsMemberPosController` to depend on the moved TRADE-facing `PosService` interface. All controller class names, generated component names, routes, public signatures, SQL, DTO/entity packages, and transaction behavior remain unchanged.
+- Retained the shared OMS payment/order/detail Mappers and the GMS/UMS compatible POS Mappers in `com.money.mapper` because HOME, FIN, GMS, or UMS still use them. The TRADE settlement write path remains the checkout application layer and its Facades.
+- Verified no source or test code imports the former TRADE controller, service, implementation, or moved Mapper packages. `HomeCountSnapshotCharacterizationTest` and `CheckoutIntegrationTest` passed together: 11 tests, 0 failures, 0 errors, against `money_pos_test`.
+
+### Next Unit
+
+Run TRADE API-level regression for POS listing, member lookup, settlement trial, order query, refund, and receipt-print entry points when a suitable desktop or authenticated HTTP test setup is available. The Windows/Electron manual smoke remains deferred; do not move shared OMS/GMS/UMS Mappers before their owning Feature inventories are complete.

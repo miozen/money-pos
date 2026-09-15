@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.trade.application.pos;
 
 import com.money.dto.OmsOrder.OmsOrderVO;
 import com.money.dto.pos.PosGoodsVO;

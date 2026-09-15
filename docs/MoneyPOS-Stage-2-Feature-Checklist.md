@@ -39,15 +39,15 @@
 - [x] 2.2.1 为 `GET /home/count` 补快照特征测试：首次创建、同日更新、输出结构。`HomeCountSnapshotCharacterizationTest` 验证首次调用创建当天快照、同日再次调用保持同一快照 ID 并更新内容，以及 `today`、`month`、`year`、`total`、`inventoryValue`、`alerts` 六个顶层字段。
 - [x] 2.2.2 已盘点 `HomeController`、`HomeService`、`DecisionEngineService` 的所有跨域读取与写入：`/home/count` 是决策引擎唯一生产调用方，`/home/charts` 是图表服务唯一生产调用方；HOME 读取 GMS 服务接口及 OMS/UMS Mapper，决策引擎保留通过 Mapper/JDBC 的快照写入。`oms_daily_summary` 有 `UNIQUE(record_date)`，但现有先查再插路径没有应用层同步。
 - [x] 2.2.3 已在不改变现有写时机、SQL、唯一键处理或事务行为的前提下，迁移 HOME 控制器、服务和决策引擎到 `feature.home`：接口与实现位于 `feature.home.application`，控制器位于 `feature.home.interfaces.rest`。
-- [ ] 2.2.4 已完成 Spring 上下文、快照写入和阶段 0 自动回归，并以当前 HOME-only 提交收口；仍需执行浏览器中的首页路由手工冒烟。
+- [ ] 2.2.4 已完成 Spring 上下文、快照写入和阶段 0 自动回归，并以当前 HOME-only 提交收口。Windows/Electron 首页手工冒烟因当前源码运行于 WSL 而延期至可启动桌面环境时执行；不阻塞后续阶段 2 代码调整，但仍是阶段 2 最终验收项。
 
 ## 2.3 TRADE Feature 完整切片
 
 当前已迁移：checkout、refund、订单查询、订单明细/日志、Facade 与交易支持服务。
 
-- [ ] 2.3.1 盘点 `PosService`、剩余 Pos/OMS Controller、Pos/OMS Mapper 的调用面与扫描范围。
-- [ ] 2.3.2 迁移 TRADE 的控制器和明确归属的持久化类型；共享/跨 Feature 查询 Mapper 必须记录兼容理由。
-- [ ] 2.3.3 静态扫描确认 TRADE 写侧没有重新引入 GMS/UMS Mapper 或 `ServiceImpl` 依赖。
+- [x] 2.3.1 已盘点 `PosService`、剩余 Pos/OMS Controller、Pos/OMS Mapper 的调用面与扫描范围：`PosController`、`OmsOrderController` 与 `PosService` 归属 TRADE；`PosGoodsController`、`PosCouponRuleController`、`OmsSalesAnalysisController` 分别保留给 GMS、UMS、FIN。`OmsOrderLogMapper` 与 `OmsRefundIdempotentMapper` 仅被 TRADE 使用，可随 TRADE 迁移；订单、支付、分析、会员券与等级价格 Mapper 被 HOME/FIN/GMS/UMS 复用，暂留共享兼容包。Mapper 扫描需保留 `com.money.mapper` 并加入 TRADE 新包。
+- [x] 2.3.2 已迁移明确归属的 TRADE 类型：`PosController`、`OmsOrderController`、`PosService`、其实现，以及仅被 TRADE 使用的订单日志和退款幂等 Mapper；共享 Mapper 的兼容理由已记录在实施台账。
+- [x] 2.3.3 静态扫描确认迁移后的 TRADE 写侧未引入 GMS/UMS Mapper 或 `ServiceImpl` 依赖；结算写入仍经既有 checkout 与 Facade 边界。
 - [ ] 2.3.4 完成结算、退款、订单查询、POS 接口回归，单独提交。
 
 ## 2.4 GMS Feature 完整切片
