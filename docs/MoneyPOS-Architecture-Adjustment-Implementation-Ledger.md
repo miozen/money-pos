@@ -499,3 +499,15 @@ Inventory the GMS stock-analysis controller/service as the next candidate, but k
 ### Next Unit
 
 Inventory the GMS inventory-document and inventory-order subdomains together because they share goods, stock-log, and document Mappers; do not move either independently.
+
+### Completed: GMS Inventory Document and Order Slice
+
+- Completed the joint inventory: `GmsInventoryDocMapper` and `GmsInventoryDocItemMapper` remain in `com.money.mapper` because FIN reads the document Mapper and the TRADE stock Facade writes through both. `GmsGoodsMapper` and `GmsStockLogMapper` also remain compatible shared infrastructure because TRADE and other GMS inventory capabilities use them.
+- Moved `GmsInventoryController`, `GmsInventoryDocService`, its implementation, `GmsInventoryOrderService`, and its implementation into the GMS logical boundary: the controller is in `feature.gms.interfaces.rest`; both service pairs are in `feature.gms.application.inventory`.
+- Moved the exclusive `GmsInventoryOrderMapper` and `GmsInventoryOrderDetailMapper` to `feature.gms.infrastructure.persistence.mapper`. The existing GMS Mapper scan root discovers them; no scan configuration change was required.
+- Preserved all `/gms/inventory` routes, controller signatures, Spring component names, transaction annotations, SQL, DTO/entity packages, and inventory update behavior.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Inventory the remaining GMS catalog and price/stock types as separate candidates. Do not move `GmsGoodsMapper`, `GmsStockLogMapper`, or the document Mappers until their TRADE, FIN, and GMS compatibility callers have an explicit replacement boundary.

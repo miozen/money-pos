@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.gms.application.inventory;
 
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
 

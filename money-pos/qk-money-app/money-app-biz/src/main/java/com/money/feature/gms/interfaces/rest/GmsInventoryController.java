@@ -1,7 +1,7 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
-import com.money.service.GmsInventoryDocService;
+import com.money.feature.gms.application.inventory.GmsInventoryDocService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

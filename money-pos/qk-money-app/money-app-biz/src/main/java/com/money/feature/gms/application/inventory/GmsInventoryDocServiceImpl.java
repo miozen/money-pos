@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.inventory;
 
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -11,7 +11,6 @@ import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.GmsInventoryDocItemMapper;
 import com.money.mapper.GmsInventoryDocMapper;
 import com.money.mapper.GmsStockLogMapper;
-import com.money.service.GmsInventoryDocService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.inventory;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -11,11 +11,10 @@ import com.money.entity.GmsGoods;
 import com.money.entity.GmsInventoryOrder;
 import com.money.entity.GmsInventoryOrderDetail;
 import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsInventoryOrderDetailMapper;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsInventoryOrderMapper;
 import com.money.mapper.GmsGoodsMapper;
-import com.money.mapper.GmsInventoryOrderDetailMapper;
-import com.money.mapper.GmsInventoryOrderMapper;
 import com.money.mapper.GmsStockLogMapper;
-import com.money.service.GmsInventoryOrderService;
 import com.money.util.MoneyUtil;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
