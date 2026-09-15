@@ -674,6 +674,13 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - The checklist deliberately starts with no completed Stage 3 code items. It prioritizes workspace initialization, embedded MariaDB guarding, and local-file capability; backup, printer, POS WebSocket, and Electron main-process changes remain separately deferred.
 - The existing receipt-printer hardware acceptance remains traceable as a future environment check and does not block the other Stage 3 slices.
 
+### Completed: Stage 3.0 Runtime Capability Baseline
+
+- Recorded the local branch and dirty-worktree boundary: `dev` is 22 local commits ahead of `origin/dev`; the user's front-end, local startup/configuration, and WSL documentation changes remain excluded.
+- Identified three supported runtime modes: desktop embedded mode is explicitly enabled by `--app.home` or `money.workspace.embedded=true`; IDE/WSL mode skips the Windows embedded MariaDB and uses development configuration; tests use the dedicated test profile.
+- Added and passed `RuntimeCapabilityCharacterizationTest` (4 tests, 0 failures, 0 errors) without starting a real Windows MariaDB. It characterizes the explicit embedded-start condition, configured data-root directory layout, injected datasource/local-asset properties, and existing MariaDB port/database identity.
+- Recorded the dependency baseline: workspace is used by application startup and backup paths; local-file storage and static resource serving consume the injected bucket; backup directly uses workspace and MariaDB guard; printer is used by FIN/TRADE controllers; WebSocket remains independent. The backup task currently reads `app.home/backups` while the backup service reads `app.data/backups`; this pre-existing path inconsistency is explicitly deferred to the Stage 3.3/3.4 backup scope. The next minimal task is Stage 3.1 workspace-initialization boundary design.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.

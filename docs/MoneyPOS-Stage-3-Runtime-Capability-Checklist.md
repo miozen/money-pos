@@ -27,10 +27,10 @@
 
 ## 3.0 基线、范围与提交纪律
 
-- [ ] 3.0.1 记录本地 `dev` 与 `origin/dev` 的关系、未提交文件清单和当前启动方式；确认本阶段不覆盖用户的前端及本地配置改动。
-- [ ] 3.0.2 盘点 `AppWorkspace`、`WorkspaceEnv`、`AppConfigInjector`、`MariaDbGuardian`、`QkMoneyApplication` 及其所有生产调用方，区分桌面嵌入式、IDE/WSL 开发和测试三种运行模式。
-- [ ] 3.0.3 为当前行为补最小特征测试：启动条件、`app.home`/`app.data` 解析优先级、目录布局、数据库 URL 注入和开发模式不启动内嵌数据库。
-- [ ] 3.0.4 建立阶段 3 依赖扫描基线：记录现有 `workspace`、本地文件、备份、打印和 WebSocket 的依赖方向；明确本阶段仅处理首批三个运行时能力。
+- [x] 3.0.1 已记录：本地 `dev` 比 `origin/dev` 领先 22 个本地提交；现有前端、本地 `QkMoneyApplication.java`、`application-dev.yml` 与 WSL 文档改动保持不纳入阶段 3。当前启动模式为桌面嵌入式（`--app.home` 或 `money.workspace.embedded=true`）、IDE/WSL 外部数据库和 test profile 三种。
+- [x] 3.0.2 已盘点 `AppWorkspace`、`WorkspaceEnv`、`AppConfigInjector`、`MariaDbGuardian`、`QkMoneyApplication` 及其生产调用方。嵌入式模式顺序为目录准备、MariaDB 守护、配置注入；IDE/WSL 模式跳过此顺序，使用开发配置；测试通过独立 `application-test.yml` 运行。
+- [x] 3.0.3 已新增并通过 `RuntimeCapabilityCharacterizationTest`（4 tests, 0 failures, 0 errors）：覆盖嵌入式启动判定、显式数据目录与四类运行时目录、数据源/资产配置注入，以及既有 MariaDB 端口和库名契约；测试不启动真实 Windows MariaDB。
+- [x] 3.0.4 已建立依赖基线：`workspace` 由启动类及备份服务/任务使用；本地文件由 `LocalFileService` 和 `StorageWebConfig` 通过 `local.bucket` 使用；备份直接依赖工作区和 MariaDB 守护；打印由 FIN/TRADE Controller 使用；WebSocket 配置和 `PosSyncServer` 独立存在。发现备份任务使用 `app.home/backups`、备份服务使用 `app.data/backups` 的既有目录不一致，留待 3.3/3.4 专项处理。本阶段仅处理工作区、MariaDB 守护和本地文件能力。
 
 ## 3.1 工作区初始化能力切片
 
