@@ -651,6 +651,17 @@ Run the Stage 2 full automatic closure: `mvn test`, `mvn package`, and the Stage
 
 Complete the remaining Stage 2 manual acceptance: HOME `/home/count` and `/home/charts`; TRADE POS listing, member lookup, settlement trial, order query, refund, and receipt print. Then update the ledger to state whether Stage 3 preconditions are met. Preserve the user's uncommitted front-end and local configuration changes throughout.
 
+### Completed: Stage 2 Web Manual Acceptance (Hardware Exception Recorded)
+
+- The user confirmed that the running front-end and back-end test environment passed the HOME `/home/count` and `/home/charts` checks, plus TRADE POS product/member lookup, settlement, order query, and refund flows.
+- GMS and UMS web functional acceptance was already confirmed, completing the browser-visible business flows required by Stage 2.
+- Receipt printing cannot be exercised in the current environment because no receipt printer is attached. This is a hardware-environment exception, not a known application failure; it remains the only unverified TRADE acceptance action and must be checked when a supported printer is available.
+- After the Maven closure run, no Java back-end process or Vite/Node front-end process is listening. Maven test/package launches only temporary test servers and does not keep the web application running; this does not invalidate the previously completed web acceptance.
+
+### Next Unit
+
+Obtain a supported receipt printer for the final print-path check, or explicitly accept deferring that hardware-only check to Stage 3. Once that decision is recorded, update the ledger with the Stage 3 precondition status; do not include the user's unrelated uncommitted front-end or local configuration changes.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
