@@ -3,7 +3,7 @@ package com.money.task;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import com.money.service.SysBackupService;
-import com.money.workspace.WorkspaceEnv;
+import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -49,7 +49,7 @@ public class SysBackupTask {
      * 🧹 磁盘保护策略：仅保留最近 7 天的“自动备份包” (不会删老板的手动备份)
      */
     private void cleanOldAutoBackups() {
-        String backupDir = WorkspaceEnv.getAppHome() + File.separator + "backups";
+        String backupDir = RuntimeWorkspace.getAppHome() + File.separator + "backups";
         File dir = new File(backupDir);
         if (!dir.exists()) return;
 

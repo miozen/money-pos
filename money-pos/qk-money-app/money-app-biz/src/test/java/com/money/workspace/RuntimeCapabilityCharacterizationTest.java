@@ -1,6 +1,8 @@
 package com.money.workspace;
 
 import com.money.QkMoneyApplication;
+import com.money.platform.runtime.workspace.RuntimeWorkspace;
+import com.money.platform.runtime.workspace.RuntimeWorkspaceConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,8 +29,8 @@ class RuntimeCapabilityCharacterizationTest {
     @AfterEach
     void restoreGlobalState() throws Exception {
         restoreProperties();
-        setStaticField(WorkspaceEnv.class, "APP_HOME", null);
-        setStaticField(WorkspaceEnv.class, "APP_DATA", null);
+        setStaticField(RuntimeWorkspace.class, "appHome", null);
+        setStaticField(RuntimeWorkspace.class, "appData", null);
         setStaticField(MariaDbGuardian.class, "dbPassword", "");
     }
 
@@ -48,34 +50,45 @@ class RuntimeCapabilityCharacterizationTest {
     @Test
     void configuredDataDirectoryOwnsAllRuntimeDirectories(@TempDir Path temporaryDirectory) throws Exception {
         System.setProperty("app.data", temporaryDirectory.toString());
-        setStaticField(WorkspaceEnv.class, "APP_DATA", null);
-        setStaticField(WorkspaceEnv.class, "APP_HOME", null);
+        setStaticField(RuntimeWorkspace.class, "appData", null);
+        setStaticField(RuntimeWorkspace.class, "appHome", null);
 
-        WorkspaceEnv.prepareDirectories();
+        RuntimeWorkspace.prepareDirectories();
 
-        assertThat(Path.of(WorkspaceEnv.getAppData())).isEqualTo(temporaryDirectory.toAbsolutePath());
+        assertThat(Path.of(RuntimeWorkspace.getAppData())).isEqualTo(temporaryDirectory.toAbsolutePath());
         assertThat(temporaryDirectory.resolve("assets")).isDirectory();
         assertThat(temporaryDirectory.resolve("logs")).isDirectory();
         assertThat(temporaryDirectory.resolve("backups")).isDirectory();
         assertThat(temporaryDirectory.resolve("db_data")).isDirectory();
-        assertThat(System.getProperty("app.data")).isEqualTo(WorkspaceEnv.getAppData());
-        assertThat(System.getProperty("app.home")).isEqualTo(WorkspaceEnv.getAppHome());
+        assertThat(System.getProperty("app.data")).isEqualTo(RuntimeWorkspace.getAppData());
+        assertThat(System.getProperty("app.home")).isEqualTo(RuntimeWorkspace.getAppHome());
+    }
+
+    @Test
+    void legacyWorkspaceFacadeDelegatesToTheRuntimeBoundary(@TempDir Path temporaryDirectory) throws Exception {
+        System.setProperty("app.data", temporaryDirectory.toString());
+        setStaticField(RuntimeWorkspace.class, "appData", null);
+
+        WorkspaceEnv.prepareDirectories();
+
+        assertThat(WorkspaceEnv.getAppData()).isEqualTo(RuntimeWorkspace.getAppData());
+        assertThat(temporaryDirectory.resolve("assets")).isDirectory();
     }
 
     @Test
     void injectorPublishesEmbeddedDatabaseAndAssetContracts(@TempDir Path temporaryDirectory) throws Exception {
         System.setProperty("app.data", temporaryDirectory.toString());
-        setStaticField(WorkspaceEnv.class, "APP_DATA", null);
+        setStaticField(RuntimeWorkspace.class, "appData", null);
         setStaticField(MariaDbGuardian.class, "dbPassword", "characterized-password");
 
-        AppConfigInjector.inject();
+        RuntimeWorkspaceConfiguration.inject();
 
         assertThat(System.getProperty("spring.datasource.url"))
                 .isEqualTo("jdbc:mysql://127.0.0.1:9102/money_pos?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&createDatabaseIfNotExist=true");
         assertThat(System.getProperty("spring.datasource.username")).isEqualTo("root");
         assertThat(System.getProperty("spring.datasource.password")).isEqualTo("characterized-password");
         assertThat(System.getProperty("spring.datasource.driver-class-name")).isEqualTo("com.mysql.cj.jdbc.Driver");
-        assertThat(System.getProperty("local.bucket")).isEqualTo(WorkspaceEnv.getAppData() + "/assets/");
+        assertThat(System.getProperty("local.bucket")).isEqualTo(RuntimeWorkspace.getAppData() + "/assets/");
         assertThat(System.getProperty("money.cache.local.provider")).isEqualTo("hutool");
     }
 

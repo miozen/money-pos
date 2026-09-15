@@ -36,11 +36,11 @@
 
 当前候选类型：`AppWorkspace`、`WorkspaceEnv`、`AppConfigInjector`。
 
-- [ ] 3.1.1 盘点工作区的输入（系统属性、安装目录、数据目录）和输出（目录创建、系统属性、Spring 配置注入）；确认每个输出的业务兼容调用方。
-- [ ] 3.1.2 定义运行时工作区的公开边界：业务侧只读取稳定的应用/数据目录配置，不引用工作区实现类或自行推导桌面目录。
-- [ ] 3.1.3 将工作区初始化、环境解析和配置注入迁入独立运行时包；保留必要兼容桥，且不改变 `app.home`、`app.data` 与目录名称的含义。
-- [ ] 3.1.4 验证首次目录准备和已有目录复用：`assets`、`logs`、`backups`、`db_data` 均仍在同一数据根目录下，且不污染 IDE/WSL 工程目录。
-- [ ] 3.1.5 完成该切片编译、Spring 上下文和特征测试，并以独立提交收口；台账记录回滚点。
+- [x] 3.1.1 已盘点工作区输入和输出：`app.data` 为最高优先级数据根目录，安装根目录由运行时类位置推导；输出为 `assets`、`logs`、`backups`、`db_data`、`app.home`、`app.data` 及数据源/资产配置。兼容调用方为启动类、MariaDB 守护、备份服务/任务和静态资源映射。
+- [x] 3.1.2 已定义公开边界 `com.money.platform.runtime.workspace.RuntimeWorkspace`：调用方只能获取应用/数据目录或请求目录准备；不再复现桌面路径推导。备份服务与任务已改为使用该公开入口。
+- [x] 3.1.3 已将工作区初始化、环境解析和配置注入迁入 `platform.runtime.workspace`。旧 `AppWorkspace`、`WorkspaceEnv` 和 `AppConfigInjector` 保留为标记废弃的兼容桥；未改动用户未提交的启动类，`app.home`、`app.data` 与既有目录名称保持不变。
+- [x] 3.1.4 已通过 `RuntimeCapabilityCharacterizationTest` 验证显式临时数据根目录首次创建 `assets`、`logs`、`backups`、`db_data`，并验证旧 `WorkspaceEnv` 委托新边界（5 tests, 0 failures, 0 errors）；测试不写入 IDE/WSL 工程目录。
+- [x] 3.1.5 已完成编译、特征测试与真实开发模式 Spring 上下文验证：聚合 `mvn -pl qk-money-app/money-app-biz -am package -DskipTests` 通过；`RuntimeCapabilityCharacterizationTest` 为 5 tests, 0 failures, 0 errors；后端以 WSL 本机 MariaDB `money_pos` 成功启动，Flyway 无待迁移，`/money-pos/actuator/health` 返回 `UP`（含数据库 `SELECT 1`）。本切片以独立本地提交收口；未推送。
 
 ## 3.2 内嵌 MariaDB 守护能力切片
 

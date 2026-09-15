@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.money.workspace.MariaDbGuardian;
-import com.money.workspace.WorkspaceEnv;
+import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -67,8 +67,8 @@ public class SysBackupService {
 
     public File createBackupZip(String prefix) {
         // 🌟 核心修复 1：动静分离，引擎拿 Home，数据拿 Data
-        String appHome = WorkspaceEnv.getAppHome(); // 程序区
-        String appData = WorkspaceEnv.getAppData(); // 数据区 (安全区)
+        String appHome = RuntimeWorkspace.getAppHome(); // 程序区
+        String appData = RuntimeWorkspace.getAppData(); // 数据区 (安全区)
 
         String backupDir = appData + File.separator + "backups"; // 备份文件夹在数据区
         String mariadbBin = appHome + File.separator + "mariadb" + File.separator + "bin"; // 引擎在程序区
@@ -127,7 +127,7 @@ public class SysBackupService {
 
     public void restoreFromZip(MultipartFile backupFile) {
         // 🌟 核心修复 2：还原文件统一走数据安全区
-        String appData = WorkspaceEnv.getAppData();
+        String appData = RuntimeWorkspace.getAppData();
         String tempRestoreDir = appData + File.separator + "backups" + File.separator + "restore_" + IdUtil.fastSimpleUUID();
         File zipFile = new File(tempRestoreDir + ".zip");
 
@@ -210,7 +210,7 @@ public class SysBackupService {
     private void importSqlToDb(File sqlFile, String dbName) throws Exception {
         String exeSuffix = System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : "";
         // 🌟 只有引擎执行文件 (mysql.exe) 依然在程序区找，保持不变
-        String mysqlExe = WorkspaceEnv.getAppHome() + "/mariadb/bin/mysql" + exeSuffix;
+        String mysqlExe = RuntimeWorkspace.getAppHome() + "/mariadb/bin/mysql" + exeSuffix;
 
         ProcessBuilder pb = new ProcessBuilder(
                 mysqlExe, "--host=127.0.0.1", "--port=" + MariaDbGuardian.DB_PORT,
