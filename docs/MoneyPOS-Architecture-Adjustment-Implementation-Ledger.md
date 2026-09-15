@@ -570,3 +570,14 @@ Classify and move `UmsMemberPosController` with the TRADE presentation boundary:
 ### Next Unit
 
 Run the UMS functional regression gate for member profile, import/export, recharge/void, asset logs, POS member search, and coupon rules when an authenticated HTTP or desktop environment is available. It remains a Stage 2 acceptance requirement; no further UMS package move is necessary before that verification.
+
+### Completed: GMS Catalog and Price/Stock Boundary Assessment (No Code Move)
+
+- Reassessed the remaining GMS catalog and price/stock types. `GmsGoodsService` is the high-coupling product entry: TRADE checkout/POS/support, HOME, stock analysis, Excel operations, and GMS controllers use it. Its package move must therefore be a separately planned compatibility change.
+- `GmsGoodsComboService`, `GmsGoodsPriceService`, and `GmsGoodsStockService` are internal helpers of `GmsGoodsService`, but their Mappers are also used by TRADE checkout/POS code. They are not safe independent package moves.
+- Identified the safe first catalog slice: brand and category metadata controllers, service interfaces, and implementations. Their external consumers depend only on the service interfaces; moving the interfaces with compatibility-import updates does not add a TRADE/UMS internal dependency.
+- `GmsBrandMapper` remains shared because UMS member import and GMS Excel use it. `GmsGoodsCategoryMapper` has only the category service and GMS Excel as callers, so it may move with this slice after updating the Excel controller import. Product, combo, price, stock, and log Mappers remain in the shared package.
+
+### Next Unit
+
+Move the GMS brand-and-category metadata slice: `GmsBrandController`, `GmsBrandService` and implementation, `GmsGoodsCategoryController`, `GmsGoodsCategoryService` and implementation, plus the category Mapper. Update GMS goods/Excel callers and TRADE/UMS interface imports; preserve routes, component names, transaction behavior, and shared `GmsBrandMapper` compatibility.
