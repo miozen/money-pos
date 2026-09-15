@@ -488,3 +488,14 @@ Choose and inventory one isolated GMS internal candidate—prefer turnover or st
 ### Next Unit
 
 Inventory the GMS stock-analysis controller/service as the next candidate, but keep `GmsStockLogMapper` compatible until all inventory-document and stock-log consumers are addressed. Do not move catalog or shared stock types together with it.
+
+### Completed: GMS Stock Analysis Slice
+
+- Moved `GmsStockAnalysisController` to `com.money.feature.gms.interfaces.rest` and moved its interface and implementation to `com.money.feature.gms.application.stockanalysis`.
+- `GmsStockLogMapper` and `GmsGoodsService` remain shared GMS compatibility dependencies: inventory documents, inventory orders, stock logs, and TRADE still use them.
+- Preserved `/gms/analysis` report and export routes, Excel behavior, query aggregation, DTO/entity packages, and all database contracts.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`.
+
+### Next Unit
+
+Inventory the GMS inventory-document and inventory-order subdomains together because they share goods, stock-log, and document Mappers; do not move either independently.

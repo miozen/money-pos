@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.stockanalysis;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.dto.GmsGoods.GmsStockDataVO.StockAnalysisReportVO;
@@ -6,7 +6,6 @@ import com.money.entity.GmsGoods;
 import com.money.entity.GmsStockLog;
 import com.money.mapper.GmsStockLogMapper;
 import com.money.service.GmsGoodsService;
-import com.money.service.GmsStockAnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

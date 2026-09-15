@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.gms.application.stockanalysis;
 
 import com.money.dto.GmsGoods.GmsStockDataVO.StockAnalysisReportVO;
 import java.util.List;

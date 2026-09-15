@@ -1,8 +1,8 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.alibaba.excel.EasyExcel;
 import com.money.dto.GmsGoods.GmsStockDataVO.StockAnalysisReportVO;
-import com.money.service.GmsStockAnalysisService;
+import com.money.feature.gms.application.stockanalysis.GmsStockAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
