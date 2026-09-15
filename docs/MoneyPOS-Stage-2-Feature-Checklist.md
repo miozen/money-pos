@@ -76,6 +76,6 @@
 ## 2.6 阶段 2 收口验证
 
 - [x] 2.6.1 已完成静态依赖、Spring Bean/Mapper 扫描检查：已迁移旧包的导入为零，生产类名无重复，`MybatisConfig` 同时扫描共享旧包和 FIN/GMS/TRADE 新 Mapper 包；剩余旧 Mapper 均有明确多方兼容调用。
-- [ ] 2.6.2 运行 `mvn test`、`mvn package` 和阶段 0 集成测试。
+- [x] 2.6.2 已完成全量 `mvn test`、全量 `mvn package` 和阶段 0 集成测试；均通过。阶段 0 为 10 tests, 0 failures, 0 errors；GMS 产品核心测试为 1 test, 0 failures, 0 errors。
 - [ ] 2.6.3 执行 POS 收银、全单/部分退款、订单查询、财务报表、首页看板手工回归。
 - [ ] 2.6.4 更新实施台账，明确进入阶段 3 的前置条件已经满足。

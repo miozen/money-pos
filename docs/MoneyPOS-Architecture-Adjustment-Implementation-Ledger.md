@@ -640,6 +640,17 @@ Run the remaining Stage 2 automatic closure checks: full `mvn test`, `mvn packag
 
 Run the Stage 2 full automatic closure: `mvn test`, `mvn package`, and the Stage 0 suite. Do not stage or modify the user's existing front-end and local configuration changes while performing those checks.
 
+### Completed: Stage 2 Full Automatic Closure
+
+- Full reactor `mvn test` passed against the isolated test configuration. The active source suites cover test-database safety, HOME snapshot characterization, FIN feature reads, GMS product core, and the 10-scenario TRADE checkout/refund suite.
+- Full reactor `mvn package` passed and produced the local module JAR artifacts.
+- The Stage 0 `CheckoutIntegrationTest` rerun passed: 10 tests, 0 failures, 0 errors. The final GMS product-core report passed: 1 test, 0 failures, 0 errors.
+- A GMS test-fixture name was shortened to respect the existing database field length; this only corrects test data and does not change production behavior.
+
+### Next Unit
+
+Complete the remaining Stage 2 manual acceptance: HOME `/home/count` and `/home/charts`; TRADE POS listing, member lookup, settlement trial, order query, refund, and receipt print. Then update the ledger to state whether Stage 3 preconditions are met. Preserve the user's uncommitted front-end and local configuration changes throughout.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.

@@ -83,18 +83,18 @@ class GmsFeatureIntegrationTest {
 
     @Test
     void productCoreSupportsCatalogPriceComboStockAndInboundDocument() {
-        String suffix = String.valueOf(System.nanoTime());
+        String suffix = Long.toString(System.nanoTime(), 36);
         GmsBrand brand = createBrand(suffix);
         GmsGoodsCategory category = createCategory(suffix);
 
         assertThat(brandService.getBrandSelect()).anyMatch(item -> item.getValue().equals(brand.getId()));
         assertThat(categoryService.getGoodsCategorySelect()).anyMatch(item -> item.getValue().equals(category.getId()));
 
-        GmsGoods component = createGoods(suffix + "-component", brand.getId(), category.getId(), 10L, 0, null);
+        GmsGoods component = createGoods(suffix + "a", brand.getId(), category.getId(), 10L, 0, null);
         GmsGoodsComboDTO componentLine = new GmsGoodsComboDTO();
         componentLine.setSubGoodsId(component.getId());
         componentLine.setSubGoodsQty(2);
-        GmsGoods combo = createGoods(suffix + "-combo", brand.getId(), category.getId(), 5L, 1, List.of(componentLine));
+        GmsGoods combo = createGoods(suffix + "b", brand.getId(), category.getId(), 5L, 1, List.of(componentLine));
 
         List<PosSkuLevelPrice> prices = levelPriceMapper.selectList(
                 new LambdaQueryWrapper<PosSkuLevelPrice>().eq(PosSkuLevelPrice::getSkuId, component.getId()));
@@ -130,7 +130,7 @@ class GmsFeatureIntegrationTest {
 
     private GmsBrand createBrand(String suffix) {
         GmsBrand brand = new GmsBrand();
-        brand.setName("GMS brand " + suffix);
+        brand.setName("B" + suffix);
         brand.setDescription("integration test");
         brand.setGoodsCount(0);
         brand.setTenantId(0L);
@@ -140,7 +140,7 @@ class GmsFeatureIntegrationTest {
 
     private GmsGoodsCategory createCategory(String suffix) {
         GmsGoodsCategory category = new GmsGoodsCategory();
-        category.setName("GMS category " + suffix);
+        category.setName("C" + suffix);
         category.setPid(0L);
         category.setGoodsCount(0);
         category.setTenantId(0L);
@@ -153,8 +153,8 @@ class GmsFeatureIntegrationTest {
         GmsGoodsDTO dto = new GmsGoodsDTO();
         dto.setBrandId(brandId);
         dto.setCategoryId(categoryId);
-        dto.setBarcode("GMS-" + suffix);
-        dto.setName("GMS goods " + suffix);
+        dto.setBarcode("G" + suffix);
+        dto.setName("G" + suffix);
         dto.setUnit("piece");
         dto.setSize("standard");
         dto.setPurchasePrice(new BigDecimal("5.00"));
