@@ -617,3 +617,14 @@ Move the GMS product-core logical slice with compatibility imports only: `GmsGoo
 ### Next Unit
 
 Run the GMS functional regression gate for catalog CRUD, category/brand selection, product Excel import/export, price matrix, combo stock behavior, inventory documents, turnover/stock analysis, and POS settlement/refund when authenticated HTTP or desktop verification is available. No further GMS production package move is required before that gate.
+
+### Completed: GMS Automated Feature Regression
+
+- Added `GmsFeatureIntegrationTest` for the relocated GMS components. It creates isolated brand/category fixtures, verifies the moved selection services, creates a product with member-price matrix, creates a combo product, verifies persisted price and BOM records, verifies combo stock propagation, then executes an inbound inventory document and verifies the product stock and document persistence.
+- The test uses the test tenant and transaction rollback, so it leaves no fixture data in `money_pos_test`.
+- Verified the new GMS test together with `CheckoutIntegrationTest`: 11 tests passed, 0 failures, 0 errors, against `money_pos_test`.
+- Remaining acceptance scope is explicitly manual or authenticated-HTTP only: actual Excel upload/download, controller authorization and route smoke, turnover/stock-analysis screen exports, and interactive POS flow. These cannot be substituted by this service-level test while the desktop environment is unavailable.
+
+### Next Unit
+
+Run the remaining Stage 2 automatic closure checks: full `mvn test`, `mvn package`, and static Bean/Mapper/legacy-package scans. Keep the authenticated HTTP/desktop smoke list as the final manual acceptance gate.

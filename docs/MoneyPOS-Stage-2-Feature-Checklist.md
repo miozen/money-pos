@@ -62,7 +62,7 @@
 - [x] 2.4.6 已迁移品牌与分类元数据：两个 Controller、两个服务对及仅由 GMS 使用的分类 Mapper 已归入 `feature.gms`；品牌 Mapper 因 UMS 导入和 GMS Excel 调用继续保留兼容包。编译与阶段 0 回归通过。
 - [x] 2.4.7 已完成商品主档服务组兼容边界设计：`GmsGoodsService` 保持为 TRADE/HOME/GMS 的临时公开兼容接口；商品、套餐、价格、库存、日志 Mapper 保留共享包，库存日志服务因仍是 TRADE 写入 API 而不纳入商品主档切片。
 - [x] 2.4.8 已迁移商品主档、套餐/价格/库存助手及商品 Excel 入口到 `feature.gms`，保留 `IService` 兼容 API、路由、事务、SQL 与共享 Mapper；HOME、TRADE 和 GMS 内部调用已更新，编译与阶段 0 回归通过。
-- [ ] 2.4.9 运行商品、库存、POS 结算与退款回归。
+- [ ] 2.4.9 已完成本地自动化 GMS 回归：`GmsFeatureIntegrationTest` 覆盖品牌/分类、商品主档、等级价、套餐穿透库存和入库单据，并与阶段 0 收银/退款联合通过（11 tests, 0 failures, 0 errors）。Excel 实际文件导入导出、分析/导出页面与已认证接口仍待手工或 HTTP 验收。
 
 ## 2.5 UMS Feature 完整切片
 
