@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

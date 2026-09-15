@@ -511,3 +511,14 @@ Inventory the GMS inventory-document and inventory-order subdomains together bec
 ### Next Unit
 
 Inventory the remaining GMS catalog and price/stock types as separate candidates. Do not move `GmsGoodsMapper`, `GmsStockLogMapper`, or the document Mappers until their TRADE, FIN, and GMS compatibility callers have an explicit replacement boundary.
+
+### Completed: GMS Brand Strategy Presentation Slice
+
+- Completed the catalog and price/stock caller inventory. Brand, category, goods, combo, price, stock, and stock-log types all retain production dependencies from TRADE, HOME, UMS, or shared Mapper consumers, so they are not safe package-only moves yet.
+- Identified `GmsBrandConfigController` as the independent exception: no production type injects it, and its `/gms/brand/config` endpoints directly use the shared `SysBrandConfigMapper`.
+- Moved only that controller to `com.money.feature.gms.interfaces.rest`. The shared SYS Mapper remains in `com.money.mapper`, because it is also used by POS and Excel import code.
+- Preserved the controller class and component name, both routes, request/response shape, and strategy SQL behavior.
+
+### Next Unit
+
+Before moving a GMS catalog or price/stock service, define an explicit compatibility boundary for its existing TRADE, HOME, and UMS callers. In particular, do not move `GmsGoodsService`, `GmsBrandService`, `GmsGoodsCategoryService`, `GmsGoodsComboService`, `GmsGoodsPriceService`, or their shared Mappers as an arbitrary leaf slice.
