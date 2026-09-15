@@ -465,3 +465,14 @@ Move only `PosController`, `OmsOrderController`, `PosService`, `PosServiceImpl`,
 ### Next Unit
 
 Run TRADE API-level regression for POS listing, member lookup, settlement trial, order query, refund, and receipt-print entry points when a suitable desktop or authenticated HTTP test setup is available. The Windows/Electron manual smoke remains deferred; do not move shared OMS/GMS/UMS Mappers before their owning Feature inventories are complete.
+
+### Completed: GMS Subdomain Inventory
+
+- Catalog: brand, category, goods, combo, import, and level-price types form the product-catalog surface. `GmsBrandMapper` is also used by UMS member import, and brand/category Mappers are used by the GMS import controller, so they remain compatible until UMS is organized.
+- Pricing and stock: `GmsGoodsService`, stock calculation, combo, stock log, and level-price types support the GMS catalog. TRADE reads through GMS service interfaces for POS views and uses its existing checkout Facade for settlement writes; it must not gain new direct GMS internals.
+- Inventory documents and analysis: inventory-order, inventory-document, document-item, stock-log, turnover, and stock-analysis types are GMS-owned. `GmsInventoryDocMapper` is read by FIN and written through the TRADE stock Facade; `GmsGoodsMapper` is used by the TRADE Facade and test fixtures. Both remain compatible shared Mappers for now.
+- The first safe GMS slice is an internal controller/service pair not directly injected by TRADE, with its Mapper moved only after the full caller set and `@MapperScan` impact are explicit.
+
+### Next Unit
+
+Choose and inventory one isolated GMS internal candidate—prefer turnover or stock analysis—then move only that controller/service/implementation/Mapper set in a separately verified GMS commit. Keep catalog, price, and shared inventory Mappers in their compatibility packages until their cross-feature callers are addressed.
