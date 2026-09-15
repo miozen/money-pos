@@ -63,10 +63,10 @@
 
 ## 2.5 UMS Feature 完整切片
 
-当前未开始：5 个 Controller、6 个服务接口、2 个实现、4 个 Mapper 仍在旧包。
+当前已完成 UMS 调用面盘点及会员流水查询切片；会员档案、资产、充值、导入与 POS 兼容入口仍待逐子域整理。
 
-- [ ] 2.5.1 以会员档案、会员资产、券与充值三个子域盘点 UMS 调用图。
-- [ ] 2.5.2 保持 `MemberAssetFacade` 为 TRADE 的写侧边界；不允许 TRADE 重新进入 UMS 内部实现。
+- [x] 2.5.1 已按会员档案、资产/券、充值与导入盘点 UMS 调用图；`UmsMemberService` 是 TRADE/FIN 共享查询入口，会员等级、会员、流水 Mapper 被多个 Feature 使用。
+- [x] 2.5.2 已确认 `MemberAssetFacade` 仍是 TRADE 结算与退款的写侧入口；`UmsMemberAssetService` 未被 TRADE 直接注入。
 - [ ] 2.5.3 迁移 UMS Controller、Service、实现和明确归属的 Mapper，逐子域验证并单独提交。
 - [ ] 2.5.4 运行余额、优惠券、混合支付、退款资产恢复回归。
 

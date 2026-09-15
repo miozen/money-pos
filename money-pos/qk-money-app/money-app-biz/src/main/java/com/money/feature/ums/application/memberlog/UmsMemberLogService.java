@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.ums.application.memberlog;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.entity.UmsMemberLog;

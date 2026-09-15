@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.ums.application.memberlog;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,7 +10,6 @@ import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
-import com.money.service.UmsMemberLogService;
 import com.money.util.PageUtil;
 import com.money.web.vo.PageVO;
 import lombok.RequiredArgsConstructor;

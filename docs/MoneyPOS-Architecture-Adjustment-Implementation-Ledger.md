@@ -522,3 +522,15 @@ Inventory the remaining GMS catalog and price/stock types as separate candidates
 ### Next Unit
 
 Before moving a GMS catalog or price/stock service, define an explicit compatibility boundary for its existing TRADE, HOME, and UMS callers. In particular, do not move `GmsGoodsService`, `GmsBrandService`, `GmsGoodsCategoryService`, `GmsGoodsComboService`, `GmsGoodsPriceService`, or their shared Mappers as an arbitrary leaf slice.
+
+### Completed: UMS Dependency Inventory and Member Log Slice
+
+- Completed the UMS subdomain inventory. `UmsMemberService` is the shared member-profile/query entry used by TRADE and FIN. `UmsMemberAssetService` remains behind the TRADE-owned `MemberAssetFacade`; TRADE must continue using that facade for settlement and refund writes.
+- `UmsMemberMapper`, `UmsMemberLogMapper`, and `UmsMemberBrandLevelMapper` remain shared compatibility Mappers because TRADE, FIN, HOME, or UMS import/profile code use them. `UmsRechargeOrderMapper` remains with the asset/recharge subdomain until that transaction group is moved together.
+- Identified the read-only member-log route as the first contained UMS slice. Moved `UmsMemberLogController` to `com.money.feature.ums.interfaces.rest` and `UmsMemberLogService` with its implementation to `com.money.feature.ums.application.memberlog`; its Mapper stays compatible shared infrastructure.
+- Preserved `/ums/member-log`, controller and service method signatures, Spring component names, query behavior, DTO/entity packages, and database contracts.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Inventory the member asset and recharge write path as one transaction group before moving it. Preserve `MemberAssetFacade` as TRADE's write-side entry and do not move the shared member, log, or recharge Mappers until all external consumers are mapped.

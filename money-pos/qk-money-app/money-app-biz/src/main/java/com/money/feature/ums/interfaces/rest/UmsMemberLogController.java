@@ -1,9 +1,9 @@
-package com.money.controller;
+package com.money.feature.ums.interfaces.rest;
 
 import com.money.web.vo.PageVO;
 import com.money.dto.UmsMember.UmsMemberLogQueryDTO;
 import com.money.dto.UmsMember.UmsMemberLogVO;
-import com.money.service.UmsMemberLogService;
+import com.money.feature.ums.application.memberlog.UmsMemberLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
