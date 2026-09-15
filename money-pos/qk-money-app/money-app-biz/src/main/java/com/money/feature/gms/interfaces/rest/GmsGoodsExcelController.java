@@ -1,4 +1,4 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,9 +10,9 @@ import com.money.entity.SysDictDetail;
 import com.money.mapper.GmsBrandMapper;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.mapper.SysDictDetailMapper;
-import com.money.service.GmsGoodsPriceService;
-import com.money.service.GmsGoodsService;
-import com.money.service.impl.GmsGoodsExcelManager;
+import com.money.feature.gms.application.product.GmsGoodsExcelManager;
+import com.money.feature.gms.application.product.GmsGoodsPriceService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.util.ExcelDropDownHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

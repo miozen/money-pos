@@ -1,6 +1,7 @@
 package com.money.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.GmsGoodsVO;
 import com.money.entity.GmsGoods;

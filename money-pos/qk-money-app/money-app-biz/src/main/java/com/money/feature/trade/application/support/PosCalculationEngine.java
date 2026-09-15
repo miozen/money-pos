@@ -12,7 +12,7 @@ import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosCouponRuleMapper;
 import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

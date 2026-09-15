@@ -5,7 +5,7 @@ import com.money.dto.GmsGoods.GmsStockDataVO.StockAnalysisReportVO;
 import com.money.entity.GmsGoods;
 import com.money.entity.GmsStockLog;
 import com.money.mapper.GmsStockLogMapper;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

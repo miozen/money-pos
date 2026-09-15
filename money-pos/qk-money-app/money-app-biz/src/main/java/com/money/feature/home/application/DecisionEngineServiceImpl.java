@@ -5,7 +5,7 @@ import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderAnalysisMapper;
-import com.money.service.GmsGoodsService; // 🌟 重新引回商品服务
+import com.money.feature.gms.application.product.GmsGoodsService; // 🌟 重新引回商品服务
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;

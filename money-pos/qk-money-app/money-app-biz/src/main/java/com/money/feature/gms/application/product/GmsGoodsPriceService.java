@@ -1,4 +1,4 @@
-package com.money.service;
+package com.money.feature.gms.application.product;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.PosSkuLevelPrice;

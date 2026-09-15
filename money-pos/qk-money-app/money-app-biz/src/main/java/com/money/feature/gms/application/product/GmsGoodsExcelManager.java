@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.product;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.EasyExcel;
@@ -11,7 +11,6 @@ import com.money.mapper.SysBrandConfigMapper;
 import com.money.mapper.SysDictDetailMapper;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
-import com.money.service.GmsGoodsService;
 import com.money.utils.PinyinUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

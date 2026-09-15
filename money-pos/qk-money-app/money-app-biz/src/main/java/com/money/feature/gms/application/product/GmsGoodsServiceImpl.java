@@ -1,4 +1,4 @@
-package com.money.service.impl;
+package com.money.feature.gms.application.product;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -14,7 +14,6 @@ import com.money.entity.GmsGoods;
 import com.money.entity.GmsGoodsCombo;
 import com.money.entity.PosSkuLevelPrice;
 import com.money.mapper.GmsGoodsMapper;
-import com.money.service.*;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.util.PageUtil;

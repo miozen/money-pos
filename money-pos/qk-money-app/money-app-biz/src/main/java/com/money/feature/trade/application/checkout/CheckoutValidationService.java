@@ -6,7 +6,7 @@ import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.entity.GmsGoods;
 import com.money.entity.UmsMember;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;

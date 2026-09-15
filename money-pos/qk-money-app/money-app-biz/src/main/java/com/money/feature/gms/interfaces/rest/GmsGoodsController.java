@@ -1,11 +1,11 @@
-package com.money.controller;
+package com.money.feature.gms.interfaces.rest;
 
 import com.money.web.dto.ValidGroup;
 import com.money.web.vo.PageVO;
 import com.money.dto.GmsGoods.GmsGoodsDTO;
 import com.money.dto.GmsGoods.GmsGoodsQueryDTO;
 import com.money.dto.GmsGoods.GmsGoodsVO;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

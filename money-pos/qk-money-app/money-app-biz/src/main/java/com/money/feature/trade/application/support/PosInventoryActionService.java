@@ -3,7 +3,7 @@ package com.money.feature.trade.application.support;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.*;
 import com.money.mapper.*;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.service.GmsStockLogService; // 🌟 引入 Service 层以支持批量插入
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;

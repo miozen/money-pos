@@ -8,7 +8,7 @@ import com.money.entity.OmsOrder;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
-import com.money.service.GmsGoodsService;
+import com.money.feature.gms.application.product.GmsGoodsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -605,3 +605,15 @@ Perform a no-change compatibility design for the high-coupling `GmsGoodsService`
 ### Next Unit
 
 Move the GMS product-core logical slice with compatibility imports only: `GmsGoodsController`, `GmsGoodsService` and implementation, `GmsGoodsComboService`, `GmsGoodsPriceService`, `GmsGoodsStockService`, `GmsGoodsExcelManager`, and `GmsGoodsExcelController`. Preserve all routes, `IService` compatibility, transactions, SQL, Excel behavior, and shared Mapper packages; verify compilation and the Stage 0 suite before committing.
+
+### Completed: GMS Product Core Logical Slice
+
+- Moved `GmsGoodsController` and `GmsGoodsExcelController` to `com.money.feature.gms.interfaces.rest`.
+- Moved `GmsGoodsService`, its implementation, `GmsGoodsComboService`, `GmsGoodsPriceService`, `GmsGoodsStockService`, and `GmsGoodsExcelManager` to `com.money.feature.gms.application.product`.
+- Updated HOME, TRADE, GMS stock analysis, and compatible legacy callers to depend on the moved `GmsGoodsService` interface. Its `IService` inheritance, class-level transaction boundary, public methods, DTO/entity types, routes, SQL, and Excel behavior remain unchanged.
+- Retained `GmsGoodsMapper`, `GmsGoodsComboMapper`, `PosSkuLevelPriceMapper`, `GmsStockLogMapper`, and `GmsBrandMapper` in the shared package. `GmsStockLogService` remains compatible because TRADE uses it for batch log writes; no new cross-feature Mapper dependency was introduced.
+- Verified `test-compile` and `CheckoutIntegrationTest`: 10 tests passed, 0 failures, 0 errors, against `money_pos_test`; source/test scans contain no imports of the former moved packages.
+
+### Next Unit
+
+Run the GMS functional regression gate for catalog CRUD, category/brand selection, product Excel import/export, price matrix, combo stock behavior, inventory documents, turnover/stock analysis, and POS settlement/refund when authenticated HTTP or desktop verification is available. No further GMS production package move is required before that gate.
