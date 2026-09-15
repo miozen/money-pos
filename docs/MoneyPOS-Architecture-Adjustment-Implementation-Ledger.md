@@ -628,3 +628,9 @@ Run the GMS functional regression gate for catalog CRUD, category/brand selectio
 ### Next Unit
 
 Run the remaining Stage 2 automatic closure checks: full `mvn test`, `mvn package`, and static Bean/Mapper/legacy-package scans. Keep the authenticated HTTP/desktop smoke list as the final manual acceptance gate.
+
+### Completed: GMS and UMS Manual Functional Regression
+
+- The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
+- The user completed the UMS acceptance flow: member maintenance and POS search, balance recharge and void, asset logs, voucher issue/use, refund asset restoration, member import/export, and coupon-rule retrieval and use all passed.
+- This closes the GMS `2.4.9` and UMS `2.5.4` functional regression gates. The remaining Stage 2 work is cross-feature closure verification and the still-separate HOME/TRADE manual smoke items.

@@ -62,7 +62,7 @@
 - [x] 2.4.6 已迁移品牌与分类元数据：两个 Controller、两个服务对及仅由 GMS 使用的分类 Mapper 已归入 `feature.gms`；品牌 Mapper 因 UMS 导入和 GMS Excel 调用继续保留兼容包。编译与阶段 0 回归通过。
 - [x] 2.4.7 已完成商品主档服务组兼容边界设计：`GmsGoodsService` 保持为 TRADE/HOME/GMS 的临时公开兼容接口；商品、套餐、价格、库存、日志 Mapper 保留共享包，库存日志服务因仍是 TRADE 写入 API 而不纳入商品主档切片。
 - [x] 2.4.8 已迁移商品主档、套餐/价格/库存助手及商品 Excel 入口到 `feature.gms`，保留 `IService` 兼容 API、路由、事务、SQL 与共享 Mapper；HOME、TRADE 和 GMS 内部调用已更新，编译与阶段 0 回归通过。
-- [ ] 2.4.9 已完成本地自动化 GMS 回归：`GmsFeatureIntegrationTest` 覆盖品牌/分类、商品主档、等级价、套餐穿透库存和入库单据，并与阶段 0 收银/退款联合通过（11 tests, 0 failures, 0 errors）。Excel 实际文件导入导出、分析/导出页面与已认证接口仍待手工或 HTTP 验收。
+- [x] 2.4.9 已完成本地自动化及手工 GMS 回归：`GmsFeatureIntegrationTest` 与阶段 0 联合通过（11 tests, 0 failures, 0 errors）；前后端测试环境已验证商品/品牌/分类、等级价、套餐库存、库存单据和流水、Excel、库存分析/周转、POS 售卖与退款库存恢复均通过。
 
 ## 2.5 UMS Feature 完整切片
 
@@ -71,7 +71,7 @@
 - [x] 2.5.1 已按会员档案、资产/券、充值与导入盘点 UMS 调用图；`UmsMemberService` 是 TRADE/FIN 共享查询入口，会员等级、会员、流水 Mapper 被多个 Feature 使用。
 - [x] 2.5.2 已确认 `MemberAssetFacade` 仍是 TRADE 结算与退款的写侧入口；`UmsMemberAssetService` 未被 TRADE 直接注入。
 - [x] 2.5.3 已完成会员流水、会员资产/充值、会员档案/导入三个 UMS 子域迁移；`UmsMemberPosController` 已归入 TRADE 展示层。UMS Mapper 均有明确共享兼容理由：会员流水与等级 Mapper 被 FIN/HOME/TRADE 使用，会员与充值单 Mapper 被多个 UMS 子域使用。
-- [ ] 2.5.4 运行余额、优惠券、混合支付、退款资产恢复回归。
+- [x] 2.5.4 已在前后端测试环境验证会员档案、POS 搜索、余额充值及撤销、资产流水、券发放/使用、退款资产恢复、会员导入导出和券规则；均通过。
 
 ## 2.6 阶段 2 收口验证
 
