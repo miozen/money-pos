@@ -958,3 +958,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Moved the matching reads to UMS. `PosCalculationEngine` now obtains one benefit snapshot for each trial calculation and retains the existing member-price, full-reduction threshold and missing-rule behavior.
 - Added `CheckoutPricingBenefitQueryServiceIntegrationTest`, including tenant/security fixture context and assertions for brand-key normalization, voucher amounts and empty requests. Full verification passed: 19 test classes / 41 tests, `mvn package -DskipTests`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`. The scan remains at 0 Controller→Mapper, 0 cross-Feature ServiceImpl/Mapper, 8 baseline cross-Feature implementation imports and 67 report-only shared Entity importers.
 - The next smallest task is P1.6.4: provide narrow UMS/GMS queries for TRADE POS member benefit and brand-name display.
+
+### Completed: P1.6.4 POS Member Display Queries
+
+- Added API-neutral `PosMemberBenefitQuery` with coupon-rule and member-benefit snapshots. UMS alone reads the `UNUSED` member vouchers and coupon rules, returning only display fields and per-rule counts; TRADE no longer imports their Mapper or Entity.
+- Added GMS-owned `BrandNameQuery`, which translates only requested numeric brand IDs to names. `PosServiceImpl` requests the IDs found in the returned member profiles, retains the established dictionary translation and unknown-brand fallback, and no longer depends on `GmsBrandService` or `GmsBrand`.
+- Extended the POS member-controller integration regression to verify the stable coupon-rule endpoint plus a real member's brand name, level, voucher count and rule summary. Full verification passed: 19 test classes / 41 tests, `mvn package -DskipTests`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`. The gate remains at 0 Controller→Mapper, 0 cross-Feature ServiceImpl/Mapper, 7 baseline cross-Feature implementation imports and 69 report-only shared Entity importers.
+- The next smallest task is P1.6.5: replace UMS member profile/template/export reads of GMS brand services with the brand selection query contract.

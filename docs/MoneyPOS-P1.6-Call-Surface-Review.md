@@ -2,7 +2,7 @@
 
 ## 结论
 
-P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复核确认：已完成场景不再泄露跨域持久化实现；库存写侧及结算试算权益读取已分别在 P1.6.2、P1.6.3 收敛，仍有两组历史兼容调用需要继续处理。共享 Entity 导入从 P1.0 的 65 个变为 67 个；这个指标仍只作追踪，不能直接作为阻断条件。
+P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复核确认：已完成场景不再泄露跨域持久化实现；库存写侧、结算试算权益读取和 POS 会员展示已分别在 P1.6.2、P1.6.3、P1.6.4 收敛，仍有一组历史兼容调用需要继续处理。共享 Entity 导入从 P1.0 的 65 个变为 69 个；这个指标仍只作追踪，不能直接作为阻断条件。
 
 ## 已关闭的 P1 场景
 
@@ -14,6 +14,7 @@ P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复�
 | 会员未使用券汇总 | `MemberCouponCountQuery` | UMS 导出不读取 TRADE 券 Mapper |
 | 结算、退款会员资产 | `MemberSettlementCommand`、`MemberRefundCommand` | TRADE 门面只组装命令；UMS 写入资产、券、余额和日志 |
 | 结算试算会员权益 | `CheckoutPricingBenefitQuery` / `CheckoutPricingBenefitSnapshot` | TRADE 试算只消费会员品牌等级映射和满减规则金额，不读取 UMS Mapper 或 Entity |
+| POS 会员权益与品牌展示 | `PosMemberBenefitQuery` / `PosMemberBenefitSnapshot`、`BrandNameQuery` | TRADE POS 只消费未使用券、券规则及品牌 ID→名称快照，不读取 UMS Mapper/Entity 或 GMS 实现服务 |
 
 ## 尚未关闭的调用面
 
@@ -21,7 +22,7 @@ P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复�
 | --- | --- | --- | --- | --- |
 | 已完成 P1.6.2 / P1.4c | TRADE→GMS 销售扣库存、退款回库、套餐穿透、库存流水和单据 | 已移除 `GoodsStockFacade` 的 GMS Entity/Mapper/Service 与 `PosInventoryActionService` | `SaleStockCommand` / `RefundStockCommand` 由 GMS 处理；TRADE 仅传库存行快照与订单号，继续加入外层结账/退款事务 | 阶段 0 结账、全/部分退款、套餐、库存不足和并发库存回归 |
 | 已完成 P1.6.3 | TRADE 结算试算 | 已移除 `PosCalculationEngine` 对会员品牌等级、满减券规则 Mapper 的读取 | `CheckoutPricingBenefitQuery` 由 UMS 组装品牌等级映射和满减规则门槛/优惠额；TRADE 只消费快照 | 权益查询、阶段 0 结账和全量测试回归 |
-| P1.6.4 | TRADE POS 会员展示 | `PosServiceImpl` 直接读取券规则/券 Mapper，且从 GMS 服务取得品牌 Entity | UMS 提供 POS 会员权益展示快照；GMS 提供品牌 ID→名称窄查询 | POS 会员搜索、券数量/规则、品牌等级展示回归 |
+| 已完成 P1.6.4 | TRADE POS 会员展示 | 已移除 `PosServiceImpl` 对券规则/券 Mapper 及 GMS 品牌服务/Entity 的读取 | UMS 提供 `PosMemberBenefitQuery`，GMS 提供 `BrandNameQuery`；TRADE 保留中文展示和既有接口字段 | POS 会员搜索、券数量/规则、品牌等级展示与券规则接口回归 |
 | P1.6.5 | UMS 会员档案/模板品牌展示 | `UmsMemberProfileService`、模板/导出服务直接调用 GMS 品牌服务或读取品牌 Entity | GMS 提供品牌选择 DTO/查询；保留 UMS 本域权益实现 | 会员列表、导入模板、资产导出工作簿回归 |
 | P2（不纳入 P1 完成条件） | FIN/HOME 报表读模型 | 订单、库存、会员 Entity/Mapper 与直接 Feature 服务 | 按 Entity 归属表的 P2 报表快照拆分 | FIN/HOME 集成测试和页面回归 |
 
@@ -37,4 +38,4 @@ P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复�
 
 ## 下一最小任务
 
-**P1.6.4：将 TRADE POS 会员展示所需的会员权益和品牌名称收敛为 UMS/GMS 窄查询契约。**
+**P1.6.5：将 UMS 会员档案、模板和资产导出的品牌选择读取收敛为 GMS 窄查询契约。**
