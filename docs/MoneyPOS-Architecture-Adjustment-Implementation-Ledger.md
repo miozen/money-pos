@@ -748,6 +748,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added `MoneyPOS-Architecture-Scan-Baseline-v1.md`. The versioned baseline records 7 Controller-Mapper files, 0 cross-Feature implementation/Mapper imports, 0 platform-to-Feature imports and 62 Feature files importing the shared Entity package. It gives the seven historical files and Entity debt explicit, reviewable treatment instead of silently allowing them.
 - Ran the report against the current source before recording the baseline. No production code, database, route, test or build behavior changed. Two stable migration slices plus the P0 DTO work are required before considering an additions-only gate. The immediate next action is 4.4: choose and migrate one low-coupling Controller-Mapper baseline file.
 
+### Completed: Stage 4.4 First Controller-to-Mapper Migration
+
+- Selected `SysStrategyController` as the first low-coupling slice: it has two routes, one Mapper and no production caller, while FIN/GMS only read the same global strategy through the Mapper. Added `SysStrategyService` and `SysStrategyServiceImpl` in the existing business module because the Mapper remains there; moving either to the SYS Maven module would broaden the module dependency scope.
+- Preserved `/sys/strategy/get` and `/sys/strategy/save`, the `SysStrategy` request/response type, empty-strategy fallback, global tenant ID `0` on first insert, and update-by-existing-ID behavior. The Controller now delegates to the service and imports no Mapper.
+- Added and passed `SysStrategyServiceIntegrationTest` against `money_pos_test` (1 test, 0 failures / 0 errors). The non-blocking scan now reports 6 outstanding Controller-Mapper files, 0 cross-Feature `ServiceImpl`/Mapper imports, 0 platform-to-Feature imports and 62 shared Entity importers. The v1 baseline intentionally retains the original 7 for trend comparison. The immediate next action is 4.5: run the full test/build closure and publish the current scan result.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.

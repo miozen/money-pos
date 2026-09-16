@@ -42,7 +42,7 @@ SYS 和尚未迁移的旧包可以保留兼容入口，但新增类型仍应优�
 
 ## 3. 历史基线不是新增许可
 
-已登记的 Controller-Mapper 基线只有以下七个文件：`SysStrategyController`、`GmsBrandConfigController`、`GmsGoodsExcelController`、`GmsStockLogController`、`PosCouponRuleController`、`UmsMemberController`、`UmsMemberImportController`。
+扫描基线 v1 记录了七个历史文件；其中 `SysStrategyController` 已在阶段 4.4 完成迁移。当前尚未迁移的 Controller-Mapper 文件是：`GmsBrandConfigController`、`GmsGoodsExcelController`、`GmsStockLogController`、`PosCouponRuleController`、`UmsMemberController`、`UmsMemberImportController`。
 
 它们只能在单独的迁移切片中减少，不能作为新代码直接依赖 Mapper 的依据。若不得不保留某项兼容依赖，变更必须说明：原因、影响范围、移除条件和对应清单项。
 
