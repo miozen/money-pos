@@ -1,6 +1,7 @@
 package com.money.workspace;
 
 import com.money.QkMoneyApplication;
+import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
 import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import com.money.platform.runtime.workspace.RuntimeWorkspaceConfiguration;
 import org.junit.jupiter.api.AfterEach;
@@ -31,7 +32,7 @@ class RuntimeCapabilityCharacterizationTest {
         restoreProperties();
         setStaticField(RuntimeWorkspace.class, "appHome", null);
         setStaticField(RuntimeWorkspace.class, "appData", null);
-        setStaticField(MariaDbGuardian.class, "dbPassword", "");
+        setStaticField(EmbeddedMariaDbGuardian.class, "dbPassword", "");
     }
 
     @Test
@@ -79,7 +80,7 @@ class RuntimeCapabilityCharacterizationTest {
     void injectorPublishesEmbeddedDatabaseAndAssetContracts(@TempDir Path temporaryDirectory) throws Exception {
         System.setProperty("app.data", temporaryDirectory.toString());
         setStaticField(RuntimeWorkspace.class, "appData", null);
-        setStaticField(MariaDbGuardian.class, "dbPassword", "characterized-password");
+        setStaticField(EmbeddedMariaDbGuardian.class, "dbPassword", "characterized-password");
 
         RuntimeWorkspaceConfiguration.inject();
 
@@ -94,8 +95,8 @@ class RuntimeCapabilityCharacterizationTest {
 
     @Test
     void guardianKeepsItsExistingDatabaseIdentityContract() {
-        assertThat(MariaDbGuardian.DB_PORT).isEqualTo(9102);
-        assertThat(MariaDbGuardian.DB_NAME).isEqualTo("money_pos");
+        assertThat(EmbeddedMariaDbGuardian.DB_PORT).isEqualTo(9102);
+        assertThat(EmbeddedMariaDbGuardian.DB_NAME).isEqualTo("money_pos");
     }
 
     private boolean shouldStartEmbeddedWorkspace(String... args) throws Exception {

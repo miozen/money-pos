@@ -2,7 +2,7 @@ package com.money.platform.runtime.workspace;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import com.money.workspace.MariaDbGuardian;
+import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -25,7 +25,7 @@ public final class RuntimeWorkspace {
     /** Initializes the embedded desktop runtime before Spring starts. */
     public static void initialize() {
         prepareDirectories();
-        MariaDbGuardian.start();
+        EmbeddedMariaDbGuardian.start();
         RuntimeWorkspaceConfiguration.inject();
     }
 

@@ -46,12 +46,12 @@
 
 当前候选类型：`MariaDbGuardian` 及工作区对它的启动编排。
 
-- [ ] 3.2.1 盘点 MariaDB 守护的状态与外部契约：端口、数据库名、密码文件、数据目录、元数据锁、首次初始化、实例身份校验、关闭钩子和数据源配置。
-- [ ] 3.2.2 为可在本地执行的逻辑补特征测试：已有受管实例可复用、非关联实例占用端口会被拒绝、开发模式不会触发 Windows 引擎启动。真实 `mysqld.exe` 启动仅在具备 Windows 打包环境时作环境验收。
-- [ ] 3.2.3 将 MariaDB 进程生命周期和身份校验归入独立运行时数据库能力；业务 Feature 不得直接依赖守护实现或其静态状态。
-- [ ] 3.2.4 保持现有安全与恢复语义：密码文件和 `.wx_meta` 的创建位置、首次空库创建、已存在数据目录识别均不变；不得在本切片调整数据库 schema 或业务连接参数。
-- [ ] 3.2.5 验证打包版嵌入式启动与 IDE/WSL 外部数据库启动各自路径；若 Windows 打包环境不可用，记录具体待验收命令、环境和风险，不把该项误报为通过。
-- [ ] 3.2.6 完成编译、Spring 上下文、特征测试和独立提交；台账记录回滚点与任何平台差异。
+- [x] 3.2.1 已盘点 MariaDB 守护的状态与外部契约：固定端口 `9102`、库名 `money_pos`、`.sys_secret.key`、`db_data`、`.wx_meta`、首次初始化、通过 `@@datadir` 的实例身份校验、JVM 关闭钩子和启动前数据源配置。
+- [x] 3.2.2 已新增 `EmbeddedMariaDbGuardianCharacterizationTest`（2 tests）：覆盖受管实例目录的大小写/分隔符归一化、非关联目录拒绝判定，以及真实临时本机端口的占用识别；既有启动模式测试覆盖开发模式不启动 Windows 引擎。真实 `mysqld.exe` 启动仍仅在 Windows 打包环境作环境验收。
+- [x] 3.2.3 已将 MariaDB 进程生命周期和身份校验迁入 `com.money.platform.runtime.database.EmbeddedMariaDbGuardian`；工作区、配置注入和备份服务已改用新公开契约。旧 `MariaDbGuardian` 保留为标记废弃的兼容桥，业务 Feature 未直接依赖守护实现。
+- [x] 3.2.4 已保持安全与恢复语义：密码文件和 `.wx_meta` 仍位于 `app.data`，首次空库仍创建 `money_pos`，既有数据目录仍以 `@@datadir` 识别；未改数据库 schema、端口、库名或业务连接参数。
+- [ ] 3.2.5 已验证 IDE/WSL 外部数据库路径：当前 JAR 启动后健康检查为 `UP`，连接 `127.0.0.1:3306/money_pos`，未调用 Windows 引擎。Windows 打包版待验收：在含 `mariadb/bin/mysqld.exe` 和 `mysql_install_db.exe` 的 Windows 安装目录，以既有 `--app.home` 或 `-Dmoney.workspace.embedded=true` 启动；确认 `app.data/db_data` 首次初始化/关联实例复用及端口冲突拒绝。该环境当前不可用，故本项不标记完成。
+- [x] 3.2.6 已完成聚合编译与打包、7 项运行时特征测试和 WSL Spring 健康检查；本切片以独立本地提交收口，台账记录回滚点与 Windows 环境差异。
 
 ## 3.3 本地文件能力切片
 

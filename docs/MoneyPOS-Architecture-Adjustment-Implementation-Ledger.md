@@ -691,6 +691,15 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - The isolated test-database variables remain unset in the current shell, so this slice's automated evidence is the 5-test no-database characterization suite; the established Stage 0 suite remains available for a later isolated `money_pos_test` run. No test run targeted the development database.
 - Rollback is the single Stage 3.1 local commit: it removes the new `platform.runtime.workspace` boundary and restores the three legacy workspace implementations plus the two updated public callers. The next minimal task is Stage 3.2 embedded MariaDB guardian inventory and boundary design.
 
+### Completed: Stage 3.2 Embedded MariaDB Guardian Boundary (Windows Acceptance Pending)
+
+- Moved the embedded MariaDB lifecycle, first-run secret handling, data-directory identity verification, process start and shutdown hook into `com.money.platform.runtime.database.EmbeddedMariaDbGuardian`. Its public port (`9102`), database (`money_pos`), secret-file, `.wx_meta`, `db_data`, and datasource-injection contracts remain unchanged.
+- `RuntimeWorkspace`, `RuntimeWorkspaceConfiguration`, and the existing backup service now consume the runtime guardian contract. The former `com.money.workspace.MariaDbGuardian` is a deprecated compatibility facade only; no Feature package directly imports the guardian implementation.
+- Added `EmbeddedMariaDbGuardianCharacterizationTest`; together with `RuntimeCapabilityCharacterizationTest`, 7 tests passed with 0 failures and 0 errors. The tests cover normalized associated/non-associated data-directory decisions and actual temporary loopback-port detection without starting a native MariaDB engine.
+- Aggregated `mvn -pl qk-money-app/money-app-biz -am package -DskipTests` passed. The rebuilt JAR was started in WSL development mode; Flyway reported `money_pos` current, the datasource connected to external `127.0.0.1:3306/money_pos`, and `/money-pos/actuator/health` returned `UP` including `SELECT 1`. Therefore IDE/WSL did not invoke the Windows engine.
+- Windows packaged embedded-MariaDB acceptance remains deliberately open: it requires a Windows installation containing `mariadb/bin/mysqld.exe` and `mysql_install_db.exe`, started with the existing embedded switch. Validate first initialization, associated-instance reuse and rejection of an unrelated process occupying port `9102`. This is an environment gap, not a known WSL-development failure.
+- Rollback is the single Stage 3.2 local commit: restore the former guardian implementation and its prior callers. The next minimal task is Stage 3.3 local-file capability inventory; do not mix backup workflow changes into that slice.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.

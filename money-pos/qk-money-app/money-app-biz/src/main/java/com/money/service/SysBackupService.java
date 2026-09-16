@@ -6,7 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.money.workspace.MariaDbGuardian;
+import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
 import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,7 +81,7 @@ public class SysBackupService {
             manifest.set("appName", "MoneyPOS");
             manifest.set("appVersion", APP_VERSION);
             manifest.set("backupTime", DateUtil.now());
-            manifest.set("dbName", MariaDbGuardian.DB_NAME);
+            manifest.set("dbName", EmbeddedMariaDbGuardian.DB_NAME);
             FileUtil.writeUtf8String(manifest.toStringPretty(), tempBatchDir + File.separator + MANIFEST_FILE);
 
             File sqlFile = new File(tempBatchDir + File.separator + "money_pos.sql");
@@ -91,10 +91,10 @@ public class SysBackupService {
             File mysqldumpExe = new File(mariadbBin + File.separator + "mysqldump" + exeSuffix); // 这里用 appHome
 
             ProcessBuilder pb = new ProcessBuilder(
-                    mysqldumpExe.getAbsolutePath(), "--host=127.0.0.1", "--port=" + MariaDbGuardian.DB_PORT,
-                    "-uroot", "-p" + MariaDbGuardian.getDbPassword(),
+                    mysqldumpExe.getAbsolutePath(), "--host=127.0.0.1", "--port=" + EmbeddedMariaDbGuardian.DB_PORT,
+                    "-uroot", "-p" + EmbeddedMariaDbGuardian.getDbPassword(),
                     "--single-transaction", "--routines", "--triggers", "--hex-blob",
-                    "--add-drop-table", "--default-character-set=utf8mb4", MariaDbGuardian.DB_NAME
+                    "--add-drop-table", "--default-character-set=utf8mb4", EmbeddedMariaDbGuardian.DB_NAME
             );
 
             // 🌟 核心捕获：分离输出流与错误流，防止缓冲区阻塞
@@ -192,7 +192,7 @@ public class SysBackupService {
         if (!"MoneyPOS".equals(json.getStr("appName"))) {
             throw new RuntimeException("非法备份包：应用名称不匹配");
         }
-        if (!MariaDbGuardian.DB_NAME.equals(json.getStr("dbName"))) {
+        if (!EmbeddedMariaDbGuardian.DB_NAME.equals(json.getStr("dbName"))) {
             throw new RuntimeException("非法备份包：数据库名称不匹配 (" + json.getStr("dbName") + ")");
         }
 
@@ -213,8 +213,8 @@ public class SysBackupService {
         String mysqlExe = RuntimeWorkspace.getAppHome() + "/mariadb/bin/mysql" + exeSuffix;
 
         ProcessBuilder pb = new ProcessBuilder(
-                mysqlExe, "--host=127.0.0.1", "--port=" + MariaDbGuardian.DB_PORT,
-                "-uroot", "-p" + MariaDbGuardian.getDbPassword(), "--default-character-set=utf8mb4", dbName
+                mysqlExe, "--host=127.0.0.1", "--port=" + EmbeddedMariaDbGuardian.DB_PORT,
+                "-uroot", "-p" + EmbeddedMariaDbGuardian.getDbPassword(), "--default-character-set=utf8mb4", dbName
         );
         pb.redirectInput(sqlFile);
 
@@ -230,8 +230,8 @@ public class SysBackupService {
     }
 
     private void verifyShadowDatabase() throws Exception {
-        String url = "jdbc:mysql://127.0.0.1:" + MariaDbGuardian.DB_PORT + "/" + SHADOW_DB + "?useSSL=false";
-        try (Connection conn = DriverManager.getConnection(url, "root", MariaDbGuardian.getDbPassword());
+        String url = "jdbc:mysql://127.0.0.1:" + EmbeddedMariaDbGuardian.DB_PORT + "/" + SHADOW_DB + "?useSSL=false";
+        try (Connection conn = DriverManager.getConnection(url, "root", EmbeddedMariaDbGuardian.getDbPassword());
              Statement stmt = conn.createStatement()) {
 
             List<String> requiredTables = Arrays.asList("oms_order", "gms_goods", "ums_member");
@@ -256,8 +256,8 @@ public class SysBackupService {
     }
 
     private void atomicSwitchDatabase() throws Exception {
-        String url = "jdbc:mysql://127.0.0.1:" + MariaDbGuardian.DB_PORT + "/mysql?useSSL=false";
-        try (Connection conn = DriverManager.getConnection(url, "root", MariaDbGuardian.getDbPassword());
+        String url = "jdbc:mysql://127.0.0.1:" + EmbeddedMariaDbGuardian.DB_PORT + "/mysql?useSSL=false";
+        try (Connection conn = DriverManager.getConnection(url, "root", EmbeddedMariaDbGuardian.getDbPassword());
              Statement stmt = conn.createStatement()) {
 
             List<String> shadowTables = new ArrayList<>();
@@ -265,13 +265,13 @@ public class SysBackupService {
             while (rsShadow.next()) shadowTables.add(rsShadow.getString(1));
             if (shadowTables.isEmpty()) throw new RuntimeException("影子库表结构为空，安全机制已拦截切换");
 
-            stmt.execute("CREATE DATABASE IF NOT EXISTS `" + MariaDbGuardian.DB_NAME + "` CHARACTER SET utf8mb4");
+            stmt.execute("CREATE DATABASE IF NOT EXISTS `" + EmbeddedMariaDbGuardian.DB_NAME + "` CHARACTER SET utf8mb4");
 
             List<String> prodTables = new ArrayList<>();
-            ResultSet rsProd = stmt.executeQuery("SHOW TABLES FROM `" + MariaDbGuardian.DB_NAME + "`");
+            ResultSet rsProd = stmt.executeQuery("SHOW TABLES FROM `" + EmbeddedMariaDbGuardian.DB_NAME + "`");
             while (rsProd.next()) prodTables.add(rsProd.getString(1));
 
-            String bakDbName = MariaDbGuardian.DB_NAME + "_bak_" + DateUtil.format(DateUtil.date(), "yyyyMMdd_HHmmss");
+            String bakDbName = EmbeddedMariaDbGuardian.DB_NAME + "_bak_" + DateUtil.format(DateUtil.date(), "yyyyMMdd_HHmmss");
             stmt.execute("CREATE DATABASE `" + bakDbName + "` CHARACTER SET utf8mb4");
 
             StringBuilder renameSql = new StringBuilder("RENAME TABLE ");
@@ -279,13 +279,13 @@ public class SysBackupService {
 
             for (String pt : prodTables) {
                 if (!isFirst) renameSql.append(", ");
-                renameSql.append(String.format("`%s`.`%s` TO `%s`.`%s`", MariaDbGuardian.DB_NAME, pt, bakDbName, pt));
+                renameSql.append(String.format("`%s`.`%s` TO `%s`.`%s`", EmbeddedMariaDbGuardian.DB_NAME, pt, bakDbName, pt));
                 isFirst = false;
             }
 
             for (String st : shadowTables) {
                 if (!isFirst) renameSql.append(", ");
-                renameSql.append(String.format("`%s`.`%s` TO `%s`.`%s`", SHADOW_DB, st, MariaDbGuardian.DB_NAME, st));
+                renameSql.append(String.format("`%s`.`%s` TO `%s`.`%s`", SHADOW_DB, st, EmbeddedMariaDbGuardian.DB_NAME, st));
                 isFirst = false;
             }
 
@@ -326,8 +326,8 @@ public class SysBackupService {
     }
 
     private void executeSql(String sql) throws Exception {
-        String url = "jdbc:mysql://127.0.0.1:" + MariaDbGuardian.DB_PORT + "/mysql?useSSL=false";
-        try (Connection conn = DriverManager.getConnection(url, "root", MariaDbGuardian.getDbPassword());
+        String url = "jdbc:mysql://127.0.0.1:" + EmbeddedMariaDbGuardian.DB_PORT + "/mysql?useSSL=false";
+        try (Connection conn = DriverManager.getConnection(url, "root", EmbeddedMariaDbGuardian.getDbPassword());
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
