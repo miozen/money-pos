@@ -33,6 +33,7 @@
 - [x] 4.6.1 已迁移 `PosCouponRuleController`：新增 `feature.trade.application.coupon.CouponRuleManagementService`，承接原有分页筛选、规则增改删和会员未使用券汇总；路由 `/pos/couponRule`、请求/返回类型、排序和聚合字段均未改变，Controller 不再导入任一 Mapper。新增集成测试覆盖上述行为；全量测试、打包和 additions-only 门禁通过。扫描降为 4/0/0/65；新增的 2 个共享 Entity 导入位于 TRADE 本域服务内部，仍只跟踪。下一最小任务是盘点剩余 4 个 Controller-Mapper 项，选择低耦合的下一切片。
 - [x] 4.6.2 已完成剩余 4 项盘点：`UmsMemberController` 的三条排行榜路由是唯一的同域单 Mapper、只读、无 Excel/跨域参考数据候选，选为下一切片；`GmsBrandConfigController` 需先界定 GMS 对 SYS 配置的窄契约，商品 Excel 与会员导入分别涉及多 Mapper、动态表头、价格/资产批处理，暂不机械迁移。详见 `MoneyPOS-Stage4-Remaining-Controller-Inventory.md`。下一最小任务是迁移 UMS 排行榜查询至 `UmsMemberService`。
 - [x] 4.6.3 已迁移 UMS 三条排行榜查询：累计消费、余额、频次 Top 50 已改由 `UmsMemberService` 返回既有 `MemberRankVO`，`UmsMemberController` 不再导入 `UmsMemberMapper`；三个路由与权限标记保持不变。新增隔离数据库集成测试验证三类字段；全量测试、打包与 additions-only 门禁通过。扫描降为 3/0/0/65。下一最小任务是为 `GmsBrandConfigController` 设计 GMS→SYS 品牌配置的窄服务契约。
+- [x] 4.6.4a 已完成 GMS→SYS 品牌配置窄契约设计：明确由 SYS 服务独占 `SysBrandConfigMapper`，GMS 应用服务负责 `/gms/brand/config` 的默认值与 JSON 兼容映射；保留“无配置为 `true/null`、空等级为数组、按品牌更新指定字段”的语义。商品 Excel 与 POS facade 的既有 SYS Mapper 使用不混入本切片。详见 `MoneyPOS-Stage4-Gms-Sys-Brand-Config-Contract.md`。下一最小任务是按该设计迁移控制器并补集成测试。
 
 ## 4.0 验收结论
 
