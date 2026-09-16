@@ -716,6 +716,13 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Recorded the Electron main-process contract: `main.cjs` launches the packaged backend with `--app.home`, polls `/money-pos/actuator/health`, creates windows only after health succeeds, and terminates the child backend on quit. No Electron source was changed.
 - This inventory has no production-code change. The next Stage 3 work is 3.5 closure verification; keep Windows embedded-MariaDB acceptance and receipt-printer hardware acceptance explicitly open.
 
+### In Progress: Stage 3.5 Closure Verification
+
+- Dependency scan passed for the Stage 3 boundary: `platform.runtime` has no `feature.*` import, and Feature packages do not import `platform.runtime`. Legacy workspace compatibility classes only delegate to the runtime boundary. Seven pre-existing Controllers still import Mapper types; this is recorded as a Stage 4 architectural-rule baseline, not changed during Stage 3.
+- Full reactor `mvn package -DskipTests` passed after the Stage 3 work. The current WSL development backend remains healthy at `/money-pos/actuator/health` with external MariaDB `127.0.0.1:3306/money_pos`.
+- The 8 runtime characterization tests passed previously, but final `mvn test` and the Stage 0 `CheckoutIntegrationTest` are intentionally not run against development data. `money_pos_test` is not available to the application account and that account cannot create it. Create the isolated database and grant the test account access before resuming closure; do not substitute `money_pos`.
+- Windows embedded-MariaDB acceptance and physical printer acceptance remain open environment items. Do not mark Stage 3 complete until the isolated test suite has run; Windows/hardware items remain traceable exceptions rather than code failures.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
