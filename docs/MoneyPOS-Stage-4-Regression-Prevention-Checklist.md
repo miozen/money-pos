@@ -40,7 +40,15 @@
 - [x] 4.6.6a 已完成 UMS 会员导入入口盘点：导入和批量发券已由 UMS 事务服务承担，保持不动；模板是仅依赖 GMS 品牌与 SYS 字典的安全首切片；导出还涉及 UMS 品牌等级和 TRADE 未使用券计数，须在模板稳定后以窄查询契约处理。详见 `MoneyPOS-Stage4-Ums-Member-Import-Inventory.md`。下一最小任务是迁移只读会员 Excel 模板服务并补工作簿测试。
 - [x] 4.6.6b 已迁移只读会员 Excel 模板服务：新增 `UmsMemberExcelTemplateService`，模板 GET 路由只作委托，导出也复用其动态表头与等级 code→中文名映射；导入和批量发券未改变。服务通过 GMS 的品牌选择 DTO 与 SYS 的有序字典映射读取数据，不新增跨域 Entity 契约。新增工作簿集成测试验证动态品牌列、会员等级下拉、示例行、工作表和响应头；隔离 `money_pos_test` 的 16 个测试类、31 项用例通过，打包及 additions-only 门禁通过。扫描仍为 1/0/0/64，余下的 Mapper 只服务于会员资产导出。下一最小任务是设计 TRADE 提供未使用满减券聚合的窄查询契约，再迁移会员资产导出。
 - [x] 4.6.6c 已迁移会员资产 Excel 导出：新增 `MemberCouponQueryService`，由 TRADE 内部持有 `PosMemberCouponMapper` 并仅返回会员 ID 到 `UNUSED` 券数的聚合结果；新增 `UmsMemberAssetExcelExportService`，统一负责 UMS 主档、品牌等级矩阵、动态品牌表头和工作簿输出。`UmsMemberImportController` 的导出 GET 路由仅作委托，导入 POST 与批量发券 POST 未改变。新增隔离数据库工作簿测试覆盖真实会员资产、品牌等级、未使用/已使用券过滤和 TRADE 聚合；Controller→Mapper 扫描降为 0/0/0/65。下一最小任务是复核阶段 4 清单余项与验证闭环。
+- [x] 4.7 已完成阶段 4 闭环复核：本清单 4.0–4.6.6c 无未勾选实施项；当前 27 个 Controller 的直接 Mapper 导入、跨 Feature `ServiceImpl`/Mapper 依赖、`platform → feature` 依赖均为 0。隔离 `money_pos_test` 的全量验证为 17 个测试类、32 项用例、零失败/错误，`mvn package -DskipTests` 与 additions-only 门禁通过。阶段 4 的实现范围至此关闭。
 
-## 4.0 验收结论
+## 阶段 4 验收结论
 
-基线可作为后续变更的比较对象：新出现的 Controller-Mapper、跨 Feature `ServiceImpl` / Mapper 和 `platform → feature` 依赖均应被识别；共享 Entity 的跨域规则暂处于建模阶段。阶段 4 的下一最小任务是 **4.1 编写架构协作指南**，不应先直接改动这 7 个 Controller。
+阶段 4 已完成其渐进式防回归目标：架构协作规则、逻辑 Entity 归属表、可重复扫描、仅阻止新增违规的本地门禁，以及 v1 基线中的 7 个 Controller→Mapper 历史项均已收口。后续提交应继续执行 `bash scripts/architecture-scan.sh --check-new`。
+
+仍保留两项**非阻塞遗留**，不应误报为阶段 4 未完成：
+
+1. 65 个共享 `com.money.entity` 导入仍是兼容债务，P1 的商品/会员快照 DTO 切片负责逐步收敛；在完成物理归属与场景 DTO 前，该规则保持报告而非阻断。
+2. 门禁目前仅供本地执行，尚未接入 Maven 生命周期或 CI；若后续需要自动化发布治理，应以独立的构建/CI 任务评估，不能改变本阶段已验证的本地开发流程。
+
+阶段 3 延期的 Windows 嵌入式 MariaDB 与实体小票机验收也仍按原计划独立处理，不属于阶段 4 的完成条件。
