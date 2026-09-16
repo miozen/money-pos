@@ -17,6 +17,7 @@ import com.money.mapper.UmsMemberMapper;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.support.TradeFixture;
 import com.money.feature.trade.application.refund.OmsOrderRefundService;
+import com.money.feature.trade.application.orderquery.OmsOrderService;
 import com.money.web.exception.BaseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -47,6 +48,8 @@ class CheckoutIntegrationTest {
     
     @Autowired
     private OmsOrderRefundService refundService;
+    @Autowired
+    private OmsOrderService omsOrderService;
     @Autowired
     private TradeFixture tradeFixture;
     @Autowired
@@ -173,6 +176,8 @@ class CheckoutIntegrationTest {
         assertThat(order.getMemberId()).isEqualTo(member.getId());
         assertThat(order.getMember()).isEqualTo(member.getName());
         assertThat(order.getContact()).isEqualTo(member.getPhone());
+        assertThat(omsOrderService.getOrderDetailByNo(orderNo).getMemberInfo().getName()).isEqualTo(member.getName());
+        assertThat(omsOrderService.getOrderDetailByNo(orderNo).getMemberInfo().getPhone()).isEqualTo(member.getPhone());
     }
 
     @Test

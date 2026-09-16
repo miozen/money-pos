@@ -1,7 +1,7 @@
 package com.money.dto.OmsOrder;
 
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
-import com.money.dto.UmsMember.UmsMemberVO;
+import com.money.contract.member.MemberOrderProfileSnapshot;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,7 +31,7 @@ public class OrderDetailVO extends OmsOrderVO {
     private BigDecimal changeAmount;
 
     @Schema(description = "关联的会员完整档案")
-    private UmsMemberVO memberInfo;
+    private MemberOrderProfileSnapshot memberInfo;
 
     @Schema(description = "系统操作审计日志")
     private List<OrderLogVO> orderLog;

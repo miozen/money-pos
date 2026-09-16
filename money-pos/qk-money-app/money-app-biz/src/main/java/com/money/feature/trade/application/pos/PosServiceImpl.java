@@ -3,12 +3,18 @@ package com.money.feature.trade.application.pos;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.CouponStatusEnum;
+import com.money.contract.member.MemberPosProfileQuery;
+import com.money.contract.member.MemberPosProfileSnapshot;
 import com.money.dto.pos.*;
-import com.money.entity.*;
+import com.money.entity.GmsBrand;
+import com.money.entity.GmsGoods;
+import com.money.entity.PosCouponRule;
+import com.money.entity.PosMemberCoupon;
+import com.money.entity.PosSkuLevelPrice;
+import com.money.entity.SysDictDetail;
 import com.money.mapper.*;
 import com.money.service.*;
 import com.money.feature.gms.application.catalog.GmsBrandService;
-import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
 import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
@@ -28,12 +34,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PosServiceImpl implements PosService {
 
-    private final UmsMemberService umsMemberService;
+    private final MemberPosProfileQuery memberPosProfileQuery;
     private final GmsGoodsService gmsGoodsService;
     private final PosSkuLevelPriceMapper posSkuLevelPriceMapper;
     private final PosCouponRuleMapper posCouponRuleMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
-    private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
     private final CheckoutOrchestrator checkoutOrchestrator;
 
     // 🌟 核心新增：注入双擎翻译服务
@@ -113,17 +118,11 @@ public class PosServiceImpl implements PosService {
 
     @Override
     public List<PosMemberVO> listMember(String member) {
-        List<UmsMember> memberList = umsMemberService.lambdaQuery().eq(UmsMember::getDeleted, false)
-                .and(StrUtil.isNotBlank(member), w -> w.like(UmsMember::getName, member).or().like(UmsMember::getPhone, member)).list();
+        List<MemberPosProfileSnapshot> memberList = memberPosProfileQuery.searchActiveMembers(member);
         List<PosMemberVO> posMemberVOS = BeanMapUtil.to(memberList, PosMemberVO::new);
 
         if (!posMemberVOS.isEmpty()) {
             List<Long> memberIds = posMemberVOS.stream().map(PosMemberVO::getId).collect(Collectors.toList());
-            List<UmsMemberBrandLevel> allBrandLevels = umsMemberBrandLevelMapper.selectList(
-                    new LambdaQueryWrapper<UmsMemberBrandLevel>().in(UmsMemberBrandLevel::getMemberId, memberIds)
-            );
-            Map<Long, List<UmsMemberBrandLevel>> blMap = allBrandLevels.stream().collect(Collectors.groupingBy(UmsMemberBrandLevel::getMemberId));
-
             List<PosMemberCoupon> allUnusedCoupons = posMemberCouponMapper.selectList(
                     new LambdaQueryWrapper<PosMemberCoupon>().in(PosMemberCoupon::getMemberId, memberIds).eq(PosMemberCoupon::getStatus, CouponStatusEnum.UNUSED.name())
             );
@@ -139,18 +138,16 @@ public class PosServiceImpl implements PosService {
             Map<String, String> levelDictMap = getMemberLevelDictMap();
 
             for (PosMemberVO vo : posMemberVOS) {
-                List<UmsMemberBrandLevel> levels = blMap.get(vo.getId());
-                Map<String, String> levelMap = new HashMap<>();      // 存旧数据 (防报错)
+                Map<String, String> levelMap = vo.getBrandLevels() != null
+                        ? new HashMap<>(vo.getBrandLevels()) : new HashMap<>();
                 Map<String, String> levelDescMap = new HashMap<>();  // 存新语义 (纯中文)
 
-                if (levels != null) {
-                    for (UmsMemberBrandLevel bl : levels) {
-                        levelMap.put(bl.getBrand(), bl.getLevelCode());
-
+                if (!levelMap.isEmpty()) {
+                    for (Map.Entry<String, String> level : levelMap.entrySet()) {
                         // 🌟 执行“双擎翻译”
-                        String brandName = brandMap.getOrDefault(bl.getBrand(), "未知品牌(" + bl.getBrand() + ")");
-                        String safeLevelCode = bl.getLevelCode() != null ? bl.getLevelCode().trim().toUpperCase() : "";
-                        String levelName = levelDictMap.getOrDefault(safeLevelCode, bl.getLevelCode());
+                        String brandName = brandMap.getOrDefault(level.getKey(), "未知品牌(" + level.getKey() + ")");
+                        String safeLevelCode = level.getValue() != null ? level.getValue().trim().toUpperCase() : "";
+                        String levelName = levelDictMap.getOrDefault(safeLevelCode, level.getValue());
 
                         levelDescMap.put(brandName, levelName);
                     }

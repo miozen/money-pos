@@ -1,6 +1,7 @@
 package com.money.feature.trade.interfaces.rest;
 
 import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
+import com.money.dto.pos.PosMemberVO;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,22 @@ class UmsMemberPosControllerIntegrationTest {
             assertThat(rule.getThresholdAmount()).isEqualByComparingTo("20.00");
             assertThat(rule.getDiscountAmount()).isEqualByComparingTo("5.00");
             assertThat(rule.getStatus()).isEqualTo(1);
+        });
+    }
+
+    @Test
+    void posSearchReturnsMemberSnapshotWithBalanceAndBrandLevels() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        com.money.entity.UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("18.00"));
+
+        List<PosMemberVO> members = umsMemberPosController.posSearchMember("M" + suffix);
+
+        assertThat(members).anySatisfy(found -> {
+            assertThat(found.getId()).isEqualTo(member.getId());
+            assertThat(found.getName()).isEqualTo(member.getName());
+            assertThat(found.getPhone()).isEqualTo(member.getPhone());
+            assertThat(found.getBalance()).isEqualByComparingTo("18.00");
+            assertThat(found.getBrandLevels()).isNotNull();
         });
     }
 }

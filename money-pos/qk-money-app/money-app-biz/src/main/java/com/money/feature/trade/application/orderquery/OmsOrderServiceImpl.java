@@ -7,19 +7,18 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.money.constant.BizErrorStatus;
 import com.money.constant.OrderStatusEnum;
 import com.money.constant.PayMethodEnum;
+import com.money.contract.member.MemberOrderProfileQuery;
+import com.money.contract.member.MemberOrderProfileSnapshot;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsOrderVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
-import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.entity.*;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
-import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
 import com.money.feature.trade.application.orderquery.OmsOrderService;
-import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
 import com.money.web.exception.BaseException;
@@ -42,9 +41,8 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderDetailService omsOrderDetailService;
     private final OmsOrderLogService omsOrderLogService;
-    private final UmsMemberService umsMemberService;
     private final OmsOrderPayMapper omsOrderPayMapper;
-    private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
+    private final MemberOrderProfileQuery memberOrderProfileQuery;
 
     private final SysDictDetailService sysDictDetailService;
 
@@ -147,9 +145,8 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
         // ✅ 替换为：直接调用我们刚刚武装好的全能档案接口！
         if (order.getMemberId() != null) {
             try {
-                // 直接获取自带 brandLevelDesc (纯中文真理矩阵) 的胖模型
-                UmsMemberVO memberVO = umsMemberService.getDetail(order.getMemberId());
-                vo.setMemberInfo(memberVO);
+                MemberOrderProfileSnapshot memberProfile = memberOrderProfileQuery.findByMemberId(order.getMemberId());
+                vo.setMemberInfo(memberProfile);
             } catch (Exception e) {
                 log.warn("获取订单关联会员详情失败: {}", e.getMessage());
             }

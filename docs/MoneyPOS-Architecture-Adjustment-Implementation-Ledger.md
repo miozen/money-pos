@@ -178,6 +178,12 @@ P1 follows the Stage 4 ownership plan and Stage 5 deferral decision. It incremen
 - UMS owns the query implementation and its `UmsMemberMapper`; TRADE checkout validation no longer calls `UmsMemberService.getById()` or stores `UmsMember` in `CheckoutContext`.
 - Order creation and member-asset processing consume the snapshot, preserving the existing checkout transaction and member-order archive behavior.
 
+### Completed: P1.3 Order Profile and POS Member Search Snapshots
+
+- Added separate neutral contracts for order-member profiles and POS member entitlement search. Both expose only the fields their consuming UI requires.
+- UMS now owns member and member-brand-level reads for these contracts. TRADE order queries and POS search no longer depend on `UmsMemberService` or `UmsMemberBrandLevelMapper`.
+- Existing REST response shapes remain compatible: order details still expose `memberInfo`, and POS search still returns `PosMemberVO` with balances, coupon summaries and brand-level maps.
+
 ### Completed: Stage 5 Maven-Reactor Baseline
 
 - Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.
