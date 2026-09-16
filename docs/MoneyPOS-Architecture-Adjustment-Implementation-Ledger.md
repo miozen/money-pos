@@ -168,6 +168,12 @@ Physical Maven splitting is an assessment gate, not an implementation commitment
 - Source dependency scanning found UMS→GMS in three files, UMS→TRADE in one, TRADE→GMS in five and TRADE→UMS in five. The UMS↔TRADE cycle makes an immediate physical split invalid. GMS is currently acyclic relative to the other three candidates, but its shared API/entity/mapper dependencies mean it also has no approved physical split yet.
 - No POM or source package was changed. The next smallest task is a file-level UMS↔TRADE cycle inventory and a narrow, non-cyclic contract design; only after that can an independent compilation benefit be evaluated.
 
+### Completed: Stage 5 UMS-TRADE Cycle Inventory
+
+- Published `MoneyPOS-Stage5-Ums-Trade-Cycle-Inventory.md`. It classifies the reverse UMS→TRADE coupon-count read, three TRADE→UMS reads, the POS member aggregate, and settlement/refund write coordination. It also records TRADE's direct UMS Entity/Mapper/IService usages, which the Stage 4 structural scan intentionally does not classify as a cross-Feature implementation import but which block physical module separation.
+- The proposed dependency shape is a future, neutral contract module containing only Entity-free DTOs and ports. UMS would implement member read/write ports; TRADE would implement coupon count; the Boot composition module wires them. This breaks Maven direction without creating a UMS↔TRADE reactor cycle.
+- No POM, package or behavior changed. The lowest-risk eventual implementation is to relocate the existing Entity-free coupon-count contract; it is not performed during this assessment. Next, evaluate the GMS one-way candidate and define the contract module's minimal dependency set before deciding whether any independent compilation is valuable.
+
 ## Execution Rule
 
 After every completed unit of work, update this ledger with:
