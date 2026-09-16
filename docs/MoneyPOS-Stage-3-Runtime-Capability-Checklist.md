@@ -67,10 +67,10 @@
 
 以下能力在本阶段仅完成盘点、边界说明和验收准备，除非后续形成独立切片，否则不迁移实现。
 
-- [ ] 3.4.1 备份与恢复：盘点 `SysBackupService`、`SysBackupTask`、下载接口和 MariaDB 工具调用；保留现有备份文件格式、恢复流程和权限语义，不与 3.3 混合迁移。
-- [ ] 3.4.2 小票打印：盘点 `PosPrinterService` 的调用面及硬件依赖；继续保留阶段 2 的“无小票机、硬件验收延期”记录。取得兼容打印机后，执行收银与退款小票各一次的实际打印验收。
-- [ ] 3.4.3 POS WebSocket：盘点 `WebSocketConfig`、`PosSyncServer` 与前端握手约定；保留现有业务同步语义，不在本阶段改协议或端点。
-- [ ] 3.4.4 Electron 主进程：确认 `main.cjs` 不在阶段 3 修改范围；只记录它向后端传递运行时参数的现有契约，任何主进程改动另立任务。
+- [x] 3.4.1 已盘点备份与恢复：`SysBackupController` 提供 `/sys/backup/stream`、`/export`、`/restore`；`SysBackupService` 生成含 SQL、Manifest 与资产的 ZIP，恢复前创建保护备份并经影子库校验/原子表切换；`SysBackupTask` 每日调用同一服务并只清理旧自动备份。MariaDB 的 `mysqldump`/`mysql` 调用、ZIP/Manifest 格式、SSE、下载后临时文件清理、恢复确认和权限语义均未改动，后续若需改动另立备份专项。
+- [ ] 3.4.2 已盘点小票打印：`PosPrinterService` 经 `PrintServiceLookup.lookupDefaultPrintService()` 向默认打印机发送 ESC/POS 字节；TRADE `/oms-order/hardware/print` 触发收银/钱箱小票，FIN `/finance/shift-handover/print` 触发交接班小票，配置来自 `/system/config/print`。当前未发现退款流程调用打印服务，故“退款小票”尚无可验收入口，须另立需求/实现切片；当前无兼容小票机，收银及交接班打印同样保留硬件延期，不能以接口成功代替。
+- [x] 3.4.3 已盘点 POS WebSocket：`WebSocketConfig` 注册 `ServerEndpointExporter`，`PosSyncServer` 使用固定端点 `/ws/pos-sync` 和线程安全会话集合，接收文本后广播。收银端 `useDisplaySync` 发送 `IDLE`、`CASHIER_UPDATE`、`CHECKOUT_OPEN`、`PAY_SUCCESS` JSON；客显 `usePosSync` 按此状态和 `cart`、`pAmount`、`member`、`payment` 字段渲染并重连。端点、端口 `9101`、上下文 `/money-pos` 和消息字段均未改动。
+- [x] 3.4.4 已确认 Electron `money-pos-web/main.cjs` 不在阶段 3 修改范围：打包版从安装目录选择 JRE/JAR，以 `java -jar ... --app.home=<APP_ROOT>` 启动后端，并轮询既有健康接口后创建主/客显窗口；退出时终止子 Java 进程。任何 Electron、JAR 命名、窗口或启动参数改动均须另立任务。
 
 ## 3.5 阶段收口验证
 

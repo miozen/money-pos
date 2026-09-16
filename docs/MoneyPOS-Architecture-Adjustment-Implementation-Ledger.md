@@ -708,6 +708,14 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added `RuntimeFileStorageTest`; together with the workspace and MariaDB characterization suites, 8 tests passed with 0 failures and 0 errors. The test uses an isolated temporary data root and verifies every standard runtime directory remains below it.
 - Rollback is the single Stage 3.3 local commit. The next Stage 3 work is the explicitly deferred 3.4 capability inventory: backup/recovery, printer hardware, POS WebSocket and Electron contract, each without protocol or behavior changes.
 
+### Completed: Stage 3.4 Deferred Runtime Capability Inventory (Printer Hardware Pending)
+
+- Recorded the backup/recovery contract without changing it: controller SSE/download/restore routes, ZIP contents, Manifest and SQL tooling, protection backup, shadow-database verification, atomic switch, and scheduled cleanup remain as implemented. Future backup work must be a dedicated slice rather than an incidental runtime-path change.
+- Recorded the printer contract: TRADE invokes the receipt/drawer path, FIN invokes shift-handover printing, and `PosPrinterService` sends ESC/POS bytes to the operating system's default print service. No compatible receipt printer is present. Also, the refund flow currently has no caller to the printer service, so a post-refund receipt requires its own requirements/implementation slice before it can become a hardware acceptance item.
+- Recorded the POS customer-display protocol: `/money-pos/ws/pos-sync` on port `9101`, broadcast forwarding, and the existing `IDLE`/`CASHIER_UPDATE`/`CHECKOUT_OPEN`/`PAY_SUCCESS` JSON states and fields. No endpoint, message, reconnect, or display behavior changed.
+- Recorded the Electron main-process contract: `main.cjs` launches the packaged backend with `--app.home`, polls `/money-pos/actuator/health`, creates windows only after health succeeds, and terminates the child backend on quit. No Electron source was changed.
+- This inventory has no production-code change. The next Stage 3 work is 3.5 closure verification; keep Windows embedded-MariaDB acceptance and receipt-printer hardware acceptance explicitly open.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
