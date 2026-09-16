@@ -1,7 +1,7 @@
 package com.money.feature.trade.application.checkout;
 
+import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.entity.OmsOrder;
-import com.money.entity.UmsMember;
 import com.money.feature.trade.application.boundary.facade.MemberAssetFacade;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetConsumeRequest;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +15,13 @@ public class CheckoutMemberAssetService {
 
     public void handleAsset(CheckoutContext context) {
         OmsOrder order = context.getOrder();
-        UmsMember verifiedMember = context.getMember();
+        MemberCheckoutSnapshot verifiedMember = context.getMember();
         if (!order.getVip() || verifiedMember == null) {
             return;
         }
 
         MemberAssetConsumeRequest request = new MemberAssetConsumeRequest();
-        request.setMemberId(verifiedMember.getId());
+        request.setMemberId(verifiedMember.getMemberId());
         request.setCouponRuleId(context.getRequest().getUsedCouponRuleId());
         request.setCouponCount(context.getRequest().getUsedCouponCount());
         request.setFinalPayAmount(context.getPricingResult().getFinalPayAmount());

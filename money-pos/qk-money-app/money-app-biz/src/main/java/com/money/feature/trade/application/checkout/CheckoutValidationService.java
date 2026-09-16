@@ -2,12 +2,12 @@ package com.money.feature.trade.application.checkout;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.constant.PayMethodEnum;
+import com.money.contract.member.MemberCheckoutQuery;
+import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.entity.GmsGoods;
-import com.money.entity.UmsMember;
 import com.money.feature.gms.application.product.GmsGoodsService;
-import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CheckoutValidationService {
 
-    private final UmsMemberService umsMemberService;
+    private final MemberCheckoutQuery memberCheckoutQuery;
     private final GmsGoodsService gmsGoodsService;
 
     public void validate(CheckoutContext context) {
@@ -45,9 +45,9 @@ public class CheckoutValidationService {
         if (dto.getPayments() == null || dto.getPayments().isEmpty()) throw new BaseException("支付明细为空");
 
         // ================= 2. 会员身份核验 =================
-        UmsMember verifiedMember = null;
+        MemberCheckoutSnapshot verifiedMember = null;
         if (dto.getMember() != null) {
-            verifiedMember = umsMemberService.getById(dto.getMember());
+            verifiedMember = memberCheckoutQuery.findActiveMemberById(dto.getMember());
             if (verifiedMember == null) throw new BaseException("【风控拦截】系统中未找到对应的会员卡信息");
         }
         // 👉 将查到的真实会员装入公文包

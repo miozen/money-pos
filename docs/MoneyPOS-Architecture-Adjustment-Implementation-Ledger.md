@@ -172,6 +172,12 @@ P1 follows the Stage 4 ownership plan and Stage 5 deferral decision. It incremen
 - The contract returns only a member-ID-to-`UNUSED`-coupon-count map. It contains no Spring, MyBatis or Entity type and introduces no POM/module split. `UmsMemberAssetExcelExportServiceIntegrationTest` continues to verify the exported count excludes `USED` coupons.
 - Published `MoneyPOS-P1-Contract-Convergence-Checklist.md`. The next smallest task is a field-level design for the checkout member-validation snapshot; settlement and refund writes remain explicitly out of scope until their transaction characteristics are isolated and tested.
 
+### Completed: P1.2 Checkout Member Verification Snapshot
+
+- Added the neutral `MemberCheckoutSnapshot` and `MemberCheckoutQuery` contracts under `money-app-api`; the snapshot carries only member ID, name, and phone required by checkout.
+- UMS owns the query implementation and its `UmsMemberMapper`; TRADE checkout validation no longer calls `UmsMemberService.getById()` or stores `UmsMember` in `CheckoutContext`.
+- Order creation and member-asset processing consume the snapshot, preserving the existing checkout transaction and member-order archive behavior.
+
 ### Completed: Stage 5 Maven-Reactor Baseline
 
 - Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.

@@ -4,10 +4,10 @@ import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.PricingResult; // 🌟 引入新契约
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
+import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.entity.GmsGoods;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
-import com.money.entity.UmsMember;
 import lombok.Data;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class CheckoutContext {
     private SettleAccountsDTO request;
 
     // 2. 安检员核实后的数据
-    private UmsMember member;
+    private MemberCheckoutSnapshot member;
     private Map<Long, GmsGoods> goodsMap;
 
     // 3. 精算师和出纳员算好的数据

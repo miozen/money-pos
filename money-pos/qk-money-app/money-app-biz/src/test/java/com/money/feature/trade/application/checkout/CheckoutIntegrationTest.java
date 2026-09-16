@@ -168,6 +168,11 @@ class CheckoutIntegrationTest {
         assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
                 .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo)
                 .eq(com.money.entity.OmsOrderPay::getPayMethodCode, "BALANCE"))).isEqualTo(1);
+        OmsOrder order = omsOrderMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                .eq(OmsOrder::getOrderNo, orderNo));
+        assertThat(order.getMemberId()).isEqualTo(member.getId());
+        assertThat(order.getMember()).isEqualTo(member.getName());
+        assertThat(order.getContact()).isEqualTo(member.getPhone());
     }
 
     @Test

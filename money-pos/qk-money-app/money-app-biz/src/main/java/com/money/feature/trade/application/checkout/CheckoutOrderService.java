@@ -3,12 +3,12 @@ package com.money.feature.trade.application.checkout;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus; // 🌟 引入刚确认的全局错误码字典！
 import com.money.constant.OrderStatusEnum;
+import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.pos.PricingItemResult;
 import com.money.dto.pos.PricingResult;
 import com.money.entity.GmsGoods;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
-import com.money.entity.UmsMember;
 import com.money.entity.GmsGoodsCategory;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
@@ -48,7 +48,7 @@ public class CheckoutOrderService {
 
     public void createOrder(CheckoutContext context) {
         PricingResult trialRes = context.getPricingResult();
-        UmsMember verifiedMember = context.getMember();
+        MemberCheckoutSnapshot verifiedMember = context.getMember();
         Map<Long, GmsGoods> goodsMap = context.getGoodsMap();
         String orderNo = context.getRequest().getReqId();
 
@@ -95,7 +95,7 @@ public class CheckoutOrderService {
 
         if (verifiedMember != null) {
             order.setVip(true);
-            order.setMemberId(verifiedMember.getId());
+            order.setMemberId(verifiedMember.getMemberId());
             order.setMember(verifiedMember.getName());
             order.setContact(verifiedMember.getPhone());
         } else {
