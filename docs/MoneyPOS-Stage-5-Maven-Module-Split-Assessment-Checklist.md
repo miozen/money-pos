@@ -26,7 +26,7 @@
 ## 后续评估顺序
 
 - [x] 5.1 已盘点并分类 UMS↔TRADE 的双向依赖：识别 3 条只读边、POS 聚合查询和 2 条交易写侧协调；TRADE 还直接使用 UMS Entity/Mapper/IService，不能仅移动服务接口。设计以中立契约模块承载 Entity-free DTO/接口，UMS/TRADE 分别实现对应 port，组合层注入实现；不授权直接拆分。详见 `MoneyPOS-Stage5-Ums-Trade-Cycle-Inventory.md`。下一最小任务是评估 GMS 单向候选边界及中立契约模块的最小依赖集。
-- [ ] 5.2 评估 GMS 的单向候选边界：区分可留在 GMS 的本域实现、需由 GMS 对外提供的读模型，以及仍依赖共享 API 的类型。
+- [x] 5.2 已评估 GMS 单向候选边界与中立契约最小集：GMS 没有直接依赖 UMS/TRADE，是方向上最适合作为首候选的模块；但服务仍经 `IService<Entity>` 暴露持久化类型、内部仍依赖共享 API/SYS、测试仍启动完整应用，独立编译收益未被证明。因此暂不创建 `money-app-gms`。未来契约模块只能容纳 Entity-free DTO/port 与 JDK 类型。详见 `MoneyPOS-Stage5-Gms-Module-Candidate-Assessment.md`。下一最小任务是汇总目标 Maven 依赖图并形成“拆分 / 暂不拆分”决策。
 - [ ] 5.3 基于 5.1/5.2 生成 Maven 依赖图和“拆分 / 暂不拆分”决策；只有结论为拆分时，才另行提交 POM 与源码移动计划。
 - [ ] 5.4 若无安全拆分候选，记录“暂不拆分”的证据并关闭阶段 5；若存在候选，则先建立独立编译/测试验证，再提出实施切片。
 

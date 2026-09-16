@@ -174,6 +174,12 @@ Physical Maven splitting is an assessment gate, not an implementation commitment
 - The proposed dependency shape is a future, neutral contract module containing only Entity-free DTOs and ports. UMS would implement member read/write ports; TRADE would implement coupon count; the Boot composition module wires them. This breaks Maven direction without creating a UMS↔TRADE reactor cycle.
 - No POM, package or behavior changed. The lowest-risk eventual implementation is to relocate the existing Entity-free coupon-count contract; it is not performed during this assessment. Next, evaluate the GMS one-way candidate and define the contract module's minimal dependency set before deciding whether any independent compilation is valuable.
 
+### Completed: Stage 5 GMS Candidate Assessment
+
+- Published `MoneyPOS-Stage5-Gms-Module-Candidate-Assessment.md`. GMS has no direct UMS or TRADE Feature imports and is therefore the only directionally acyclic initial candidate. It contains 36 source files and four current integration tests; UMS, TRADE, HOME and legacy compatibility entry points consume GMS services.
+- The assessment does not approve a GMS POM split: GMS interfaces still expose `IService<Entity>`, 22 files import shared Entity types, 11 import shared Mappers, several flows use SYS configuration/dictionary capabilities, and the tests start the full Boot application. A physical move would not yet demonstrate independently useful compilation or testing.
+- Defined the future contract module as dependency-minimal: JDK-only Entity-free DTOs and ports, never Spring services, Mappers, Entity, Flyway or Feature implementations. No POM or source changed. Next, consolidate the target graph and issue a split/defer decision with concrete entry criteria.
+
 ## Execution Rule
 
 After every completed unit of work, update this ledger with:
