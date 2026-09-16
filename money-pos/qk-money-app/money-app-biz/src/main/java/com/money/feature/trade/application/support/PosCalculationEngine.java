@@ -1,16 +1,13 @@
 package com.money.feature.trade.application.support;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus;
 import com.money.contract.goods.CheckoutGoodsQuery;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
+import com.money.contract.member.CheckoutPricingBenefitQuery;
+import com.money.contract.member.CheckoutPricingBenefitSnapshot;
 import com.money.dto.pos.PricingItemResult;
 import com.money.dto.pos.PricingResult;
 import com.money.dto.pos.SettleTrialReqDTO;
-import com.money.entity.PosCouponRule;
-import com.money.entity.UmsMemberBrandLevel;
-import com.money.mapper.PosCouponRuleMapper;
-import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,14 +25,14 @@ import java.util.stream.Collectors;
 public class PosCalculationEngine {
 
     private final CheckoutGoodsQuery checkoutGoodsQuery;
-    private final UmsMemberBrandLevelMapper brandLevelMapper;
-    private final PosCouponRuleMapper couponRuleMapper;
+    private final CheckoutPricingBenefitQuery checkoutPricingBenefitQuery;
 
     private static class CalcContext {
         SettleTrialReqDTO req;
         PricingResult result;
         Map<Long, CheckoutGoodsSnapshot> goodsMap;
-        Map<String, String> memberBrandLevels = new HashMap<>();
+        Map<String, String> memberBrandLevels;
+        CheckoutPricingBenefitSnapshot.VoucherRule voucherRule;
         BigDecimal totalConfiguredCoupon = BigDecimal.ZERO;
     }
 
@@ -60,13 +56,10 @@ public class PosCalculationEngine {
 
         List<Long> goodsIds = req.getItems().stream().map(SettleTrialReqDTO.TrialItem::getGoodsId).collect(Collectors.toList());
         ctx.goodsMap = checkoutGoodsQuery.findByIds(goodsIds);
-
-        if (req.getMember() != null) {
-            List<UmsMemberBrandLevel> levels = brandLevelMapper.selectList(new LambdaQueryWrapper<UmsMemberBrandLevel>().eq(UmsMemberBrandLevel::getMemberId, req.getMember()));
-            levels.forEach(l -> {
-                if (l.getBrand() != null) ctx.memberBrandLevels.put(l.getBrand().trim(), l.getLevelCode());
-            });
-        }
+        CheckoutPricingBenefitSnapshot benefits = checkoutPricingBenefitQuery.findForPricing(
+                req.getMember(), req.getUsedCouponRuleId());
+        ctx.memberBrandLevels = benefits.getMemberBrandLevels();
+        ctx.voucherRule = benefits.getVoucherRule();
         return ctx;
     }
 
@@ -162,7 +155,7 @@ public class PosCalculationEngine {
 
     private void calculateMarketingDeduct(CalcContext ctx) {
         if (ctx.req.getUsedCouponRuleId() != null && ctx.req.getUsedCouponCount() != null && ctx.req.getUsedCouponCount() > 0) {
-            PosCouponRule rule = couponRuleMapper.selectById(ctx.req.getUsedCouponRuleId());
+            CheckoutPricingBenefitSnapshot.VoucherRule rule = ctx.voucherRule;
             if (rule == null) throw new BaseException("【试算拦截】选用的满减券规则不存在");
 
             BigDecimal requiredAmount = rule.getThresholdAmount().multiply(new BigDecimal(ctx.req.getUsedCouponCount()));

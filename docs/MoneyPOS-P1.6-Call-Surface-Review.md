@@ -2,7 +2,7 @@
 
 ## 结论
 
-P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复核确认：已完成场景不再泄露跨域持久化实现；库存写侧已在 P1.6.2 收敛，仍有三组历史兼容调用需要继续处理。共享 Entity 导入从 P1.0 的 65 个变为 67 个；这个指标仍只作追踪，不能直接作为阻断条件。
+P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复核确认：已完成场景不再泄露跨域持久化实现；库存写侧及结算试算权益读取已分别在 P1.6.2、P1.6.3 收敛，仍有两组历史兼容调用需要继续处理。共享 Entity 导入从 P1.0 的 65 个变为 67 个；这个指标仍只作追踪，不能直接作为阻断条件。
 
 ## 已关闭的 P1 场景
 
@@ -13,13 +13,14 @@ P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复�
 | 结账会员、订单/收银档案 | `MemberCheckoutQuery`、`MemberOrderProfileQuery`、`MemberPosProfileQuery` | TRADE 不读取 `UmsMember` 或会员服务 Entity 返回值 |
 | 会员未使用券汇总 | `MemberCouponCountQuery` | UMS 导出不读取 TRADE 券 Mapper |
 | 结算、退款会员资产 | `MemberSettlementCommand`、`MemberRefundCommand` | TRADE 门面只组装命令；UMS 写入资产、券、余额和日志 |
+| 结算试算会员权益 | `CheckoutPricingBenefitQuery` / `CheckoutPricingBenefitSnapshot` | TRADE 试算只消费会员品牌等级映射和满减规则金额，不读取 UMS Mapper 或 Entity |
 
 ## 尚未关闭的调用面
 
 | 优先级 | 调用面 | 当前依赖 | 收敛方案 | 验收 |
 | --- | --- | --- | --- | --- |
 | 已完成 P1.6.2 / P1.4c | TRADE→GMS 销售扣库存、退款回库、套餐穿透、库存流水和单据 | 已移除 `GoodsStockFacade` 的 GMS Entity/Mapper/Service 与 `PosInventoryActionService` | `SaleStockCommand` / `RefundStockCommand` 由 GMS 处理；TRADE 仅传库存行快照与订单号，继续加入外层结账/退款事务 | 阶段 0 结账、全/部分退款、套餐、库存不足和并发库存回归 |
-| P1.6.3 | TRADE 结算试算 | `PosCalculationEngine` 直接读取会员品牌等级、满减券规则 Mapper | UMS 提供试算所需的会员权益/满减规则快照查询 | 会员价、会员券、满减门槛和异常规则回归 |
+| 已完成 P1.6.3 | TRADE 结算试算 | 已移除 `PosCalculationEngine` 对会员品牌等级、满减券规则 Mapper 的读取 | `CheckoutPricingBenefitQuery` 由 UMS 组装品牌等级映射和满减规则门槛/优惠额；TRADE 只消费快照 | 权益查询、阶段 0 结账和全量测试回归 |
 | P1.6.4 | TRADE POS 会员展示 | `PosServiceImpl` 直接读取券规则/券 Mapper，且从 GMS 服务取得品牌 Entity | UMS 提供 POS 会员权益展示快照；GMS 提供品牌 ID→名称窄查询 | POS 会员搜索、券数量/规则、品牌等级展示回归 |
 | P1.6.5 | UMS 会员档案/模板品牌展示 | `UmsMemberProfileService`、模板/导出服务直接调用 GMS 品牌服务或读取品牌 Entity | GMS 提供品牌选择 DTO/查询；保留 UMS 本域权益实现 | 会员列表、导入模板、资产导出工作簿回归 |
 | P2（不纳入 P1 完成条件） | FIN/HOME 报表读模型 | 订单、库存、会员 Entity/Mapper 与直接 Feature 服务 | 按 Entity 归属表的 P2 报表快照拆分 | FIN/HOME 集成测试和页面回归 |
@@ -32,8 +33,8 @@ P1.5 的会员资产命令已经闭环，但 P1 不能因而整体关闭。复�
 
 ## Maven 物理拆分复核
 
-当前不满足重新拆分 Maven 的条件：库存写侧和上述兼容调用仍会形成编译依赖；单体事务也仍跨订单、库存与会员资产。先完成 P1.4c 及其余 P1.6 场景契约、保持全量测试稳定，再独立评估循环依赖、模块独立编译收益和 Spring 装配。
+当前不满足重新拆分 Maven 的条件：上述剩余兼容调用仍会形成编译依赖；单体事务也仍跨订单、库存与会员资产。先完成其余 P1.6 场景契约、保持全量测试稳定，再独立评估循环依赖、模块独立编译收益和 Spring 装配。
 
 ## 下一最小任务
 
-**P1.6.3：将结算试算所需的会员品牌等级和满减规则收敛为 UMS 窄查询契约。**
+**P1.6.4：将 TRADE POS 会员展示所需的会员权益和品牌名称收敛为 UMS/GMS 窄查询契约。**
