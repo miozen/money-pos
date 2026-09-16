@@ -1,16 +1,14 @@
 package com.money.feature.trade.application.boundary.facade;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.constant.PayMethodEnum;
-import com.money.dto.pos.PricingResult;
-import com.money.dto.pos.SettleAccountsDTO;
-import com.money.entity.PosMemberCoupon;
-import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
+import com.money.contract.member.MemberRefundCommand;
+import com.money.contract.member.MemberRefundCommandHandler;
+import com.money.contract.member.MemberSettlementCommand;
+import com.money.contract.member.MemberSettlementCommandHandler;
+import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetConsumeRequest;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetRefundRequest;
-import com.money.feature.trade.application.support.PosAssetActionService;
-import com.money.mapper.PosMemberCouponMapper;
+import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,26 +19,30 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class MemberAssetFacade {
 
-    private final PosAssetActionService assetActionService;
-    private final UmsMemberAssetService umsMemberAssetService;
-    private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberSettlementCommandHandler memberSettlementCommandHandler;
+    private final MemberRefundCommandHandler memberRefundCommandHandler;
 
     public void consumeForSettlement(MemberAssetConsumeRequest request) {
-        SettleAccountsDTO settleRequest = new SettleAccountsDTO();
-        settleRequest.setUsedCouponRuleId(request.getCouponRuleId());
-        settleRequest.setUsedCouponCount(request.getCouponCount());
+        MemberSettlementCommand command = new MemberSettlementCommand();
+        command.setMemberId(request.getMemberId());
+        command.setOrderNo(request.getOrderNo());
+        command.setFinalPayAmount(request.getFinalPayAmount());
+        command.setMemberCouponDeduct(request.getMemberCouponDeduct());
+        command.setVoucherRuleId(request.getCouponRuleId());
+        command.setVoucherCount(request.getCouponCount());
 
-        PricingResult pricingResult = new PricingResult();
-        pricingResult.setFinalPayAmount(request.getFinalPayAmount());
-        pricingResult.setActualCouponDeduct(request.getMemberCouponDeduct());
-
-        assetActionService.consume(
-                request.getMemberId(),
-                settleRequest,
-                pricingResult,
-                request.getPaymentResult(),
-                request.getOrderNo()
-        );
+        NormalizedPaymentResult paymentResult = request.getPaymentResult();
+        if (paymentResult == null || paymentResult.getValidItems() == null) {
+            throw new BaseException("系统内部流水线异常：支付凭证脱落，请重试！");
+        }
+        BigDecimal balanceAmount = paymentResult.getValidItems().stream()
+                .filter(item -> PayMethodEnum.fromCode(item.getMethodCode()) == PayMethodEnum.BALANCE)
+                .map(item -> item.getNetAmount() == null ? BigDecimal.ZERO : item.getNetAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        command.setBalancePaymentRequested(paymentResult.getValidItems().stream()
+                .anyMatch(item -> PayMethodEnum.fromCode(item.getMethodCode()) == PayMethodEnum.BALANCE));
+        command.setBalancePaymentAmount(balanceAmount);
+        memberSettlementCommandHandler.handle(command);
     }
 
     public void restoreForRefund(MemberAssetRefundRequest request) {
@@ -48,48 +50,24 @@ public class MemberAssetFacade {
             return;
         }
 
-        umsMemberAssetService.processReturn(
-                request.getMemberId(),
-                request.getSalesAmount(),
-                request.getMemberCouponAmount(),
-                request.isIncreaseCancelTimes(),
-                request.getOrderNo()
-        );
+        MemberRefundCommand command = new MemberRefundCommand();
+        command.setMemberId(request.getMemberId());
+        command.setOrderNo(request.getOrderNo());
+        command.setSalesAmount(request.getSalesAmount());
+        command.setMemberCouponRefund(request.getMemberCouponAmount());
+        command.setIncreaseCancelTimes(request.isIncreaseCancelTimes());
+        command.setRestoreVouchers(request.isRestoreVouchers());
+        command.setBalanceRefundAmount(balanceRefundAmount(request));
+        memberRefundCommandHandler.handle(command);
+    }
 
-        if (request.isRestoreVouchers()) {
-            Long voucherCount = posMemberCouponMapper.selectCount(new LambdaQueryWrapper<PosMemberCoupon>()
-                    .eq(PosMemberCoupon::getOrderNo, request.getOrderNo()));
-            if (voucherCount != null && voucherCount > 0) {
-                posMemberCouponMapper.update(null, new LambdaUpdateWrapper<PosMemberCoupon>()
-                        .eq(PosMemberCoupon::getOrderNo, request.getOrderNo())
-                        .set(PosMemberCoupon::getStatus, "UNUSED")
-                        .set(PosMemberCoupon::getUseTime, null)
-                        .set(PosMemberCoupon::getOrderNo, null));
-
-                Long totalUnusedVouchers = posMemberCouponMapper.selectCount(new LambdaQueryWrapper<PosMemberCoupon>()
-                        .eq(PosMemberCoupon::getMemberId, request.getMemberId())
-                        .eq(PosMemberCoupon::getStatus, "UNUSED"));
-                umsMemberAssetService.logVoucherRefund(
-                        request.getMemberId(),
-                        new BigDecimal(voucherCount),
-                        new BigDecimal(totalUnusedVouchers),
-                        request.getOrderNo()
-                );
-            }
-        }
-
+    private BigDecimal balanceRefundAmount(MemberAssetRefundRequest request) {
         if (request.getBalancePayments() == null) {
-            return;
+            return BigDecimal.ZERO;
         }
-        for (MemberAssetRefundRequest.BalancePayment payment : request.getBalancePayments()) {
-            if (PayMethodEnum.fromCode(payment.getPayMethodCode()) == PayMethodEnum.BALANCE) {
-                umsMemberAssetService.addBalance(
-                        request.getMemberId(),
-                        payment.getPayAmount(),
-                        request.getOrderNo(),
-                        "整单退款:返还余额"
-                );
-            }
-        }
+        return request.getBalancePayments().stream()
+                .filter(payment -> PayMethodEnum.fromCode(payment.getPayMethodCode()) == PayMethodEnum.BALANCE)
+                .map(payment -> payment.getPayAmount() == null ? BigDecimal.ZERO : payment.getPayAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

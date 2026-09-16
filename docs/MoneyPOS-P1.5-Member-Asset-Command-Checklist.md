@@ -19,9 +19,9 @@
 - [x] P1.5.2 已补齐缺失特征测试：新增“部分退款叠加余额支付不返还整单余额”及“满减券数量不足、在资产核销阶段失败时订单/库存/会员资产全部回滚”测试。真实并发条件更新的竞争窗口保留至 P1.5.6 并发复核。
 - [x] P1.5.3 已完成结算命令设计：详见 `MoneyPOS-P1.5-Member-Settlement-Command-Design.md`。命令只表达会员、订单、金额和券规则信息；将 `NormalizedPaymentResult` 收敛为中立的余额支付净额，UMS 将拥有消费、券核销、余额、日志和到店时间写入。
 - [x] P1.5.4 已完成退款命令设计：详见 `MoneyPOS-P1.5-Member-Refund-Command-Design.md`。统一命令用标志位和余额退款金额表达整单/部分退款差异，不携带订单、支付、会员或券实体。
-- [ ] P1.5.5 迁移 `MemberAssetFacade`：TRADE 只构造命令并调用中立接口；删除 `PosAssetActionService`、TRADE 内的 UMS Mapper/Entity 写入与优惠券恢复实现。
+- [x] P1.5.5 已迁移 `MemberAssetFacade`：新增 API 中立的 `MemberSettlementCommand` / `MemberRefundCommand` 及处理器；UMS 实现消费、满减券 FIFO 条件核销/恢复、余额和日志写入，TRADE 门面仅从既有结账/退款结果组装命令。已删除 `PosAssetActionService` 和 TRADE 内直接的 UMS Mapper/Entity 写入；结账与退款外层事务保持不变。
 - [ ] P1.5.6 全量验证与并发复核：运行阶段 0 `CheckoutIntegrationTest`、全量 `mvn test`、`mvn package` 和架构门禁；复核失败回滚、FIFO、全额/部分退款、重复请求行为。
 
 ## 本轮结论
 
-下一最小任务是 **P1.5.5：同时实现结算与退款中立命令处理器，并迁移 `MemberAssetFacade`**。
+下一最小任务是 **P1.5.6：补真实并发满减券竞争回归，并完成 P1.5 全量验证与调用面复核**。

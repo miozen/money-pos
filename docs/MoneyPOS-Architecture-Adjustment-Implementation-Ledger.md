@@ -927,3 +927,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Reconciled every implementation entry in `MoneyPOS-Stage-4-Regression-Prevention-Checklist.md`: sections 4.0 through 4.6.6c are complete, with no unchecked Stage 4 implementation item remaining. The final isolated verification has 17 test classes and 32 tests with zero failures/errors; `mvn package -DskipTests` and `architecture-scan.sh --check-new` passed.
 - The current structural scan is 0 Controller→Mapper imports, 0 cross-Feature `ServiceImpl`/Mapper imports and 0 `platform → feature` imports. The original seven Controller findings have therefore been removed without changing public routes, database tables or Flyway scripts.
 - Stage 4 implementation is closed. Two deliberate, non-blocking follow-ups remain outside its scope: the P1 shared-Entity-to-snapshot-DTO migration (65 shared Entity importers remain report-only), and a separately authorized decision on Maven/CI integration for the local architecture gate. The Stage 3 Windows embedded-MariaDB and physical-printer exceptions also remain independent.
+
+### Completed: P1.5.5 Member Asset Command Migration
+
+- Added API-neutral settlement and refund commands plus handler interfaces. TRADE now converts its already-calculated checkout and refund results into those commands; no `NormalizedPaymentResult`, persistence Entity or Mapper crosses the command boundary.
+- Moved member consumption, voucher FIFO conditional update and restoration, balance debit/refund, asset logs and last-visit update to UMS command handlers. Deleted TRADE's `PosAssetActionService`; `MemberAssetFacade` contains no direct UMS Mapper or Entity write.
+- Existing isolated `mvn test` passed after the migration. P1.5.6 remains to add a genuine competing-voucher regression and repeat the complete validation/architecture-gate closure.

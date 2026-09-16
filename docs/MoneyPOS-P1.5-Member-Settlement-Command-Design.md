@@ -14,6 +14,7 @@ MemberSettlementCommand
   memberCouponDeduct       必填，允许 0：应扣会员券金额
   voucherRuleId            可空：满减券规则 ID
   voucherCount             可空/0：要核销的满减券张数
+  balancePaymentRequested  必填：归一化支付中是否出现余额支付意图
   balancePaymentAmount     必填，允许 0：余额支付净额
 ```
 
@@ -28,6 +29,7 @@ MemberSettlementCommand
 | `finalPayAmount` | `PricingResult.finalPayAmount` | 记录消费额/会员券统计 |
 | `memberCouponDeduct` | `PricingResult.actualCouponDeduct` | 原子扣会员券、记录日志 |
 | `voucherRuleId/count` | 结算请求 | FIFO 选择、`UNUSED → USED` 条件更新、券流水 |
+| `balancePaymentRequested` | 已归一化支付项中是否出现 `BALANCE` | 支付意图存在但金额为 0 时拒绝，防止扣款指令丢失 |
 | `balancePaymentAmount` | 已归一化支付项中 `BALANCE` 的净额汇总 | 不得大于最终应收；原子扣余额、记录日志 |
 
 UMS 同时负责刷新 `lastVisitTime`。若命令失败，不能留下订单成功、库存已扣或任意资产半更新。
