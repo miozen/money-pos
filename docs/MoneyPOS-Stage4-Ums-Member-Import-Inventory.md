@@ -27,7 +27,7 @@
 
 ## 选择的安全迁移顺序
 
-### 4.6.6b：会员 Excel 模板服务（下一最小任务）
+### 4.6.6b：会员 Excel 模板服务（已完成）
 
 新增 `UmsMemberExcelTemplateService`，仅承接 `GET /ums/member/template`：
 
@@ -41,15 +41,15 @@ UmsMemberImportController → UmsMemberExcelTemplateService
 
 这一步只消除 Controller 对 GMS/SYS 两个 Mapper 的使用；导出仍需要 UMS/TRADE 读模型，因此 Controller 暂时仍是一个扫描发现。这样做的价值是先固化可复用的表头契约，而不是复制两套品牌列逻辑。
 
-### 4.6.6c：会员资产导出读模型（后续，须先设计）
+### 4.6.6c：会员资产导出读模型（已完成）
 
-在模板服务稳定后，迁移 `GET /ums/member/export` 至 UMS 只读导出服务。该服务可使用 UMS 本域会员与品牌等级读取，但优惠券统计必须通过 TRADE 提供的窄查询接口，例如：
+在模板服务稳定后，已迁移 `GET /ums/member/export` 至 `UmsMemberAssetExcelExportService`。该服务使用 UMS 本域会员与品牌等级读取；优惠券统计通过 TRADE 提供的窄查询接口：
 
 ```java
 Map<Long, Long> countUnusedCouponsByMemberIds(Collection<Long> memberIds);
 ```
 
-该接口只返回会员 ID 到未使用券数量的聚合结果，不暴露 `PosMemberCoupon` Entity 或 Mapper。导出服务经 `GmsBrandService`、`SysDictDetailService` 和该 TRADE 查询接口取得参考数据；完成后 Controller 才能彻底移除剩余 Mapper，扫描预期由 1 降为 0。
+该接口只返回会员 ID 到未使用券数量的聚合结果，不暴露 `PosMemberCoupon` Entity 或 Mapper。导出服务经 `GmsBrandService`、`SysDictDetailService` 和该 TRADE 查询接口取得参考数据；`UmsMemberImportController` 已彻底移除剩余 Mapper，扫描已由 1 降为 0。
 
 ## 必须保持的兼容语义
 
@@ -63,6 +63,6 @@ Map<Long, Long> countUnusedCouponsByMemberIds(Collection<Long> memberIds);
 
 ## 验收计划
 
-4.6.6b 应新增隔离数据库工作簿测试，验证动态品牌表头、会员等级下拉、示例行和响应头。4.6.6c 再增加真实会员、品牌等级、未使用/已使用券和空会员导出的读模型测试。每个实现切片均运行 `mvn test`、`mvn package -DskipTests` 与 `bash scripts/architecture-scan.sh --check-new`。
+4.6.6b 已新增隔离数据库工作簿测试，验证动态品牌表头、会员等级下拉、示例行和响应头。4.6.6c 已新增真实会员、品牌等级、未使用/已使用券的工作簿读模型测试。每个实现切片均运行 `mvn test`、`mvn package -DskipTests` 与 `bash scripts/architecture-scan.sh --check-new`。
 
 本盘点不迁移写入型 `UmsMemberImportService`，不修改优惠券表、会员表、品牌等级表或前端，也不将 TRADE 优惠券 Mapper 暴露给 UMS。
