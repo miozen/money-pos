@@ -1,9 +1,25 @@
 #!/usr/bin/env bash
-# Stage 4 architecture scan. This is intentionally report-only: findings never fail the build.
+# Stage 4 architecture scan. The default mode is report-only; --check-new rejects
+# only findings not present in the checked-in v1 baseline.
 set -u -o pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source_root="$repo_root/money-pos/qk-money-app/money-app-biz/src/main/java"
+mode="report"
+
+case "${1:-}" in
+  "") ;;
+  --check-new) mode="check-new" ;;
+  --help|-h)
+    echo "Usage: bash scripts/architecture-scan.sh [--check-new]"
+    echo "Default mode reports findings; --check-new fails only on findings new to v1."
+    exit 0
+    ;;
+  *)
+    echo "unknown option: $1 (use --help)" >&2
+    exit 2
+    ;;
+esac
 
 if ! command -v rg >/dev/null 2>&1; then
   echo "architecture scan requires ripgrep (rg)" >&2
@@ -23,10 +39,22 @@ count_lines() {
   sed '/^$/d' | wc -l | tr -d ' '
 }
 
+new_findings() {
+  local current="$1"
+  local baseline="$2"
+  comm -23 \
+    <(printf '%s' "$current" | sed '/^$/d' | sort -u) \
+    <(printf '%s' "$baseline" | sed '/^$/d' | sort -u)
+}
+
 echo "# MoneyPOS Architecture Scan Report (v1)"
 echo
 echo "Scope: \`money-app-biz/src/main/java\`"
-echo "Mode: report only — findings do not change the exit status."
+if [[ "$mode" == "check-new" ]]; then
+  echo "Mode: additions-only gate — baseline findings are allowed; new findings fail."
+else
+  echo "Mode: report only — findings do not change the exit status."
+fi
 echo
 
 controller_files=$(rg -l '@(RestController|Controller)' "$source_root" || true)
@@ -78,15 +106,17 @@ echo
 
 platform_findings=$(rg -l '^import com\.money\.feature\.' "$source_root/com/money/platform" 2>/dev/null || true)
 platform_count=$(printf '%s\n' "$platform_findings" | count_lines)
+platform_relative_findings=""
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  platform_relative_findings+="$(relative_path "$file")"$'\n'
+done <<< "$platform_findings"
 
 echo "## platform → feature"
 echo
 echo "- Direct imports: $platform_count"
 if [[ -n "$platform_findings" ]]; then
-  while IFS= read -r file; do
-    [[ -z "$file" ]] && continue
-    echo "  - $(relative_path "$file")"
-  done <<< "$platform_findings"
+  printf '%s' "$platform_relative_findings" | sort | sed 's#^#  - #'
 else
   echo "  - none"
 fi
@@ -101,5 +131,46 @@ echo "- Feature files importing \`com.money.entity\`: $legacy_entity_count"
 echo "- Classification: tracked compatibility debt; not a blocking rule until ownership and DTO slices are migrated."
 echo
 echo "Reference baseline: docs/MoneyPOS-Architecture-Scan-Baseline-v1.md"
-echo "Result: report generated; exit status remains 0 by design."
-exit 0
+
+if [[ "$mode" == "report" ]]; then
+  echo "Result: report generated; exit status remains 0 by design."
+  exit 0
+fi
+
+# v1 baseline: later migrations may remove these entries, but only these original
+# Controller-to-Mapper findings remain allowed. The other two structural rules
+# were clean in v1 and therefore allow no findings.
+baseline_controller_mapper_files=$'com/money/controller/PosCouponRuleController.java\ncom/money/controller/SysStrategyController.java\ncom/money/feature/gms/interfaces/rest/GmsBrandConfigController.java\ncom/money/feature/gms/interfaces/rest/GmsGoodsExcelController.java\ncom/money/feature/gms/interfaces/rest/GmsStockLogController.java\ncom/money/feature/ums/interfaces/rest/UmsMemberController.java\ncom/money/feature/ums/interfaces/rest/UmsMemberImportController.java\n'
+new_controller_mapper=$(new_findings "$controller_mapper_files" "$baseline_controller_mapper_files")
+new_cross_feature=$(new_findings "$cross_feature_findings" "")
+new_platform=$(new_findings "$platform_relative_findings" "")
+
+echo
+echo "## Additions-only gate"
+echo
+
+gate_failed=0
+if [[ -n "$new_controller_mapper" ]]; then
+  gate_failed=1
+  echo "- New Controller → Mapper findings:"
+  printf '%s\n' "$new_controller_mapper" | sed 's#^#  - #'
+fi
+if [[ -n "$new_cross_feature" ]]; then
+  gate_failed=1
+  echo "- New cross-Feature ServiceImpl / Mapper findings:"
+  printf '%s\n' "$new_cross_feature" | sed 's#^#  - #'
+fi
+if [[ -n "$new_platform" ]]; then
+  gate_failed=1
+  echo "- New platform → feature findings:"
+  printf '%s\n' "$new_platform" | sed 's#^#  - #'
+fi
+
+if [[ "$gate_failed" -eq 1 ]]; then
+  echo "Result: gate failed because new structural findings were detected." >&2
+  exit 1
+fi
+
+echo "- No new structural findings relative to v1."
+echo "- Shared Entity imports remain report-only."
+echo "Result: additions-only gate passed."
