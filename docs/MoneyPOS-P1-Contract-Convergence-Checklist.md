@@ -16,17 +16,17 @@ P1 在不拆 Maven 模块、不移动共享 Entity 物理包、不改数据库�
   - [x] P1.4a 结账读侧：新增 `CheckoutGoodsSnapshot/Query`，由 GMS 组装商品主档、分类名、可售库存和会员价矩阵；结账核验、试算、订单快照和库存扣减命令准备不再读取 `GmsGoodsService`、`GmsGoods` 或价格 Mapper。库存写命令与事务顺序保持不变。
   - [x] P1.4b POS 商品目录：新增 `PosGoodsCatalogSnapshot/Query`，GMS 负责条码、名称、助记码搜索及价格矩阵组装；TRADE 的 `PosService` 仅转换快照为既有 `PosGoodsVO`，不再读取 `GmsGoodsService`、`GmsGoods` 或 `PosSkuLevelPriceMapper`。
   - [ ] P1.4c 库存写侧：在结算/退款命令事务特征固化后，再收敛 `GoodsStockFacade` 内部的 GMS 写入实现；不与只读迁移混做。
-- [ ] P1.5 会员资产结算、退款命令：详见 `MoneyPOS-P1.5-Member-Asset-Command-Checklist.md`。
+- [x] P1.5 会员资产结算、退款命令：详见 `MoneyPOS-P1.5-Member-Asset-Command-Checklist.md`。
   - [x] P1.5.1 已完成写侧盘点与特征基线。
   - [x] P1.5.2 已补齐部分退款余额与券不足回滚特征测试；真实并发竞争留待 P1.5.6。
   - [x] P1.5.3 已完成结算命令设计。
   - [x] P1.5.4 已完成退款命令设计。
   - [x] P1.5.5 已实现结算/退款命令并迁移资产边界：TRADE 的 `MemberAssetFacade` 只适配既有结账/退款结果为 API 命令；UMS 拥有会员资产、满减券和余额写入，`PosAssetActionService` 已删除。
-  - [ ] P1.5.6 全量验证与并发复核。
+  - [x] P1.5.6 已完成：阶段 0 结账回归新增真实并发抢券、FIFO 和同请求重试覆盖；全量测试、打包和架构门禁通过。
 - [ ] P1.6 复核所有 P1 调用面、更新 Entity 归属表和架构扫描策略；仅在无循环、独立编译收益和运行时装配验证均满足时，重新评估 Maven 物理拆分。
 
 ## 当前完成定义
 
 P1 不要求消灭所有共享 Entity 导入。完成的标志是：已识别的 TRADE↔UMS/GMS 跨域场景均改为场景 DTO/命令/查询契约，TRADE 不再通过对方 Entity、Mapper 或 `IService<Entity>` 完成这些场景；收银和退款事务回归保持通过。
 
-下一最小任务是 **P1.5.6：补并发满减券竞争回归，并完成 P1.5 验证与调用面复核**。
+下一最小任务是 **P1.6：复核剩余跨域调用面、更新 Entity 归属表和架构扫描策略**。

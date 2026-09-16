@@ -34,6 +34,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -258,6 +264,35 @@ class CheckoutIntegrationTest {
     }
 
     @Test
+    void couponSettlementConsumesVouchersInFifoOrder() {
+        String suffix = String.valueOf(System.nanoTime());
+        String orderNo = "FIFO-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
+        PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("10.00"), new BigDecimal("5.00"));
+        PosMemberCoupon oldest = tradeFixture.issueCoupon(member.getId(), rule.getId());
+        PosMemberCoupon middle = tradeFixture.issueCoupon(member.getId(), rule.getId());
+        PosMemberCoupon newest = tradeFixture.issueCoupon(member.getId(), rule.getId());
+        oldest.setGetTime(LocalDateTime.now().minusMinutes(2));
+        middle.setGetTime(LocalDateTime.now().minusMinutes(1));
+        newest.setGetTime(LocalDateTime.now());
+        posMemberCouponMapper.updateById(oldest);
+        posMemberCouponMapper.updateById(middle);
+        posMemberCouponMapper.updateById(newest);
+
+        com.money.dto.pos.SettleAccountsDTO request = tradeFixture.cashSettlement(
+                orderNo, goods.getId(), 3, new BigDecimal("26.00"));
+        request.setMember(member.getId());
+        request.setUsedCouponRuleId(rule.getId());
+        request.setUsedCouponCount(2);
+        checkoutOrchestrator.orchestrate(request);
+
+        assertThat(posMemberCouponMapper.selectById(oldest.getId()).getStatus()).isEqualTo("USED");
+        assertThat(posMemberCouponMapper.selectById(middle.getId()).getStatus()).isEqualTo("USED");
+        assertThat(posMemberCouponMapper.selectById(newest.getId()).getStatus()).isEqualTo("UNUSED");
+    }
+
+    @Test
     void mixedCashAndBalanceSettlementPersistsBothPaymentsAndDeductsOnlyBalance() {
         String suffix = String.valueOf(System.nanoTime());
         String orderNo = "MX-" + suffix;
@@ -344,6 +379,82 @@ class CheckoutIntegrationTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void concurrentCouponSettlementsAllowOnlyOneOrderToConsumeTheSameVoucher() throws Exception {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        String firstOrderNo = "VC-A-" + suffix;
+        String secondOrderNo = "VC-B-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
+        PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("20.00"), new BigDecimal("5.00"));
+        PosMemberCoupon voucher = tradeFixture.issueCoupon(member.getId(), rule.getId());
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try {
+            Future<Boolean> first = executor.submit(() -> settleCouponWhenReleased(
+                    ready, start, tradeFixture.couponSettlement(
+                            firstOrderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId())));
+            Future<Boolean> second = executor.submit(() -> settleCouponWhenReleased(
+                    ready, start, tradeFixture.couponSettlement(
+                            secondOrderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId())));
+
+            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            long successfulSettlements = (first.get(20, TimeUnit.SECONDS) ? 1 : 0)
+                    + (second.get(20, TimeUnit.SECONDS) ? 1 : 0);
+            assertThat(successfulSettlements).isEqualTo(1);
+            assertThat(omsOrderMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .in(OmsOrder::getOrderNo, firstOrderNo, secondOrderNo))).isEqualTo(1);
+            assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
+            assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("19.00");
+            PosMemberCoupon updatedVoucher = posMemberCouponMapper.selectById(voucher.getId());
+            assertThat(updatedVoucher.getStatus()).isEqualTo("USED");
+            assertThat(updatedVoucher.getOrderNo()).isIn(firstOrderNo, secondOrderNo);
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+            posMemberCouponMapper.deleteById(voucher.getId());
+            deleteCheckoutArtifacts(firstOrderNo, secondOrderNo);
+            umsMemberMapper.deleteById(member.getId());
+            gmsGoodsMapper.deleteById(goods.getId());
+        }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void repeatedCouponSettlementRequestIsIdempotentAndDoesNotConsumeAssetsTwice() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        String orderNo = "IDM-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
+        PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("20.00"), new BigDecimal("5.00"));
+        PosMemberCoupon voucher = tradeFixture.issueCoupon(member.getId(), rule.getId());
+
+        try {
+            SettleResultVO first = checkoutOrchestrator.orchestrate(
+                    tradeFixture.couponSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId()));
+            SettleResultVO retry = checkoutOrchestrator.orchestrate(
+                    tradeFixture.couponSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId()));
+
+            assertThat(retry.getOrderNo()).isEqualTo(first.getOrderNo());
+            assertThat(omsOrderMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderNo, orderNo))).isEqualTo(1);
+            assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
+            assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("19.00");
+            assertThat(posMemberCouponMapper.selectById(voucher.getId()).getStatus()).isEqualTo("USED");
+        } finally {
+            posMemberCouponMapper.deleteById(voucher.getId());
+            deleteCheckoutArtifacts(orderNo);
+            umsMemberMapper.deleteById(member.getId());
+            gmsGoodsMapper.deleteById(goods.getId());
+        }
+    }
+
+    @Test
     void insufficientPaymentRollsBackOrderAndStock() {
         String suffix = String.valueOf(System.nanoTime());
         String requestId = "ROLLBACK-" + suffix;
@@ -357,5 +468,39 @@ class CheckoutIntegrationTest {
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                         .eq(OmsOrder::getOrderNo, requestId))).isZero();
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
+    }
+
+    private boolean settleCouponWhenReleased(
+            CountDownLatch ready, CountDownLatch start, com.money.dto.pos.SettleAccountsDTO request) throws InterruptedException {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("test", "N/A"));
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.addHeader("Y-tenant", "0");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(servletRequest));
+        try {
+            ready.countDown();
+            if (!start.await(10, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("并发结算测试未能同时启动");
+            }
+            checkoutOrchestrator.orchestrate(request);
+            return true;
+        } catch (BaseException expectedVoucherConflict) {
+            return false;
+        } finally {
+            SecurityContextHolder.clearContext();
+            RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
+    private void deleteCheckoutArtifacts(String... orderNos) {
+        for (String orderNo : orderNos) {
+            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
+                    .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
+            omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
+                    .eq(OmsOrderDetail::getOrderNo, orderNo));
+            omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderNo, orderNo));
+            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
+                    .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + orderNo));
+        }
     }
 }

@@ -20,8 +20,8 @@
 - [x] P1.5.3 已完成结算命令设计：详见 `MoneyPOS-P1.5-Member-Settlement-Command-Design.md`。命令只表达会员、订单、金额和券规则信息；将 `NormalizedPaymentResult` 收敛为中立的余额支付净额，UMS 将拥有消费、券核销、余额、日志和到店时间写入。
 - [x] P1.5.4 已完成退款命令设计：详见 `MoneyPOS-P1.5-Member-Refund-Command-Design.md`。统一命令用标志位和余额退款金额表达整单/部分退款差异，不携带订单、支付、会员或券实体。
 - [x] P1.5.5 已迁移 `MemberAssetFacade`：新增 API 中立的 `MemberSettlementCommand` / `MemberRefundCommand` 及处理器；UMS 实现消费、满减券 FIFO 条件核销/恢复、余额和日志写入，TRADE 门面仅从既有结账/退款结果组装命令。已删除 `PosAssetActionService` 和 TRADE 内直接的 UMS Mapper/Entity 写入；结账与退款外层事务保持不变。
-- [ ] P1.5.6 全量验证与并发复核：运行阶段 0 `CheckoutIntegrationTest`、全量 `mvn test`、`mvn package` 和架构门禁；复核失败回滚、FIFO、全额/部分退款、重复请求行为。
+- [x] P1.5.6 已完成并发复核与全量验证：新增两个独立事务同时争抢同一张满减券的结账回归，验证只有一单成功、失败请求不留下订单/库存/会员消费写入；补齐 FIFO（三张券核销最早两张）和同 `reqId` 重试幂等（不重复扣库存、资产或券）回归。阶段 0 `CheckoutIntegrationTest`、隔离库全量 `mvn test`、`mvn package -DskipTests` 与 `architecture-scan.sh --check-new` 均通过。
 
 ## 本轮结论
 
-下一最小任务是 **P1.5.6：补真实并发满减券竞争回归，并完成 P1.5 全量验证与调用面复核**。
+P1.5 已闭环。下一最小任务是 **P1.6：复核剩余跨域调用面、更新 Entity 归属表和架构扫描策略**。

@@ -933,3 +933,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added API-neutral settlement and refund commands plus handler interfaces. TRADE now converts its already-calculated checkout and refund results into those commands; no `NormalizedPaymentResult`, persistence Entity or Mapper crosses the command boundary.
 - Moved member consumption, voucher FIFO conditional update and restoration, balance debit/refund, asset logs and last-visit update to UMS command handlers. Deleted TRADE's `PosAssetActionService`; `MemberAssetFacade` contains no direct UMS Mapper or Entity write.
 - Existing isolated `mvn test` passed after the migration. P1.5.6 remains to add a genuine competing-voucher regression and repeat the complete validation/architecture-gate closure.
+
+### Completed: P1.5.6 Member Asset Command Closure
+
+- Extended `CheckoutIntegrationTest` with a real two-thread, independent-transaction race for one member voucher. Exactly one checkout succeeds; the other rolls back without a second order, stock deduction, member consumption or voucher use. The test supplies the same tenant/security context used by the normal integration fixture rather than bypassing the checkout pipeline.
+- Added explicit FIFO verification for three dated vouchers and an idempotency verification for a repeated checkout `reqId`. Together with existing balance, full/partial refund and insufficient-voucher tests, the command boundary retains the previous transaction and asset behavior.
+- Final isolated verification passed: 18 test classes / 39 tests, zero failures/errors; `mvn package -DskipTests` and `scripts/architecture-scan.sh --check-new` passed. P1.5 is closed; P1.6 remains for the broader P1 call-surface and ownership review.
