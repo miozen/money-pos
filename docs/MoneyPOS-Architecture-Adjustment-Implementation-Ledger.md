@@ -723,6 +723,13 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Full reactor `mvn package -DskipTests` passed after the test run. The current WSL development backend remains healthy at `/money-pos/actuator/health` with external MariaDB `127.0.0.1:3306/money_pos`.
 - Windows embedded-MariaDB acceptance and physical printer acceptance remain open environment items. They are traceable exceptions rather than code failures: the former requires a packaged Windows runtime with its MariaDB engine, and the latter requires compatible receipt-printer hardware. Stage 4 may begin with the recorded controller-to-Mapper baseline, while those environment items remain separately executable.
 
+### Completed: Stage 4.0 Regression-Prevention Baseline
+
+- Added `MoneyPOS-Stage-4-Regression-Prevention-Checklist.md` as the executable Stage 4 plan. It defines a gradual rule strategy: new violations are prevented only after the corresponding scan is stable; historical debt remains explicitly baselined and is migrated in safe business slices.
+- Read-only source scan found 27 Controllers and 7 historical Controller-to-Mapper dependencies: `SysStrategyController`, `GmsBrandConfigController`, `GmsGoodsExcelController`, `GmsStockLogController`, `PosCouponRuleController`, `UmsMemberController`, and `UmsMemberImportController`. No Feature imports another Feature's `ServiceImpl` or Mapper, and `platform` imports no `feature` package.
+- Entity-contract enforcement remains intentionally deferred: 62 Feature files still import legacy shared `com.money.entity` types, which have no reliable per-Feature physical ownership marker. Establish an ownership map before treating those imports as violations.
+- No production code, database schema, front end, tests or build behavior changed in 4.0. The immediate next action is 4.1: publish the short architecture collaboration guide, then add a non-blocking scan report before any blocking gate or Controller migration.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
