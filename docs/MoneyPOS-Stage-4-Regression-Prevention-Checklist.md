@@ -23,7 +23,7 @@
 
 ## 后续实施顺序
 
-- [ ] 4.1 编写简短架构协作指南：说明允许的 Feature 服务接口/facade 调用、禁止的 Controller-Mapper 调用，以及新增代码的审查方式。
+- [x] 4.1 已发布 `MoneyPOS-Architecture-Collaboration-Guide.md`：说明类型归属、允许的 Feature 服务接口/TRADE facade 调用、禁止的 Controller-Mapper 与跨 Feature 实现依赖、共享 Entity 的暂行兼容规则、历史基线限制及提交前自检。该指南不改变现有业务契约；下一项是 4.2 的 Entity 归属表。
 - [ ] 4.2 建立 Entity 归属表和跨域场景 DTO 迁移优先级，先从已识别的 TRADE、GMS、UMS 调用面确定可替换类型。
 - [ ] 4.3 将扫描实现为非阻断报告，并在报告稳定后只对“新增违规”启用门禁；7 个 Controller 基线和共享 Entity 债务必须显式豁免并可追踪。
 - [ ] 4.4 选择一个低耦合 Controller-Mapper 违规作为首个迁移切片，改为调用本 Feature 的应用服务，并补充相应回归测试。

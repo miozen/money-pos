@@ -730,6 +730,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Entity-contract enforcement remains intentionally deferred: 62 Feature files still import legacy shared `com.money.entity` types, which have no reliable per-Feature physical ownership marker. Establish an ownership map before treating those imports as violations.
 - No production code, database schema, front end, tests or build behavior changed in 4.0. The immediate next action is 4.1: publish the short architecture collaboration guide, then add a non-blocking scan report before any blocking gate or Controller migration.
 
+### Completed: Stage 4.1 Architecture Collaboration Guide
+
+- Added `MoneyPOS-Architecture-Collaboration-Guide.md` as the single, developer-facing dependency guide. It defines the Controller/application/infrastructure/runtime responsibilities; permits stable Feature service interfaces and the established TRADE facades; prohibits new Controller-to-Mapper, cross-Feature `ServiceImpl`/Mapper/internal-helper and `platform`-to-`feature` dependencies.
+- The guide records the shared `com.money.entity` transition rule: new cross-domain contracts use scenario DTOs; any temporary shared-Entity use must carry a compatibility reason and replacement plan until 4.2 establishes ownership. The seven Controller baseline files are migration targets, not precedent for new dependencies.
+- Added a small review checklist covering package ownership, forbidden imports, Entity contracts, test scope and ledger updates. This is documentation only; no production behavior, database schema, routes, tests or build configuration changed. The immediate next action is 4.2: create the Entity ownership map and DTO migration priority.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
