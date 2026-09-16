@@ -11,6 +11,7 @@ import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
+import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
 import com.money.web.util.BeanMapUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -180,8 +181,12 @@ public class PosServiceImpl implements PosService {
     }
 
     @Override
-    public List<PosCouponRule> getValidCouponRules() {
-        return posCouponRuleMapper.selectList(new LambdaQueryWrapper<PosCouponRule>().orderByDesc(PosCouponRule::getId));
+    public List<CouponRuleSummary> getValidCouponRules() {
+        return posCouponRuleMapper.selectList(new LambdaQueryWrapper<PosCouponRule>().orderByDesc(PosCouponRule::getId))
+                .stream()
+                .map(rule -> new CouponRuleSummary(
+                        rule.getId(), rule.getName(), rule.getThresholdAmount(), rule.getDiscountAmount(), rule.getStatus()))
+                .collect(Collectors.toList());
     }
 
     @Override

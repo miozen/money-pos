@@ -27,7 +27,8 @@
 - [x] 4.2 已发布 `MoneyPOS-Entity-Ownership-and-DTO-Plan.md`：为 37 个共享 Entity 建立 GMS、UMS、TRADE、HOME、SYS 的逻辑归属，并按 P0–P3 排定跨域 DTO 切片。P0 是优惠券规则接口直接暴露 `PosCouponRule`；P1 是 TRADE 对商品/会员 `IService<Entity>` 的跨域读取；P2 是 FIN/HOME 读模型。未移动实体、未改变表或契约；下一项是 4.3 的非阻断扫描报告。
 - [x] 4.3 已新增 `scripts/architecture-scan.sh` 与 `MoneyPOS-Architecture-Scan-Baseline-v1.md`：脚本输出 Controller-Mapper、跨 Feature `ServiceImpl`/Mapper、`platform → feature` 和共享 Entity 的可重复 Markdown 报告，始终非阻断；v1 固定 7/0/0/62 的基线与例外。连续两个切片稳定且 P0 完成后，才评估“仅阻止新增项”的门禁；下一项是 4.4 首个 Controller-Mapper 迁移切片。
 - [x] 4.4 已迁移低耦合的 `SysStrategyController`：新增 `SysStrategyService`/`SysStrategyServiceImpl` 承担原有唯一全局策略的读取、空对象兜底与按既有 ID 更新/首次插入语义，Controller 不再导入 Mapper；路由 `/sys/strategy/get`、`/sys/strategy/save`、请求/返回类型均未改变。新增隔离数据库集成测试通过，架构扫描由 v1 的 7 项降为当前 6 项；下一项是 4.5 的全量收口验证。
-- [x] 4.5 已完成两个迁移切片的全量收口：第二轮隔离 `money_pos_test` 上的 10 个测试类、24 项用例均通过（0 failures / 0 errors），`mvn package -DskipTests` 成功，扫描由初始 7 降为 5 个 Controller-Mapper，跨 Feature 实现/Mapper 与 `platform → feature` 均为 0。共享 Entity 导入为 64，其中新增的 2 项是 GMS 本域查询服务的合法使用；`MoneyPOS-Architecture-Scan-Report-Stage4.5.md` 已记录。两个稳定样本已具备，但 P0 优惠券 DTO 未完成，扫描仍保持非阻断；下一最小任务是 P0 优惠券规则 DTO 切片。
+- [x] 4.5 已完成两个迁移切片的全量收口：第二轮隔离 `money_pos_test` 上的 10 个测试类、24 项用例均通过（0 failures / 0 errors），`mvn package -DskipTests` 成功，扫描由初始 7 降为 5 个 Controller-Mapper，跨 Feature 实现/Mapper 与 `platform → feature` 均为 0。共享 Entity 导入为 64，其中新增的 2 项是 GMS 本域查询服务的合法使用；`MoneyPOS-Architecture-Scan-Report-Stage4.5.md` 已记录。
+- [x] 4.5.1 P0 优惠券规则 DTO 已收口：`PosService.getValidCouponRules()` 与 `/ums/member/coupon-rules` 已改为返回 `CouponRuleSummary`，只保留 `id`、`name`、`thresholdAmount`、`discountAmount`、`status`，不再暴露 `PosCouponRule` 持久化字段；新增端点集成测试。隔离 `money_pos_test` 的全量测试、打包和扫描通过，当前扫描为 5/0/0/63（Controller-Mapper / 跨 Feature 实现或 Mapper / platform → feature / 共享 Entity 导入）。两个稳定迁移样本及 P0 已齐备；下一最小任务是实现前三项扫描的 additions-only（仅新增违规）比较门禁，Entity 规则继续保持非阻断直至 P1。
 
 ## 4.0 验收结论
 

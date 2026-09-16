@@ -1,6 +1,7 @@
 package com.money.feature.trade.interfaces.rest;
 
 import com.money.feature.trade.application.pos.PosService;
+import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class UmsMemberPosController {
 
     @GetMapping("/coupon-rules")
     @Operation(summary = "获取满减券规则")
-    public java.util.List<com.money.entity.PosCouponRule> getCouponRules() {
+    public java.util.List<CouponRuleSummary> getCouponRules() {
         return posService.getValidCouponRules();
     }
 }

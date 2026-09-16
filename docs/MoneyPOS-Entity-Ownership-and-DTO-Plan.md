@@ -18,7 +18,7 @@
 
 | 优先级 | 现有风险与证据 | 目标场景 DTO | 最小迁移切片与验收 |
 | --- | --- | --- | --- |
-| P0 | `PosService.getValidCouponRules()` 和 `/ums/member/coupon-rules` 直接暴露 `PosCouponRule`。该规则逻辑归 UMS，却被 TRADE 的 POS 服务和 UMS 路由共同使用。 | `CouponRuleSummary`：规则 ID、名称、门槛、优惠额、状态；不暴露持久化字段。 | 将 POS 查询结果映射为 DTO，保持 JSON 字段兼容或同步更新前端契约；覆盖优惠券获取、试算、核销与退款恢复。 |
+| P0（已完成） | `PosService.getValidCouponRules()` 和 `/ums/member/coupon-rules` 原先直接暴露 `PosCouponRule`。该规则逻辑归 UMS，却被 TRADE 的 POS 服务和 UMS 路由共同使用。 | `CouponRuleSummary`：规则 ID、名称、门槛、优惠额、状态；不暴露持久化字段。 | 已由 POS 查询映射 DTO，并保持既有 JSON 字段名；`UmsMemberPosControllerIntegrationTest` 覆盖读取结果，2026-09-16 全量测试和打包均通过。优惠券试算、核销与退款恢复继续由既有结算回归覆盖。 |
 | P1 | TRADE 的 POS/checkout 通过 `GmsGoodsService extends IService<GmsGoods>`、`UmsMemberService extends IService<UmsMember>` 和共享 Mapper 取得商品/会员/价格/券实体；结算测试已覆盖这条高一致性路径。 | `GoodsSnapshot`、`MemberSnapshot`、`MemberBenefitSnapshot`，以及既有库存/资产 facade DTO 的补充版本。 | 先在 GMS/UMS 提供只读快照接口，再让 TRADE 的查询/校验路径消费 DTO；保留事务写侧 facade，不在同一切片迁移 Mapper 或实体。运行 CheckoutIntegrationTest 与全量测试。 |
 | P2 | FIN `FinanceDashboardAssembler` 组合 `GmsInventoryDoc`、`OmsOrder`、`UmsMemberLog`；HOME 读取 `OmsOrder`，均属读模型跨域使用。 | `FinanceDashboardSnapshot`、`HomeSalesSnapshot`。 | 以只读报表 DTO 替换 assembler/查询边界，保持 SQL、图表字段和快照写时机；验证 FIN/HOME 集成测试与页面回归。 |
 | P3 | GMS/UMS/SYS 内部服务和 Mapper 使用本域或兼容 Entity；`GmsMemberTransaction` 尚无 Feature 应用层消费者。 | 无（先保持内部实现）。 | 仅在实际新跨域调用出现时创建场景 DTO；不为“包整洁”单独搬迁实体。 |
@@ -34,4 +34,4 @@
 1. 不移动共享 Entity 的物理包，不改表、Mapper、Flyway 或 API 路由。
 2. 每个 DTO 切片只覆盖一个业务场景，先保留旧契约并补回归，再逐步收敛调用方。
 3. 未完成迁移的 Entity 导入仍是可追踪基线，不进入阻断门禁；新增跨域 Entity 契约必须在阶段 4 清单和台账说明原因。
-4. P0/P1 完成后再将对应扫描从“报告”升级为“新增违规门禁”。
+4. P0 已完成，Controller-Mapper、跨 Feature `ServiceImpl`/Mapper 与 `platform → feature` 三项结构扫描可进入“仅新增违规”门禁实施评估；共享 Entity 跨域规则仍等待 P1 的窄读接口后再升级。
