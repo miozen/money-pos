@@ -2,12 +2,12 @@ package com.money.feature.trade.application.checkout;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.constant.PayMethodEnum;
+import com.money.contract.goods.CheckoutGoodsQuery;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.contract.member.MemberCheckoutQuery;
 import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
 import com.money.dto.pos.SettleAccountsDTO;
-import com.money.entity.GmsGoods;
-import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class CheckoutValidationService {
 
     private final MemberCheckoutQuery memberCheckoutQuery;
-    private final GmsGoodsService gmsGoodsService;
+    private final CheckoutGoodsQuery checkoutGoodsQuery;
 
     public void validate(CheckoutContext context) {
         SettleAccountsDTO dto = context.getRequest();
@@ -80,7 +80,7 @@ public class CheckoutValidationService {
 
         // ================= 4. 商品物资档案核实验真 =================
         List<Long> goodsIds = dto.getOrderDetail().stream().map(OmsOrderDetailDTO::getGoodsId).collect(Collectors.toList());
-        Map<Long, GmsGoods> goodsMap = gmsGoodsService.listByIds(goodsIds).stream().collect(Collectors.toMap(GmsGoods::getId, g -> g));
+        Map<Long, CheckoutGoodsSnapshot> goodsMap = checkoutGoodsQuery.findByIds(goodsIds);
 
         for (Long gid : goodsIds) {
             if (!goodsMap.containsKey(gid)) {

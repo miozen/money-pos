@@ -1,6 +1,9 @@
 package com.money.feature.gms.application.product;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.goods.CheckoutGoodsQuery;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
+import com.money.contract.goods.PosGoodsCatalogQuery;
 import com.money.dto.GmsGoods.GmsGoodsComboDTO;
 import com.money.dto.GmsGoods.GmsGoodsDTO;
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
@@ -65,6 +68,10 @@ class GmsFeatureIntegrationTest {
     private PosSkuLevelPriceMapper levelPriceMapper;
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
+    @Autowired
+    private CheckoutGoodsQuery checkoutGoodsQuery;
+    @Autowired
+    private PosGoodsCatalogQuery posGoodsCatalogQuery;
 
     @BeforeEach
     void authenticateTenant() {
@@ -101,6 +108,16 @@ class GmsFeatureIntegrationTest {
         assertThat(prices).singleElement().satisfies(price -> {
             assertThat(price.getMemberPrice()).isEqualByComparingTo("8.50");
             assertThat(price.getMemberCoupon()).isEqualByComparingTo("1.00");
+        });
+        CheckoutGoodsSnapshot checkoutSnapshot = checkoutGoodsQuery.findByIds(List.of(component.getId())).get(component.getId());
+        assertThat(checkoutSnapshot.getCategoryName()).isEqualTo(category.getName());
+        assertThat(checkoutSnapshot.getStock()).isEqualTo(10L);
+        assertThat(checkoutSnapshot.getLevelPrices()).containsEntry("VIP", new BigDecimal("8.50"));
+        assertThat(checkoutSnapshot.getLevelCoupons()).containsEntry("VIP", new BigDecimal("1.00"));
+        assertThat(posGoodsCatalogQuery.searchForPos(component.getBarcode())).singleElement().satisfies(snapshot -> {
+            assertThat(snapshot.getId()).isEqualTo(component.getId());
+            assertThat(snapshot.getLevelPrices()).containsEntry("VIP", new BigDecimal("8.50"));
+            assertThat(snapshot.getLevelCoupons()).containsEntry("VIP", new BigDecimal("1.00"));
         });
         assertThat(comboMapper.selectList(new LambdaQueryWrapper<GmsGoodsCombo>()
                 .eq(GmsGoodsCombo::getComboGoodsId, combo.getId())))

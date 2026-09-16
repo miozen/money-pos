@@ -2,17 +2,15 @@ package com.money.feature.trade.application.support;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus;
+import com.money.contract.goods.CheckoutGoodsQuery;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.dto.pos.PricingItemResult;
 import com.money.dto.pos.PricingResult;
 import com.money.dto.pos.SettleTrialReqDTO;
-import com.money.entity.GmsGoods;
 import com.money.entity.PosCouponRule;
-import com.money.entity.PosSkuLevelPrice;
 import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosCouponRuleMapper;
-import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
-import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,17 +28,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PosCalculationEngine {
 
-    private final GmsGoodsService gmsGoodsService;
+    private final CheckoutGoodsQuery checkoutGoodsQuery;
     private final UmsMemberBrandLevelMapper brandLevelMapper;
-    private final PosSkuLevelPriceMapper skuLevelPriceMapper;
     private final PosCouponRuleMapper couponRuleMapper;
 
     private static class CalcContext {
         SettleTrialReqDTO req;
         PricingResult result;
-        Map<Long, GmsGoods> goodsMap;
+        Map<Long, CheckoutGoodsSnapshot> goodsMap;
         Map<String, String> memberBrandLevels = new HashMap<>();
-        Map<Long, List<PosSkuLevelPrice>> skuPriceMap = new HashMap<>();
         BigDecimal totalConfiguredCoupon = BigDecimal.ZERO;
     }
 
@@ -63,15 +59,13 @@ public class PosCalculationEngine {
         ctx.totalConfiguredCoupon = BigDecimal.ZERO;
 
         List<Long> goodsIds = req.getItems().stream().map(SettleTrialReqDTO.TrialItem::getGoodsId).collect(Collectors.toList());
-        ctx.goodsMap = gmsGoodsService.listByIds(goodsIds).stream().collect(Collectors.toMap(GmsGoods::getId, g -> g));
+        ctx.goodsMap = checkoutGoodsQuery.findByIds(goodsIds);
 
         if (req.getMember() != null) {
             List<UmsMemberBrandLevel> levels = brandLevelMapper.selectList(new LambdaQueryWrapper<UmsMemberBrandLevel>().eq(UmsMemberBrandLevel::getMemberId, req.getMember()));
             levels.forEach(l -> {
                 if (l.getBrand() != null) ctx.memberBrandLevels.put(l.getBrand().trim(), l.getLevelCode());
             });
-            ctx.skuPriceMap = skuLevelPriceMapper.selectList(new LambdaQueryWrapper<PosSkuLevelPrice>().in(PosSkuLevelPrice::getSkuId, goodsIds))
-                    .stream().collect(Collectors.groupingBy(PosSkuLevelPrice::getSkuId));
         }
         return ctx;
     }
@@ -80,7 +74,7 @@ public class PosCalculationEngine {
         boolean isWaive = Boolean.TRUE.equals(ctx.req.getWaiveCoupon());
 
         for (SettleTrialReqDTO.TrialItem reqItem : ctx.req.getItems()) {
-            GmsGoods goods = ctx.goodsMap.get(reqItem.getGoodsId());
+            CheckoutGoodsSnapshot goods = ctx.goodsMap.get(reqItem.getGoodsId());
             if (goods == null) throw new BaseException("【试算拦截】发现不存在或已下架的商品ID: " + reqItem.getGoodsId());
 
             long currentStock = goods.getStock() != null ? goods.getStock() : 0L;
@@ -97,17 +91,13 @@ public class PosCalculationEngine {
             String brandKey = goods.getBrandId() != null ? String.valueOf(goods.getBrandId()) : "";
             String levelCode = ctx.memberBrandLevels.get(brandKey);
 
-            if (levelCode != null && ctx.skuPriceMap.containsKey(goods.getId())) {
-                for (PosSkuLevelPrice sp : ctx.skuPriceMap.get(goods.getId())) {
-                    if (levelCode.equals(sp.getLevelId())) {
-                        if (sp.getMemberPrice() == null || sp.getMemberPrice().compareTo(BigDecimal.ZERO) < 0) {
+            if (levelCode != null && goods.getLevelPrices().containsKey(levelCode)) {
+                BigDecimal configuredPrice = goods.getLevelPrices().get(levelCode);
+                if (configuredPrice == null || configuredPrice.compareTo(BigDecimal.ZERO) < 0) {
                             throw new BaseException("商品「" + goods.getName() + "」的会员价配置异常");
-                        }
-                        unitRealPrice = sp.getMemberPrice();
-                        unitCoupon = sp.getMemberCoupon() != null ? sp.getMemberCoupon() : BigDecimal.ZERO;
-                        break;
-                    }
                 }
+                unitRealPrice = configuredPrice;
+                unitCoupon = goods.getLevelCoupons().get(levelCode) != null ? goods.getLevelCoupons().get(levelCode) : BigDecimal.ZERO;
             }
 
             // 🌟 终极修复 1：根治“会员价倒挂”。宽容降级：会员价绝不能高于零售价

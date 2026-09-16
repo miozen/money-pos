@@ -5,17 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.CouponStatusEnum;
 import com.money.contract.member.MemberPosProfileQuery;
 import com.money.contract.member.MemberPosProfileSnapshot;
+import com.money.contract.goods.PosGoodsCatalogQuery;
+import com.money.contract.goods.PosGoodsCatalogSnapshot;
 import com.money.dto.pos.*;
 import com.money.entity.GmsBrand;
-import com.money.entity.GmsGoods;
 import com.money.entity.PosCouponRule;
 import com.money.entity.PosMemberCoupon;
-import com.money.entity.PosSkuLevelPrice;
 import com.money.entity.SysDictDetail;
 import com.money.mapper.*;
 import com.money.service.*;
 import com.money.feature.gms.application.catalog.GmsBrandService;
-import com.money.feature.gms.application.product.GmsGoodsService;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
 import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
 import com.money.web.util.BeanMapUtil;
@@ -35,8 +34,7 @@ import java.util.stream.Collectors;
 public class PosServiceImpl implements PosService {
 
     private final MemberPosProfileQuery memberPosProfileQuery;
-    private final GmsGoodsService gmsGoodsService;
-    private final PosSkuLevelPriceMapper posSkuLevelPriceMapper;
+    private final PosGoodsCatalogQuery posGoodsCatalogQuery;
     private final PosCouponRuleMapper posCouponRuleMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
     private final CheckoutOrchestrator checkoutOrchestrator;
@@ -85,35 +83,8 @@ public class PosServiceImpl implements PosService {
 
     @Override
     public List<PosGoodsVO> listGoods(String barcode) {
-        List<GmsGoods> gmsGoodsList = gmsGoodsService.lambdaQuery()
-                .and(StrUtil.isNotBlank(barcode), w ->
-                        w.like(GmsGoods::getBarcode, barcode)
-                                .or().like(GmsGoods::getName, barcode)
-                                .or().like(GmsGoods::getMnemonicCode, barcode.toUpperCase())
-                ).list();
-
-        List<PosGoodsVO> posGoodsVOS = BeanMapUtil.to(gmsGoodsList, PosGoodsVO::new);
-
-        if (!posGoodsVOS.isEmpty()) {
-            List<Long> skuIds = posGoodsVOS.stream().map(PosGoodsVO::getId).collect(Collectors.toList());
-            List<PosSkuLevelPrice> levelPrices = posSkuLevelPriceMapper.selectList(new LambdaQueryWrapper<PosSkuLevelPrice>().in(PosSkuLevelPrice::getSkuId, skuIds));
-            Map<Long, List<PosSkuLevelPrice>> skuPriceMap = levelPrices.stream().collect(Collectors.groupingBy(PosSkuLevelPrice::getSkuId));
-
-            for (PosGoodsVO vo : posGoodsVOS) {
-                Map<String, BigDecimal> priceMap = new HashMap<>();
-                Map<String, BigDecimal> couponMap = new HashMap<>();
-                List<PosSkuLevelPrice> prices = skuPriceMap.get(vo.getId());
-                if (prices != null) {
-                    for (PosSkuLevelPrice p : prices) {
-                        priceMap.put(p.getLevelId(), p.getMemberPrice());
-                        couponMap.put(p.getLevelId(), p.getMemberCoupon() != null ? p.getMemberCoupon() : BigDecimal.ZERO);
-                    }
-                }
-                vo.setLevelPrices(priceMap);
-                vo.setLevelCoupons(couponMap);
-            }
-        }
-        return posGoodsVOS;
+        List<PosGoodsCatalogSnapshot> goods = posGoodsCatalogQuery.searchForPos(barcode);
+        return BeanMapUtil.to(goods, PosGoodsVO::new);
     }
 
     @Override

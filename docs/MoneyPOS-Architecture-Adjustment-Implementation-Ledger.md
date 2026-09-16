@@ -184,6 +184,17 @@ P1 follows the Stage 4 ownership plan and Stage 5 deferral decision. It incremen
 - UMS now owns member and member-brand-level reads for these contracts. TRADE order queries and POS search no longer depend on `UmsMemberService` or `UmsMemberBrandLevelMapper`.
 - Existing REST response shapes remain compatible: order details still expose `memberInfo`, and POS search still returns `PosMemberVO` with balances, coupon summaries and brand-level maps.
 
+### In progress: P1.4a Checkout Goods Read Snapshot
+
+- Added `CheckoutGoodsSnapshot` and `CheckoutGoodsQuery` to express exactly the GMS data required by checkout: product archive fields, category name, stock availability, combo flag, and per-level price/coupon matrices.
+- GMS owns snapshot assembly through its product, category and price services. Checkout validation, pricing, order creation and stock-command preparation no longer read `GmsGoodsService`, `GmsGoods`, category services, or price Mapper types.
+- Inventory mutation remains in the existing `GoodsStockFacade` command boundary and retains its transaction/locking order; it is intentionally deferred from this read-only slice.
+
+### Completed: P1.4b POS Goods Catalog Snapshot
+
+- Added `PosGoodsCatalogSnapshot` and `PosGoodsCatalogQuery`; GMS now owns POS product keyword search and level-price/coupon matrix assembly.
+- TRADE `PosService` converts this narrow snapshot into the unchanged `PosGoodsVO` response and no longer reads the GMS goods service, goods Entity, or level-price Mapper directly.
+
 ### Completed: Stage 5 Maven-Reactor Baseline
 
 - Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.

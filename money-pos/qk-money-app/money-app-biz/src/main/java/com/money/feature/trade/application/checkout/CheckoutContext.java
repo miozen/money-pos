@@ -4,8 +4,8 @@ import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.PricingResult; // 🌟 引入新契约
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.contract.member.MemberCheckoutSnapshot;
-import com.money.entity.GmsGoods;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
 import lombok.Data;
@@ -24,7 +24,7 @@ public class CheckoutContext {
 
     // 2. 安检员核实后的数据
     private MemberCheckoutSnapshot member;
-    private Map<Long, GmsGoods> goodsMap;
+    private Map<Long, CheckoutGoodsSnapshot> goodsMap;
 
     // 3. 精算师和出纳员算好的数据
     private PricingResult pricingResult; // 🌟 核心替换：使用真理结果对象

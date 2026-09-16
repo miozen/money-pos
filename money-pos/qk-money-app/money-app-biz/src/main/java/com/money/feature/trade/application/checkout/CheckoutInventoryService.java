@@ -1,6 +1,6 @@
 package com.money.feature.trade.application.checkout;
 
-import com.money.entity.GmsGoods;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.entity.OmsOrderDetail;
 import com.money.feature.trade.application.boundary.facade.GoodsStockFacade;
 import com.money.feature.trade.application.boundary.facade.dto.SaleStockLine;
@@ -20,7 +20,7 @@ public class CheckoutInventoryService {
 
     public void deductStock(CheckoutContext context) {
         List<OmsOrderDetail> orderDetails = context.getOrderDetails();
-        Map<Long, GmsGoods> goodsMap = context.getGoodsMap();
+        Map<Long, CheckoutGoodsSnapshot> goodsMap = context.getGoodsMap();
         SaleStockRequest request = new SaleStockRequest();
         request.setOrderNo(context.getOrder().getOrderNo());
         request.setLines(orderDetails.stream().map(detail -> toSaleStockLine(detail, goodsMap.get(detail.getGoodsId())))
@@ -28,7 +28,7 @@ public class CheckoutInventoryService {
         goodsStockFacade.deductForSale(request);
     }
 
-    private SaleStockLine toSaleStockLine(OmsOrderDetail detail, GmsGoods goods) {
+    private SaleStockLine toSaleStockLine(OmsOrderDetail detail, CheckoutGoodsSnapshot goods) {
         SaleStockLine line = new SaleStockLine();
         line.setGoodsId(detail.getGoodsId());
         line.setGoodsName(detail.getGoodsName());

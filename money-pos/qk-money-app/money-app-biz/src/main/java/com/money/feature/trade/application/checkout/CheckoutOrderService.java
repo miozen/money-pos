@@ -3,17 +3,15 @@ package com.money.feature.trade.application.checkout;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus; // 🌟 引入刚确认的全局错误码字典！
 import com.money.constant.OrderStatusEnum;
+import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.pos.PricingItemResult;
 import com.money.dto.pos.PricingResult;
-import com.money.entity.GmsGoods;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
-import com.money.entity.GmsGoodsCategory;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
-import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +31,6 @@ public class CheckoutOrderService {
     private final OmsOrderDetailService omsOrderDetailService;
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderDetailMapper omsOrderDetailMapper;
-    private final GmsGoodsCategoryService gmsGoodsCategoryService;
 
     public boolean loadExistingOrder(CheckoutContext context) {
         String reqId = context.getRequest().getReqId();
@@ -49,7 +46,7 @@ public class CheckoutOrderService {
     public void createOrder(CheckoutContext context) {
         PricingResult trialRes = context.getPricingResult();
         MemberCheckoutSnapshot verifiedMember = context.getMember();
-        Map<Long, GmsGoods> goodsMap = context.getGoodsMap();
+        Map<Long, CheckoutGoodsSnapshot> goodsMap = context.getGoodsMap();
         String orderNo = context.getRequest().getReqId();
 
         OmsOrder order = new OmsOrder();
@@ -114,7 +111,7 @@ public class CheckoutOrderService {
 
         java.util.List<OmsOrderDetail> details = new ArrayList<>();
         for (PricingItemResult itemRes : trialRes.getItems()) {
-            GmsGoods goods = goodsMap.get(itemRes.getGoodsId());
+            CheckoutGoodsSnapshot goods = goodsMap.get(itemRes.getGoodsId());
             OmsOrderDetail detail = new OmsOrderDetail();
             detail.setOrderNo(orderNo);
             detail.setStatus(OrderStatusEnum.PAID.name());
@@ -133,10 +130,7 @@ public class CheckoutOrderService {
 
             if (goods.getCategoryId() != null) {
                 detail.setCategoryId(goods.getCategoryId());
-                GmsGoodsCategory category = gmsGoodsCategoryService.getById(goods.getCategoryId());
-                if (category != null) {
-                    detail.setCategoryName(category.getName());
-                }
+                detail.setCategoryName(goods.getCategoryName());
             }
             details.add(detail);
         }
