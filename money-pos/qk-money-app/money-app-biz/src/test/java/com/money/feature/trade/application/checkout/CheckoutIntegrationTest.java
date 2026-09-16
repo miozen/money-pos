@@ -3,12 +3,14 @@ package com.money.feature.trade.application.checkout;
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
 import com.money.entity.GmsGoods;
+import com.money.entity.GmsGoodsCombo;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.PosCouponRule;
 import com.money.entity.PosMemberCoupon;
 import com.money.mapper.GmsGoodsMapper;
+import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsInventoryDocMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
@@ -60,6 +62,8 @@ class CheckoutIntegrationTest {
     private TradeFixture tradeFixture;
     @Autowired
     private GmsGoodsMapper gmsGoodsMapper;
+    @Autowired
+    private GmsGoodsComboMapper gmsGoodsComboMapper;
     @Autowired
     private UmsMemberMapper umsMemberMapper;
     @Autowired
@@ -158,6 +162,29 @@ class CheckoutIntegrationTest {
         assertThat(order.getStatus()).isEqualTo("PARTIAL_REFUNDED");
         assertThat(updatedDetail.getReturnQuantity()).isEqualTo(1);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
+    }
+
+    @Test
+    void comboCheckoutAndFullRefundPropagatePhysicalStockThroughGmsCommand() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        String orderNo = "COMBO-" + suffix;
+        GmsGoods component = tradeFixture.createSellableGoods(suffix + "c", 10L, new BigDecimal("12.00"));
+        GmsGoods combo = tradeFixture.createSellableGoods(suffix + "b", 5L, new BigDecimal("12.00"));
+        combo.setIsCombo(1);
+        gmsGoodsMapper.updateById(combo);
+        GmsGoodsCombo composition = new GmsGoodsCombo();
+        composition.setComboGoodsId(combo.getId());
+        composition.setSubGoodsId(component.getId());
+        composition.setSubGoodsQty(2);
+        gmsGoodsComboMapper.insert(composition);
+
+        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, combo.getId(), 1, new BigDecimal("12.00")));
+
+        assertThat(gmsGoodsMapper.selectById(combo.getId()).getStock()).isEqualTo(4L);
+        assertThat(gmsGoodsMapper.selectById(component.getId()).getStock()).isEqualTo(8L);
+        refundService.returnOrder("COMBO-REFUND-" + suffix, orderNo);
+        assertThat(gmsGoodsMapper.selectById(combo.getId()).getStock()).isEqualTo(5L);
+        assertThat(gmsGoodsMapper.selectById(component.getId()).getStock()).isEqualTo(10L);
     }
 
     

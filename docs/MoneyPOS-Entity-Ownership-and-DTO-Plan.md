@@ -32,8 +32,8 @@
 ## P1.6 调用面复核（2026-09-16）
 
 - 已经由 API 契约收敛的 P1 场景包括：结账商品读取、POS 商品目录、结账会员核验、订单/收银会员档案、会员未使用券统计，以及会员结算和退款资产写入。它们的调用方不再以 GMS/UMS Entity、Mapper 或 `IService<Entity>` 作为场景契约。
-- 当前 68 个 Feature 文件仍导入共享 Entity；其中大部分是归属 Feature 内部持久化实现，不能以总数判断跨域风险。`PosMemberCoupon` 虽有 POS 前缀，仍归 UMS；`PosSkuLevelPrice` 仍归 GMS。
-- 未关闭的跨域兼容面以 `MoneyPOS-P1.6-Call-Surface-Review.md` 为准：最高优先级是 TRADE→GMS 库存写侧；其余是结算试算、POS 会员券/品牌展示、会员档案品牌展示及 P2 的 FIN/HOME 读模型。它们不应被误记为已完成的 P1 场景。
+- 当前 67 个 Feature 文件仍导入共享 Entity；其中大部分是归属 Feature 内部持久化实现，不能以总数判断跨域风险。`PosMemberCoupon` 虽有 POS 前缀，仍归 UMS；`PosSkuLevelPrice` 仍归 GMS。
+- 未关闭的跨域兼容面以 `MoneyPOS-P1.6-Call-Surface-Review.md` 为准：库存写侧已收敛为 GMS 命令，剩余是结算试算、POS 会员券/品牌展示、会员档案品牌展示及 P2 的 FIN/HOME 读模型。它们不应被误记为已完成的 P1 场景。
 
 ## 执行约束
 
