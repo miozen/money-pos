@@ -162,6 +162,12 @@ Add the rules with a short architecture guide for future changes.
 
 Physical Maven splitting is an assessment gate, not an implementation commitment. Consider it only when facade boundaries are stable, no cyclic dependency remains, and independent compilation/testing offers proven value. GMS, UMS, and TRADE are the only initial candidates.
 
+### Completed: Stage 5 Maven-Reactor Baseline
+
+- Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.
+- Source dependency scanning found UMS→GMS in three files, UMS→TRADE in one, TRADE→GMS in five and TRADE→UMS in five. The UMS↔TRADE cycle makes an immediate physical split invalid. GMS is currently acyclic relative to the other three candidates, but its shared API/entity/mapper dependencies mean it also has no approved physical split yet.
+- No POM or source package was changed. The next smallest task is a file-level UMS↔TRADE cycle inventory and a narrow, non-cyclic contract design; only after that can an independent compilation benefit be evaluated.
+
 ## Execution Rule
 
 After every completed unit of work, update this ledger with:
