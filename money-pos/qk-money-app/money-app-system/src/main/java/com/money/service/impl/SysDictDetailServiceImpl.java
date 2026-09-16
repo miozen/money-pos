@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -33,6 +36,12 @@ public class SysDictDetailServiceImpl extends ServiceImpl<SysDictDetailMapper, S
     @Override
     public List<SysDictDetail> listByDict(String dict) {
         return this.lambdaQuery().eq(SysDictDetail::getDict, dict).orderByAsc(SysDictDetail::getSort).list();
+    }
+
+    @Override
+    public Map<String, String> getValueToCnDescMap(String dict) {
+        return listByDict(dict).stream().collect(Collectors.toMap(
+                SysDictDetail::getValue, SysDictDetail::getCnDesc, (first, ignored) -> first, LinkedHashMap::new));
     }
 
     @Override

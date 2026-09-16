@@ -6,6 +6,7 @@ import com.money.entity.SysDictDetail;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -24,6 +25,11 @@ public interface SysDictDetailService extends IService<SysDictDetail> {
      * @return {@link List}<{@link SysDictDetail}>
      */
     List<SysDictDetail> listByDict(String dict);
+
+    /**
+     * 返回字典值到中文描述的有序映射，供跨域只读场景使用，避免暴露字典持久化实体。
+     */
+    Map<String, String> getValueToCnDescMap(String dict);
 
     /**
      * 添加字典详情

@@ -17,8 +17,8 @@
 
 | Mapper | 使用路由 | 所属边界 | 后续替代方式 |
 | --- | --- | --- |
-| `GmsBrandMapper` | 模板、导出 | GMS 品牌目录 | `GmsBrandService.list()`。 |
-| `SysDictDetailMapper` | 模板、导出 | SYS 字典 | `SysDictDetailService.listByDict("memberType")` 后排除 `MEMBER`。 |
+| `GmsBrandMapper` | 模板、导出 | GMS 品牌目录 | `GmsBrandService.getBrandSelect()` 的选择 DTO。 |
+| `SysDictDetailMapper` | 模板、导出 | SYS 字典 | `SysDictDetailService.getValueToCnDescMap("memberType")` 的有序代码/中文名映射，排除 `MEMBER`。 |
 | `UmsMemberMapper` | 导出 | UMS 本域会员主档 | UMS 读模型服务或现有 `UmsMemberService.list()`。 |
 | `UmsMemberBrandLevelMapper` | 导出 | UMS 本域品牌等级矩阵 | UMS 导出读服务内部的同域持久化访问。 |
 | `PosMemberCouponMapper` | 导出 | TRADE 优惠券资产 | 先建立 TRADE→UMS 的窄“未使用券计数”查询契约，不能新增 UMS→TRADE Mapper 依赖。 |
@@ -37,7 +37,7 @@ UmsMemberImportController → UmsMemberExcelTemplateService
   └─ SysDictDetailService
 ```
 
-服务须统一组装固定五列与 `[品牌特权] {品牌名}` 动态列、动态等级下拉和示例行，并保持工作表 `会员数据填写区`、下载响应头及 `智能会员导入模板.xlsx` 不变。该服务可以向下一切片公开只读的表头元数据，确保导出继续与模板严格对齐。
+服务须统一组装固定五列与 `[品牌特权] {品牌名}` 动态列、动态等级下拉和示例行，并保持工作表 `会员数据填写区`、下载响应头及 `智能会员导入模板.xlsx` 不变。它经品牌选择 DTO 和 SYS 有序字典映射读取数据，不导入跨域持久化 Entity；同时向下一切片公开只读的表头元数据，确保导出继续与模板严格对齐。
 
 这一步只消除 Controller 对 GMS/SYS 两个 Mapper 的使用；导出仍需要 UMS/TRADE 读模型，因此 Controller 暂时仍是一个扫描发现。这样做的价值是先固化可复用的表头契约，而不是复制两套品牌列逻辑。
 

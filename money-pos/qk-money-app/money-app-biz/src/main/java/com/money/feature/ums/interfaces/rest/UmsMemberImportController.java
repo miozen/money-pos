@@ -4,16 +4,14 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.GmsBrand;
 import com.money.entity.PosMemberCoupon;
-import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.PosMemberCouponMapper;
-import com.money.mapper.SysDictDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.feature.ums.application.member.UmsMemberExcelTemplateService;
 import com.money.feature.ums.application.member.UmsMemberService;
-import com.money.util.ExcelDropDownHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,8 +37,8 @@ import java.util.stream.Collectors;
 public class UmsMemberImportController {
 
     private final UmsMemberService umsMemberService;
+    private final UmsMemberExcelTemplateService umsMemberExcelTemplateService;
     private final GmsBrandMapper gmsBrandMapper;
-    private final SysDictDetailMapper sysDictDetailMapper;
 
     // 🌟 新增：用于查询全量数据和从表矩阵
     private final UmsMemberMapper umsMemberMapper;
@@ -62,25 +63,7 @@ public class UmsMemberImportController {
     @Operation(summary = "下载智能老会员导入模板 (动态品牌列+下拉框)")
     @PreAuthorize("@rbac.hasPermission('umsMember:list')")
     public void downloadTemplate(HttpServletResponse response) throws IOException {
-        List<List<String>> heads = buildDynamicHeads();
-        Map<Integer, String[]> dropDownConfig = buildDropDownConfig(heads.size());
-
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        String fileName = java.net.URLEncoder.encode("智能会员导入模板", "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
-
-        List<List<Object>> demoData = new ArrayList<>();
-        List<Object> demoRow = new ArrayList<>(Arrays.asList("张老板", "13800138000", "500.00", "50.00", "2"));
-        // 补齐动态品牌列的空位
-        for (int i = 5; i < heads.size(); i++) { demoRow.add(""); }
-        demoData.add(demoRow);
-
-        EasyExcel.write(response.getOutputStream())
-                .head(heads)
-                .registerWriteHandler(new ExcelDropDownHandler(dropDownConfig))
-                .sheet("会员数据填写区")
-                .doWrite(demoData);
+        umsMemberExcelTemplateService.writeTemplate(response);
     }
 
     // ==========================================
@@ -91,18 +74,13 @@ public class UmsMemberImportController {
     @PreAuthorize("@rbac.hasPermission('umsMember:list')")
     public void exportMembers(HttpServletResponse response) throws IOException {
         // 1. 获取动态表头 (与导入模板严格对齐)
-        List<List<String>> heads = buildDynamicHeads();
+        List<List<String>> heads = umsMemberExcelTemplateService.buildDynamicHeads();
 
         // 2. 查出所有的品牌，用于表头对应
         List<GmsBrand> brands = gmsBrandMapper.selectList(new LambdaQueryWrapper<GmsBrand>());
 
         // 3. 查出会员等级字典，做 code -> cnDesc 的逆向翻译
-        List<SysDictDetail> dictList = sysDictDetailMapper.selectList(
-                new LambdaQueryWrapper<SysDictDetail>()
-                        .eq(SysDictDetail::getDict, "memberType")
-                        .ne(SysDictDetail::getValue, "MEMBER")
-        );
-        Map<String, String> levelCodeToNameMap = dictList.stream().collect(Collectors.toMap(SysDictDetail::getValue, SysDictDetail::getCnDesc));
+        Map<String, String> levelCodeToNameMap = umsMemberExcelTemplateService.getMemberTypeNameByCode();
 
         // 4. 查出所有的会员主表数据
         List<UmsMember> allMembers = umsMemberMapper.selectList(new LambdaQueryWrapper<UmsMember>());
@@ -167,40 +145,6 @@ public class UmsMemberImportController {
 
         // 7. 响应下载
         writeExcelResponse(response, heads, dataList);
-    }
-
-    // --- 抽取公共方法 ---
-    private List<List<String>> buildDynamicHeads() {
-        List<List<String>> heads = new ArrayList<>();
-        heads.add(Arrays.asList("*会员姓名(必填)"));
-        heads.add(Arrays.asList("*手机号(必填11位)"));
-        heads.add(Arrays.asList("初始会员余额(本金)"));
-        heads.add(Arrays.asList("初始会员券(赠送)"));
-        heads.add(Arrays.asList("初始满减券(张数)"));
-
-        List<GmsBrand> brands = gmsBrandMapper.selectList(new LambdaQueryWrapper<GmsBrand>());
-        if (brands != null) {
-            for (GmsBrand brand : brands) {
-                heads.add(Arrays.asList("[品牌特权] " + brand.getName()));
-            }
-        }
-        return heads;
-    }
-
-    private Map<Integer, String[]> buildDropDownConfig(int totalCols) {
-        List<SysDictDetail> dictList = sysDictDetailMapper.selectList(
-                new LambdaQueryWrapper<SysDictDetail>().eq(SysDictDetail::getDict, "memberType").ne(SysDictDetail::getValue, "MEMBER")
-        );
-        String[] levelOptions = dictList.stream().map(SysDictDetail::getCnDesc).toArray(String[]::new);
-
-        Map<Integer, String[]> dropDownConfig = new HashMap<>();
-        if (levelOptions.length > 0) {
-            // 前 5 列是基础信息，从第 6 列(索引5)开始全是动态品牌列，都加上下拉框
-            for (int i = 5; i < totalCols; i++) {
-                dropDownConfig.put(i, levelOptions);
-            }
-        }
-        return dropDownConfig;
     }
 
     private void writeExcelResponse(HttpServletResponse response, List<List<String>> heads, List<List<Object>> dataList) throws IOException {

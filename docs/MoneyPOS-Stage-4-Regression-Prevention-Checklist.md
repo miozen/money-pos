@@ -38,6 +38,7 @@
 - [x] 4.6.5a 已完成 GMS 商品 Excel 盘点：模板和全量导出共享动态会员价格表头，适合作为同一个只读 Excel 生成服务迁移；现有导入已由事务型 `GmsGoodsExcelManager` 承担，保持不动。分类、品牌和会员等级读取可经既有 GMS/SYS 服务完成，Controller 无需保留 Mapper。详见 `MoneyPOS-Stage4-Gms-Goods-Excel-Inventory.md`。下一最小任务是实现该只读模板/导出服务、迁移两个 GET 路由并补工作簿集成测试。
 - [x] 4.6.5b 已迁移 GMS 商品 Excel 的只读输出边界：新增 `GmsGoodsExcelReadService`，统一生成模板与全量导出工作簿；`GmsGoodsExcelController` 的两个 GET 路由仅委托该服务，导入 POST 仍原样委托事务型 `GmsGoodsExcelManager`。动态会员价表头、下拉、示例行、文件名、商品状态/满减/分类品牌/价格矩阵映射均保持不变。新增工作簿集成测试覆盖模板/导出共同表头、导出数据和空商品导出不查询价格矩阵；隔离 `money_pos_test` 的 15 个测试类、30 项用例通过，打包和 additions-only 门禁通过。扫描降为 1/0/0/64，仅剩 `UmsMemberImportController`。下一最小任务是盘点 UMS 会员导入的模板、导出、导入与批量发券边界，拆出安全子切片。
 - [x] 4.6.6a 已完成 UMS 会员导入入口盘点：导入和批量发券已由 UMS 事务服务承担，保持不动；模板是仅依赖 GMS 品牌与 SYS 字典的安全首切片；导出还涉及 UMS 品牌等级和 TRADE 未使用券计数，须在模板稳定后以窄查询契约处理。详见 `MoneyPOS-Stage4-Ums-Member-Import-Inventory.md`。下一最小任务是迁移只读会员 Excel 模板服务并补工作簿测试。
+- [x] 4.6.6b 已迁移只读会员 Excel 模板服务：新增 `UmsMemberExcelTemplateService`，模板 GET 路由只作委托，导出也复用其动态表头与等级 code→中文名映射；导入和批量发券未改变。服务通过 GMS 的品牌选择 DTO 与 SYS 的有序字典映射读取数据，不新增跨域 Entity 契约。新增工作簿集成测试验证动态品牌列、会员等级下拉、示例行、工作表和响应头；隔离 `money_pos_test` 的 16 个测试类、31 项用例通过，打包及 additions-only 门禁通过。扫描仍为 1/0/0/64，余下的 Mapper 只服务于会员资产导出。下一最小任务是设计 TRADE 提供未使用满减券聚合的窄查询契约，再迁移会员资产导出。
 
 ## 4.0 验收结论
 
