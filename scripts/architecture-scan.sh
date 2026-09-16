@@ -104,6 +104,31 @@ else
 fi
 echo
 
+cross_feature_application_findings=""
+all_feature_import_files=$(rg -l '^import com\.money\.feature\.[^.]+\.' "$source_root/com/money/feature" || true)
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  source_feature=$(printf '%s\n' "$file" | sed -E 's#.*?/com/money/feature/([^/]+)/.*#\1#')
+  while IFS= read -r import_line; do
+    [[ -z "$import_line" ]] && continue
+    target_feature=$(printf '%s\n' "$import_line" | sed -E 's#import com\.money\.feature\.([^.]+)\..*#\1#')
+    if [[ "$source_feature" != "$target_feature" ]]; then
+      cross_feature_application_findings+="$source_feature → $target_feature: $(relative_path "$file")"$'\n'
+    fi
+  done < <(rg '^import com\.money\.feature\.[^.]+\.' "$file" || true)
+done <<< "$all_feature_import_files"
+cross_feature_application_count=$(printf '%s' "$cross_feature_application_findings" | count_lines)
+
+echo "## Cross-Feature Implementation Imports"
+echo
+echo "- Direct imports: $cross_feature_application_count"
+if [[ -n "$cross_feature_application_findings" ]]; then
+  printf '%s' "$cross_feature_application_findings" | sort -u | sed 's#^#  - #'
+else
+  echo "  - none"
+fi
+echo
+
 platform_findings=$(rg -l '^import com\.money\.feature\.' "$source_root/com/money/platform" 2>/dev/null || true)
 platform_count=$(printf '%s\n' "$platform_findings" | count_lines)
 platform_relative_findings=""
@@ -141,8 +166,10 @@ fi
 # Controller-to-Mapper findings remain allowed. The other two structural rules
 # were clean in v1 and therefore allow no findings.
 baseline_controller_mapper_files=$'com/money/controller/PosCouponRuleController.java\ncom/money/controller/SysStrategyController.java\ncom/money/feature/gms/interfaces/rest/GmsBrandConfigController.java\ncom/money/feature/gms/interfaces/rest/GmsGoodsExcelController.java\ncom/money/feature/gms/interfaces/rest/GmsStockLogController.java\ncom/money/feature/ums/interfaces/rest/UmsMemberController.java\ncom/money/feature/ums/interfaces/rest/UmsMemberImportController.java\n'
+baseline_cross_feature_application=$'fin → ums: com/money/feature/fin/application/dashboard/FinanceDashboardServiceImpl.java\nhome → gms: com/money/feature/home/application/DecisionEngineServiceImpl.java\nhome → gms: com/money/feature/home/application/HomeServiceImpl.java\ntrade → fin: com/money/feature/trade/interfaces/rest/OmsOrderController.java\ntrade → gms: com/money/feature/trade/application/pos/PosServiceImpl.java\ntrade → gms: com/money/feature/trade/application/support/PosInventoryActionService.java\nums → gms: com/money/feature/ums/application/member/UmsMemberAssetExcelExportService.java\nums → gms: com/money/feature/ums/application/member/UmsMemberExcelTemplateService.java\nums → gms: com/money/feature/ums/application/member/UmsMemberProfileService.java\n'
 new_controller_mapper=$(new_findings "$controller_mapper_files" "$baseline_controller_mapper_files")
 new_cross_feature=$(new_findings "$cross_feature_findings" "")
+new_cross_feature_application=$(new_findings "$cross_feature_application_findings" "$baseline_cross_feature_application")
 new_platform=$(new_findings "$platform_relative_findings" "")
 
 echo
@@ -159,6 +186,11 @@ if [[ -n "$new_cross_feature" ]]; then
   gate_failed=1
   echo "- New cross-Feature ServiceImpl / Mapper findings:"
   printf '%s\n' "$new_cross_feature" | sed 's#^#  - #'
+fi
+if [[ -n "$new_cross_feature_application" ]]; then
+  gate_failed=1
+  echo "- New cross-Feature implementation imports:"
+  printf '%s\n' "$new_cross_feature_application" | sed 's#^#  - #'
 fi
 if [[ -n "$new_platform" ]]; then
   gate_failed=1

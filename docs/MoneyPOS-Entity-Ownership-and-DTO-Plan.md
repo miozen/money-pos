@@ -29,9 +29,15 @@
 - `UmsMemberService.getTop20Goods()` 和 `UmsMemberController` 暴露 `UmsMemberServiceImpl.MemberGoodsRankVO`。这不是 Entity，但属于实现类嵌套类型泄漏；在会员画像 DTO 切片中一并改为顶层 DTO，不作为 4.2 的实体迁移。
 - `PosCouponRule`、`PosMemberCoupon` 与 `PosSkuLevelPrice` 带有历史 `Pos` 前缀；归属以写入责任而非名称决定，分别是 UMS 权益和 GMS 价格。TRADE 只能通过明确查询/交易契约使用它们。
 
+## P1.6 调用面复核（2026-09-16）
+
+- 已经由 API 契约收敛的 P1 场景包括：结账商品读取、POS 商品目录、结账会员核验、订单/收银会员档案、会员未使用券统计，以及会员结算和退款资产写入。它们的调用方不再以 GMS/UMS Entity、Mapper 或 `IService<Entity>` 作为场景契约。
+- 当前 68 个 Feature 文件仍导入共享 Entity；其中大部分是归属 Feature 内部持久化实现，不能以总数判断跨域风险。`PosMemberCoupon` 虽有 POS 前缀，仍归 UMS；`PosSkuLevelPrice` 仍归 GMS。
+- 未关闭的跨域兼容面以 `MoneyPOS-P1.6-Call-Surface-Review.md` 为准：最高优先级是 TRADE→GMS 库存写侧；其余是结算试算、POS 会员券/品牌展示、会员档案品牌展示及 P2 的 FIN/HOME 读模型。它们不应被误记为已完成的 P1 场景。
+
 ## 执行约束
 
 1. 不移动共享 Entity 的物理包，不改表、Mapper、Flyway 或 API 路由。
 2. 每个 DTO 切片只覆盖一个业务场景，先保留旧契约并补回归，再逐步收敛调用方。
-3. 未完成迁移的 Entity 导入仍是可追踪基线，不进入阻断门禁；新增跨域 Entity 契约必须在阶段 4 清单和台账说明原因。
+3. 未完成迁移的 Entity 导入仍是可追踪基线，不进入阻断门禁；新增跨域 Entity 契约必须在阶段 4 清单和台账说明原因。P1.6 起，任何新增的跨 Feature 实现包 import 会被本地 `architecture-scan.sh --check-new` 阻止；场景契约应放在 `money-app-api` 的 `com.money.contract` 下。
 4. P0 已完成，Controller-Mapper、跨 Feature `ServiceImpl`/Mapper 与 `platform → feature` 三项结构扫描可进入“仅新增违规”门禁实施评估；共享 Entity 跨域规则仍等待 P1 的窄读接口后再升级。
