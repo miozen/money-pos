@@ -180,6 +180,12 @@ Physical Maven splitting is an assessment gate, not an implementation commitment
 - The assessment does not approve a GMS POM split: GMS interfaces still expose `IService<Entity>`, 22 files import shared Entity types, 11 import shared Mappers, several flows use SYS configuration/dictionary capabilities, and the tests start the full Boot application. A physical move would not yet demonstrate independently useful compilation or testing.
 - Defined the future contract module as dependency-minimal: JDK-only Entity-free DTOs and ports, never Spring services, Mappers, Entity, Flyway or Feature implementations. No POM or source changed. Next, consolidate the target graph and issue a split/defer decision with concrete entry criteria.
 
+### Completed: Stage 5 Maven Module-Split Decision
+
+- Published `MoneyPOS-Stage5-Maven-Module-Split-Decision.md`, which records the current three-module reactor, the UMS↔TRADE cycle, the future acyclic target shape and a five-condition re-entry checklist. GMS is directionally acyclic but still fails independent-build and stable-contract gates.
+- The decision is to defer physical splitting. No new POM, source directory, Spring scan rule, dependency or build command was added. This avoids an invalid cyclic reactor and avoids falsely treating full Boot integration tests as independent Feature-module verification.
+- The remaining Stage 5 action is documentary closure: record the evidence for deferral, preserve the Stage 4 gate as the ongoing safeguard, and state that future contract extraction requires a separately authorized implementation task.
+
 ## Execution Rule
 
 After every completed unit of work, update this ledger with:
