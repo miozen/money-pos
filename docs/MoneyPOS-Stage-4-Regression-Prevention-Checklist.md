@@ -30,6 +30,7 @@
 - [x] 4.5 已完成两个迁移切片的全量收口：第二轮隔离 `money_pos_test` 上的 10 个测试类、24 项用例均通过（0 failures / 0 errors），`mvn package -DskipTests` 成功，扫描由初始 7 降为 5 个 Controller-Mapper，跨 Feature 实现/Mapper 与 `platform → feature` 均为 0。共享 Entity 导入为 64，其中新增的 2 项是 GMS 本域查询服务的合法使用；`MoneyPOS-Architecture-Scan-Report-Stage4.5.md` 已记录。
 - [x] 4.5.1 P0 优惠券规则 DTO 已收口：`PosService.getValidCouponRules()` 与 `/ums/member/coupon-rules` 已改为返回 `CouponRuleSummary`，只保留 `id`、`name`、`thresholdAmount`、`discountAmount`、`status`，不再暴露 `PosCouponRule` 持久化字段；新增端点集成测试。隔离 `money_pos_test` 的全量测试、打包和扫描通过，当前扫描为 5/0/0/63（Controller-Mapper / 跨 Feature 实现或 Mapper / platform → feature / 共享 Entity 导入）。两个稳定迁移样本及 P0 已齐备；下一最小任务是实现前三项扫描的 additions-only（仅新增违规）比较门禁，Entity 规则继续保持非阻断直至 P1。
 - [x] 4.5.2 已实现并验证本地 additions-only 门禁：`bash scripts/architecture-scan.sh --check-new` 将 v1 的 7 个历史 Controller-Mapper 文件作为允许清单，跨 Feature `ServiceImpl`/Mapper 与 `platform → feature` 基线为零；新增发现才以退出码 1 失败。当前源码报告与门禁均通过（5/0/0/63），未知参数按预期以退出码 2 拒绝。默认无参数运行仍为报告模式，门禁尚未接入 Maven 或 CI；共享 Entity 继续仅统计、不阻断。下一最小任务是进行一次独立开发流程复核，再决定是否接入 Maven 或 CI。
+- [x] 4.6.1 已迁移 `PosCouponRuleController`：新增 `feature.trade.application.coupon.CouponRuleManagementService`，承接原有分页筛选、规则增改删和会员未使用券汇总；路由 `/pos/couponRule`、请求/返回类型、排序和聚合字段均未改变，Controller 不再导入任一 Mapper。新增集成测试覆盖上述行为；全量测试、打包和 additions-only 门禁通过。扫描降为 4/0/0/65；新增的 2 个共享 Entity 导入位于 TRADE 本域服务内部，仍只跟踪。下一最小任务是盘点剩余 4 个 Controller-Mapper 项，选择低耦合的下一切片。
 
 ## 4.0 验收结论
 
