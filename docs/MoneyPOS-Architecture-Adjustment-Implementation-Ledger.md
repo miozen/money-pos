@@ -736,6 +736,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - The guide records the shared `com.money.entity` transition rule: new cross-domain contracts use scenario DTOs; any temporary shared-Entity use must carry a compatibility reason and replacement plan until 4.2 establishes ownership. The seven Controller baseline files are migration targets, not precedent for new dependencies.
 - Added a small review checklist covering package ownership, forbidden imports, Entity contracts, test scope and ledger updates. This is documentation only; no production behavior, database schema, routes, tests or build configuration changed. The immediate next action is 4.2: create the Entity ownership map and DTO migration priority.
 
+### Completed: Stage 4.2 Entity Ownership and DTO Priority
+
+- Added `MoneyPOS-Entity-Ownership-and-DTO-Plan.md`, a logical ownership table for all 37 shared Entity types. It assigns goods/inventory and level prices to GMS; members, coupons and member transaction history to UMS; orders/payments/refunds to TRADE; the daily summary read model to HOME; and configuration/reference entities to SYS. The source packages, persistence mapping and database contracts remain unchanged.
+- Set the migration order from observed contracts: P0 replaces the `PosCouponRule` entity returned through the TRADE POS service and UMS coupon-rule route; P1 narrows TRADE reads of GMS goods and UMS members currently exposed through `IService<Entity>`; P2 converts FIN/HOME report assemblers; P3 leaves internal/unused compatibility types alone. The existing transaction write-side facades remain intact.
+- Recorded two adjacent debts for future scoped work: POS-prefixed Entity names do not determine ownership, and `UmsMemberServiceImpl.MemberGoodsRankVO` leaks an implementation nested type. No code, route, schema, mapper, Entity package or runtime behavior changed. The immediate next action is 4.3: turn the established scans into a non-blocking, versioned report.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.

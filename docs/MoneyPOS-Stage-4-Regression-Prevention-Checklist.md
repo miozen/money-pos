@@ -24,7 +24,7 @@
 ## 后续实施顺序
 
 - [x] 4.1 已发布 `MoneyPOS-Architecture-Collaboration-Guide.md`：说明类型归属、允许的 Feature 服务接口/TRADE facade 调用、禁止的 Controller-Mapper 与跨 Feature 实现依赖、共享 Entity 的暂行兼容规则、历史基线限制及提交前自检。该指南不改变现有业务契约；下一项是 4.2 的 Entity 归属表。
-- [ ] 4.2 建立 Entity 归属表和跨域场景 DTO 迁移优先级，先从已识别的 TRADE、GMS、UMS 调用面确定可替换类型。
+- [x] 4.2 已发布 `MoneyPOS-Entity-Ownership-and-DTO-Plan.md`：为 37 个共享 Entity 建立 GMS、UMS、TRADE、HOME、SYS 的逻辑归属，并按 P0–P3 排定跨域 DTO 切片。P0 是优惠券规则接口直接暴露 `PosCouponRule`；P1 是 TRADE 对商品/会员 `IService<Entity>` 的跨域读取；P2 是 FIN/HOME 读模型。未移动实体、未改变表或契约；下一项是 4.3 的非阻断扫描报告。
 - [ ] 4.3 将扫描实现为非阻断报告，并在报告稳定后只对“新增违规”启用门禁；7 个 Controller 基线和共享 Entity 债务必须显式豁免并可追踪。
 - [ ] 4.4 选择一个低耦合 Controller-Mapper 违规作为首个迁移切片，改为调用本 Feature 的应用服务，并补充相应回归测试。
 - [ ] 4.5 在每个迁移切片后更新基线、运行全量测试和打包；只有基线降为零或每项均有可执行豁免时，才评估将门禁升级为全量阻断。
