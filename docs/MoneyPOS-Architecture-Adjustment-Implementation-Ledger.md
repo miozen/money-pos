@@ -186,6 +186,12 @@ Physical Maven splitting is an assessment gate, not an implementation commitment
 - The decision is to defer physical splitting. No new POM, source directory, Spring scan rule, dependency or build command was added. This avoids an invalid cyclic reactor and avoids falsely treating full Boot integration tests as independent Feature-module verification.
 - The remaining Stage 5 action is documentary closure: record the evidence for deferral, preserve the Stage 4 gate as the ongoing safeguard, and state that future contract extraction requires a separately authorized implementation task.
 
+### Completed: Stage 5 Assessment Closure
+
+- Closed the Stage 5 checklist after confirming no candidate meets all four physical-split gates: stable Entity-free contracts, an acyclic Maven graph, proven independent compilation value and verified Spring/Mapper/Flyway/transaction assembly. The only correct current action is to retain the existing `money-app-api` / `money-app-system` / `money-app-biz` reactor.
+- The deferral is evidence-based, not an unbounded postponement: `MoneyPOS-Stage5-Maven-Module-Split-Decision.md` records the current and target graphs plus the five prerequisites that must be completed before reopening the assessment. No POM, source package, route, table, migration, configuration or test setup was changed during Stage 5.
+- `architecture-scan.sh --check-new` remains the ongoing local safeguard while development continues in the single business module. Any future contract extraction or physical module split needs separate authorization and its own implementation/verification plan.
+
 ## Execution Rule
 
 After every completed unit of work, update this ledger with:

@@ -28,10 +28,10 @@
 - [x] 5.1 已盘点并分类 UMS↔TRADE 的双向依赖：识别 3 条只读边、POS 聚合查询和 2 条交易写侧协调；TRADE 还直接使用 UMS Entity/Mapper/IService，不能仅移动服务接口。设计以中立契约模块承载 Entity-free DTO/接口，UMS/TRADE 分别实现对应 port，组合层注入实现；不授权直接拆分。详见 `MoneyPOS-Stage5-Ums-Trade-Cycle-Inventory.md`。下一最小任务是评估 GMS 单向候选边界及中立契约模块的最小依赖集。
 - [x] 5.2 已评估 GMS 单向候选边界与中立契约最小集：GMS 没有直接依赖 UMS/TRADE，是方向上最适合作为首候选的模块；但服务仍经 `IService<Entity>` 暴露持久化类型、内部仍依赖共享 API/SYS、测试仍启动完整应用，独立编译收益未被证明。因此暂不创建 `money-app-gms`。未来契约模块只能容纳 Entity-free DTO/port 与 JDK 类型。详见 `MoneyPOS-Stage5-Gms-Module-Candidate-Assessment.md`。下一最小任务是汇总目标 Maven 依赖图并形成“拆分 / 暂不拆分”决策。
 - [x] 5.3 已汇总 Maven 依赖图并作出正式“暂不拆分”决策：UMS↔TRADE 的循环、Entity/Mapper/IService 泄露、缺乏独立构建收益和未验证的运行时装配均未达到准入门槛；GMS 仅在依赖方向上具备候选资格。不会提交 POM 或源码移动计划。详见 `MoneyPOS-Stage5-Maven-Module-Split-Decision.md`。下一最小任务是记录暂不拆分的证据并关闭阶段 5 评估。
-- [ ] 5.4 若无安全拆分候选，记录“暂不拆分”的证据并关闭阶段 5；若存在候选，则先建立独立编译/测试验证，再提出实施切片。
+- [x] 5.4 已记录暂不拆分的证据并关闭阶段 5：现有三模块 reactor、UMS↔TRADE 循环、GMS 的未满足准入条件、目标无环图与五项重新评估条件均已归档；全程未创建 POM、未移动源码。当前架构 additions-only 门禁仍通过，作为继续在单业务模块中开发的防回归保障。阶段 5 的评估范围至此关闭。
 
-## 当前风险与决策
+## 阶段 5 验收结论
 
-当前最大风险不是 POM 语法，而是 UMS↔TRADE 的循环：直接把两者拆成相互依赖的 JAR 会使 Maven reactor 无法拓扑排序。阶段 4 已消除实现层/Mapper 层违规，但这不等于所有服务接口已经具备模块契约稳定性。
+阶段 5 已完成“是否应当拆分”的评估，结论是暂不拆分。当前最大风险不是 POM 语法，而是 UMS↔TRADE 的循环：直接把两者拆成相互依赖的 JAR 会使 Maven reactor 无法拓扑排序。阶段 4 已消除实现层/Mapper 层违规，但这不等于所有服务接口已经具备模块契约稳定性。
 
-因此下一最小任务是 **5.1：逐文件盘点 UMS↔TRADE 双向依赖并给出最小破环契约设计**。在该设计完成前，不创建空壳 Maven 模块，也不修改现有构建。
+阶段 5 不遗留未关闭的评估项。若未来需要重新评估，必须先完成决策文档列出的五项条件：提取中立优惠券计数契约、替换 TRADE 的 UMS 只读 Entity/Mapper 依赖、收口结算退款写命令、为 GMS 建立独立编译/测试证明，并以候选模块 `test-compile` 验证无环依赖。此前继续保持现有 reactor 和 `bash scripts/architecture-scan.sh --check-new` 门禁。
