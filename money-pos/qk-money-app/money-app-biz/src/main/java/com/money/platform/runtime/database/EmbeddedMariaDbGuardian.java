@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.money.platform.runtime.file.RuntimeFileStorage;
 import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,7 @@ public final class EmbeddedMariaDbGuardian {
     }
 
     private static void prepareSecretKey() {
-        File pwdFile = new File(RuntimeWorkspace.getAppData(), ".sys_secret.key");
+        File pwdFile = RuntimeFileStorage.dataFile(".sys_secret.key");
         if (pwdFile.exists()) {
             dbPassword = FileUtil.readString(pwdFile, StandardCharsets.UTF_8).trim();
             isFirstRun = false;
@@ -55,7 +56,7 @@ public final class EmbeddedMariaDbGuardian {
     }
 
     private static void writeMetaLock() {
-        File metaFile = new File(RuntimeWorkspace.getAppData(), ".wx_meta");
+        File metaFile = RuntimeFileStorage.dataFile(".wx_meta");
         if (!metaFile.exists()) {
             String metaContent = "{\n  \"app\": \"WanXiangPOS\",\n  \"version\": \"1.0\",\n  \"createdAt\": \"" + DateUtil.now() + "\"\n}";
             FileUtil.writeString(metaContent, metaFile, StandardCharsets.UTF_8);
@@ -67,7 +68,7 @@ public final class EmbeddedMariaDbGuardian {
         String mariadbEnginePath = RuntimeWorkspace.getAppHome() + "/mariadb";
         File mysqldExe = new File(mariadbEnginePath + "/bin/mysqld.exe");
         File installDbExe = new File(mariadbEnginePath + "/bin/mysql_install_db.exe");
-        File dataDir = new File(RuntimeWorkspace.getAppData() + "/db_data");
+        File dataDir = RuntimeFileStorage.databaseDirectory();
         String expectedDataDir = FileUtil.normalize(dataDir.getAbsolutePath());
 
         if (!mysqldExe.exists()) {
@@ -145,7 +146,7 @@ public final class EmbeddedMariaDbGuardian {
                     try (Statement stmt = conn.createStatement()) {
                         stmt.execute("ALTER USER 'root'@'localhost' IDENTIFIED BY '" + dbPassword + "'");
                         stmt.execute("CREATE DATABASE IF NOT EXISTS `" + DB_NAME + "` CHARACTER SET utf8mb4");
-                        FileUtil.writeString(dbPassword, new File(RuntimeWorkspace.getAppData(), ".sys_secret.key"), StandardCharsets.UTF_8);
+                        FileUtil.writeString(dbPassword, RuntimeFileStorage.dataFile(".sys_secret.key"), StandardCharsets.UTF_8);
                         log.info("🛡️ [Guardian] 数据库内核加固与空库创建完毕。");
                     }
                 }

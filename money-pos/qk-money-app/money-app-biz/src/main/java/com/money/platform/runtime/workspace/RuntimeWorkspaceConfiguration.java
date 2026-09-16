@@ -1,6 +1,7 @@
 package com.money.platform.runtime.workspace;
 
 import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
+import com.money.platform.runtime.file.RuntimeFileStorage;
 import lombok.extern.slf4j.Slf4j;
 
 /** Publishes desktop runtime settings for Spring before the application context starts. */
@@ -19,7 +20,7 @@ public final class RuntimeWorkspaceConfiguration {
         System.setProperty("spring.datasource.username", "root");
         System.setProperty("spring.datasource.password", EmbeddedMariaDbGuardian.getDbPassword());
         System.setProperty("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
-        System.setProperty("local.bucket", RuntimeWorkspace.getAppData() + "/assets/");
+        System.setProperty("local.bucket", RuntimeFileStorage.assetsDirectoryPath());
         System.setProperty("money.cache.local.provider", "hutool");
 
         log.info("💉 [Injector] 数据库挂载点与静态资源隧道 (Assets) 注入完毕！");

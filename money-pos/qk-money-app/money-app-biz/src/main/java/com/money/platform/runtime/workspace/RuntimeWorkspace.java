@@ -3,6 +3,7 @@ package com.money.platform.runtime.workspace;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
+import com.money.platform.runtime.file.RuntimeFileStorage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -83,10 +84,10 @@ public final class RuntimeWorkspace {
         String resolvedAppHome = getAppHome();
         String resolvedAppData = getAppData();
 
-        FileUtil.mkdir(resolvedAppData + File.separator + "assets");
-        FileUtil.mkdir(resolvedAppData + File.separator + "logs");
-        FileUtil.mkdir(resolvedAppData + File.separator + "backups");
-        FileUtil.mkdir(resolvedAppData + File.separator + "db_data");
+        FileUtil.mkdir(RuntimeFileStorage.assetsDirectory());
+        FileUtil.mkdir(RuntimeFileStorage.logsDirectory());
+        FileUtil.mkdir(RuntimeFileStorage.backupsDirectory());
+        FileUtil.mkdir(RuntimeFileStorage.databaseDirectory());
 
         log.info("⚙️ [Workspace] 程序核心锁定于: {}", resolvedAppHome);
         log.info("🛡️ [Workspace] 数据资产锁定于: {}", resolvedAppData);

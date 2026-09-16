@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
+import com.money.platform.runtime.file.RuntimeFileStorage;
 import com.money.platform.runtime.workspace.RuntimeWorkspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -68,11 +69,9 @@ public class SysBackupService {
     public File createBackupZip(String prefix) {
         // 🌟 核心修复 1：动静分离，引擎拿 Home，数据拿 Data
         String appHome = RuntimeWorkspace.getAppHome(); // 程序区
-        String appData = RuntimeWorkspace.getAppData(); // 数据区 (安全区)
-
-        String backupDir = appData + File.separator + "backups"; // 备份文件夹在数据区
+        File backupDir = RuntimeFileStorage.backupsDirectory(); // 备份文件夹在数据区
         String mariadbBin = appHome + File.separator + "mariadb" + File.separator + "bin"; // 引擎在程序区
-        String tempBatchDir = backupDir + File.separator + "temp_" + IdUtil.fastSimpleUUID();
+        String tempBatchDir = new File(backupDir, "temp_" + IdUtil.fastSimpleUUID()).getAbsolutePath();
 
         FileUtil.mkdir(tempBatchDir);
         try {
@@ -109,12 +108,12 @@ public class SysBackupService {
             }
 
             // 2. 备份静态资源
-            File assetsDir = new File(appData + File.separator + "assets"); // 🌟 核心修复：找数据区的 assets
+            File assetsDir = RuntimeFileStorage.assetsDirectory(); // 🌟 核心修复：找数据区的 assets
             if (assetsDir.exists()) FileUtil.copy(assetsDir, new File(tempBatchDir), true);
 
             // 3. 打包 ZIP
             String zipFileName = prefix + "VanaPOS_" + DateUtil.format(DateUtil.date(), "yyyyMMdd_HHmmss") + ".zip";
-            File zipFile = new File(backupDir + File.separator + zipFileName);
+            File zipFile = new File(backupDir, zipFileName);
             cn.hutool.core.util.ZipUtil.zip(tempBatchDir, zipFile.getAbsolutePath(), true);
             return zipFile;
         } catch (Exception e) {
@@ -127,8 +126,7 @@ public class SysBackupService {
 
     public void restoreFromZip(MultipartFile backupFile) {
         // 🌟 核心修复 2：还原文件统一走数据安全区
-        String appData = RuntimeWorkspace.getAppData();
-        String tempRestoreDir = appData + File.separator + "backups" + File.separator + "restore_" + IdUtil.fastSimpleUUID();
+        String tempRestoreDir = new File(RuntimeFileStorage.backupsDirectory(), "restore_" + IdUtil.fastSimpleUUID()).getAbsolutePath();
         File zipFile = new File(tempRestoreDir + ".zip");
 
         try {
@@ -164,7 +162,7 @@ public class SysBackupService {
             sendLog("SUCCESS", "数据库切换完美达成，无残留旧表！");
 
             // 🌟 核心修复 3：将静态资源还原到数据安全区
-            restoreAssetsAtomically(tempRestoreDir, appData);
+            restoreAssetsAtomically(tempRestoreDir, RuntimeFileStorage.assetsDirectory());
 
             sendLog("SUCCESS", "=== 还原全流程安全收官 ===");
 
@@ -301,12 +299,11 @@ public class SysBackupService {
     }
 
     // 🌟 此处传入的 dataDir 已经是安全区路径了
-    private void restoreAssetsAtomically(String tempDir, String dataDir) {
+    private void restoreAssetsAtomically(String tempDir, File targetAssets) {
         File assetsInZip = new File(tempDir + File.separator + "assets");
         if (!assetsInZip.exists()) return;
 
-        File targetAssets = new File(dataDir + File.separator + "assets");
-        File bakAssets = new File(dataDir + File.separator + "assets_bak_" + IdUtil.fastSimpleUUID());
+        File bakAssets = new File(targetAssets.getParentFile(), "assets_bak_" + IdUtil.fastSimpleUUID());
 
         try {
             if (targetAssets.exists()) FileUtil.move(targetAssets, bakAssets, true);

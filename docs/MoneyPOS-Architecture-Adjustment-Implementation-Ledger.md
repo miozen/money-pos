@@ -700,6 +700,14 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Windows packaged embedded-MariaDB acceptance remains deliberately open: it requires a Windows installation containing `mariadb/bin/mysqld.exe` and `mysql_install_db.exe`, started with the existing embedded switch. Validate first initialization, associated-instance reuse and rejection of an unrelated process occupying port `9102`. This is an environment gap, not a known WSL-development failure.
 - Rollback is the single Stage 3.2 local commit: restore the former guardian implementation and its prior callers. The next minimal task is Stage 3.3 local-file capability inventory; do not mix backup workflow changes into that slice.
 
+### Completed: Stage 3.3 Local File Capability Boundary
+
+- Added `com.money.platform.runtime.file.RuntimeFileStorage` as the single runtime locator for `assets`, `logs`, `backups`, `db_data`, data-root metadata files, and the existing physical `local.bucket` value. It depends only on the runtime workspace boundary, never on a Feature package.
+- Moved standard-directory creation, embedded MariaDB data/metadata locations, runtime asset-property injection, backup service asset/backup roots, and nightly backup cleanup to this locator. This also resolves the prior cleanup-path mismatch: automatic cleanup now reads the same `app.data/backups` directory where the backup service writes ZIP files.
+- The backup archive name, manifest, SQL dump/import commands, restore ordering, upload object-key format, static URL contract, and deletion policies were not changed. Direct `File` usage remaining in backup code is limited to those business-format operations and is intentionally deferred to the Stage 3.4 backup review.
+- Added `RuntimeFileStorageTest`; together with the workspace and MariaDB characterization suites, 8 tests passed with 0 failures and 0 errors. The test uses an isolated temporary data root and verifies every standard runtime directory remains below it.
+- Rollback is the single Stage 3.3 local commit. The next Stage 3 work is the explicitly deferred 3.4 capability inventory: backup/recovery, printer hardware, POS WebSocket and Electron contract, each without protocol or behavior changes.
+
 ### Completed: GMS and UMS Manual Functional Regression
 
 - The user completed the GMS acceptance flow in the running front-end and back-end test environment: brand/category and product maintenance, level pricing, combo stock propagation, inbound/outbound/check inventory documents and stock logs, product Excel import/export, inventory analysis/turnover views and exports, plus POS sale and full-refund stock restoration all passed.
