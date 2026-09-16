@@ -716,12 +716,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Recorded the Electron main-process contract: `main.cjs` launches the packaged backend with `--app.home`, polls `/money-pos/actuator/health`, creates windows only after health succeeds, and terminates the child backend on quit. No Electron source was changed.
 - This inventory has no production-code change. The next Stage 3 work is 3.5 closure verification; keep Windows embedded-MariaDB acceptance and receipt-printer hardware acceptance explicitly open.
 
-### In Progress: Stage 3.5 Closure Verification
+### Completed: Stage 3.5 Automated Closure Verification
 
 - Dependency scan passed for the Stage 3 boundary: `platform.runtime` has no `feature.*` import, and Feature packages do not import `platform.runtime`. Legacy workspace compatibility classes only delegate to the runtime boundary. Seven pre-existing Controllers still import Mapper types; this is recorded as a Stage 4 architectural-rule baseline, not changed during Stage 3.
-- Full reactor `mvn package -DskipTests` passed after the Stage 3 work. The current WSL development backend remains healthy at `/money-pos/actuator/health` with external MariaDB `127.0.0.1:3306/money_pos`.
-- The 8 runtime characterization tests passed previously, but final `mvn test` and the Stage 0 `CheckoutIntegrationTest` are intentionally not run against development data. `money_pos_test` is not available to the application account and that account cannot create it. Create the isolated database and grant the test account access before resuming closure; do not substitute `money_pos`.
-- Windows embedded-MariaDB acceptance and physical printer acceptance remain open environment items. Do not mark Stage 3 complete until the isolated test suite has run; Windows/hardware items remain traceable exceptions rather than code failures.
+- The isolated `money_pos_test` database was created and granted to the development application account. The full reactor `mvn test` passed with 8 test classes and 21 tests (0 failures / 0 errors); this includes 8 runtime characterization tests and the Stage 0 `CheckoutIntegrationTest` with 10 tests covering checkout, coupons, refunds, stock and sale-out documents. Flyway initialized only `money_pos_test`; development database `money_pos` was not used or modified.
+- Full reactor `mvn package -DskipTests` passed after the test run. The current WSL development backend remains healthy at `/money-pos/actuator/health` with external MariaDB `127.0.0.1:3306/money_pos`.
+- Windows embedded-MariaDB acceptance and physical printer acceptance remain open environment items. They are traceable exceptions rather than code failures: the former requires a packaged Windows runtime with its MariaDB engine, and the latter requires compatible receipt-printer hardware. Stage 4 may begin with the recorded controller-to-Mapper baseline, while those environment items remain separately executable.
 
 ### Completed: GMS and UMS Manual Functional Regression
 

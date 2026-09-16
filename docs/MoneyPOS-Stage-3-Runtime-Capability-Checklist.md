@@ -75,10 +75,10 @@
 ## 3.5 阶段收口验证
 
 - [x] 3.5.1 已完成运行依赖扫描：`platform.runtime` 不依赖 `feature.*`，Feature 未直接导入 `platform.runtime`；旧 `workspace` 桥仅委托新运行时边界，兼容理由已在台账记录。另发现 7 个历史 Controller 直接导入 Mapper，作为阶段 4 的既有基线，不在阶段 3 扩大处理。
-- [ ] 3.5.2 运行工作区、MariaDB 和文件能力的目标特征测试，以及阶段 0 `CheckoutIntegrationTest`；已通过 8 项运行时特征测试，但 `CheckoutIntegrationTest` 需要独立 `money_pos_test` 数据库，当前应用账号没有创建/访问权限，待测试库授权后执行。
-- [ ] 3.5.3 运行全量 `mvn test` 与 `mvn package`；全量 `mvn package -DskipTests` 已通过，`mvn test` 待 3.5.2 的独立测试库就绪后执行，确认打包产物不因包调整缺失运行时类或资源。
+- [x] 3.5.2 已在隔离的 `money_pos_test` 执行 8 项运行时特征测试和阶段 0 `CheckoutIntegrationTest`。工作区、嵌入式 MariaDB 守护与运行时文件测试共 8 项通过；Checkout 收银、优惠券、退款、库存和出库单链路共 10 项通过，均为 0 failures / 0 errors。Flyway 仅初始化测试库，未连接或修改开发库 `money_pos`。
+- [x] 3.5.3 已运行全量 `mvn test`：本轮 8 个测试类、21 项用例均通过（0 failures / 0 errors）；并已运行 `mvn package -DskipTests` 成功。确认运行时包调整未造成缺类或资源缺失。
 - [ ] 3.5.4 在可用环境完成开发模式启动和桌面嵌入式启动验收；已完成 WSL 开发模式：`http://127.0.0.1:9101/money-pos/actuator/health` 为 `UP`，数据库为外部 `127.0.0.1:3306/money_pos`。Windows 桌面嵌入式仍待具备打包目录、Windows MariaDB 引擎和可用设备的环境验收，不把本项标记完成。
-- [ ] 3.5.5 更新实施台账，列出已完成能力、独立提交号、延期硬件项、平台环境限制和阶段 4 的输入；确认未推送 `dev`、未触及 `main`。待 3.5.2 与 3.5.3 的测试库验证完成后收口。
+- [x] 3.5.5 已更新实施台账，列出已完成能力、独立提交、延期硬件项、平台环境限制和阶段 4 输入；当前仅在本地 `dev` 开发，完成本项的本地提交后 `dev` 将比 `origin/dev` 超前 29 个提交，未推送且未触及 `main`。3.5 的自动化收口完成；3.5.4 的 Windows 桌面环境验收仍作为独立环境事项保留。
 
 ## 阶段 4 的预期输入
 
