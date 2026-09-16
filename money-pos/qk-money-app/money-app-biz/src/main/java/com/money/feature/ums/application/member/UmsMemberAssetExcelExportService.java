@@ -3,10 +3,10 @@ package com.money.feature.ums.application.member;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.MemberCouponCountQuery;
-import com.money.dto.SelectVO;
+import com.money.contract.goods.BrandSelectionQuery;
+import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
-import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +27,14 @@ import java.util.stream.Collectors;
 public class UmsMemberAssetExcelExportService {
 
     private final UmsMemberExcelTemplateService templateService;
-    private final GmsBrandService gmsBrandService;
+    private final BrandSelectionQuery brandSelectionQuery;
     private final UmsMemberMapper umsMemberMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
     private final MemberCouponCountQuery memberCouponCountQuery;
 
     public void writeExport(HttpServletResponse response) throws IOException {
         List<List<String>> heads = templateService.buildDynamicHeads();
-        List<SelectVO> brands = gmsBrandService.getBrandSelect();
+        List<BrandSelectionSnapshot> brands = brandSelectionQuery.listBrandSelections();
         List<UmsMember> allMembers = umsMemberMapper.selectList(new LambdaQueryWrapper<UmsMember>());
         if (allMembers == null || allMembers.isEmpty()) {
             writeExcelResponse(response, heads, new ArrayList<>());
@@ -56,8 +56,8 @@ public class UmsMemberAssetExcelExportService {
             row.add(String.valueOf(memberVoucherCountMap.getOrDefault(member.getId(), 0L)));
 
             Map<String, String> myBrandLevels = memberBrandMatrix.getOrDefault(member.getId(), Map.of());
-            for (SelectVO brand : brands) {
-                String levelCode = myBrandLevels.get(String.valueOf(brand.getValue()));
+            for (BrandSelectionSnapshot brand : brands) {
+                String levelCode = myBrandLevels.get(String.valueOf(brand.getId()));
                 row.add(levelCode == null ? "" : levelCodeToNameMap.getOrDefault(levelCode, ""));
             }
             dataList.add(row);

@@ -10,7 +10,7 @@ import com.money.constant.BizErrorStatus;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
-import com.money.entity.GmsBrand;
+import com.money.contract.goods.BrandNameQuery;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
@@ -19,7 +19,6 @@ import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
 import com.money.feature.ums.application.member.UmsMemberServiceImpl.MemberGoodsRankVO;
-import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
 import com.money.web.exception.BaseException;
@@ -48,26 +47,20 @@ public class UmsMemberProfileService {
 
     // 🌟 注入双擎翻译服务
     private final SysDictDetailService sysDictDetailService;
-    private final GmsBrandService gmsBrandService;
+    private final BrandNameQuery brandNameQuery;
 
     private static final String STATUS_UNUSED = "UNUSED";
 
     /**
      * 🌟 翻译引擎 1：加载全量品牌映射 (ID -> 名称)
      */
-    private Map<String, String> getBrandMap() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, String> getBrandMap(Collection<String> brandIds) {
         try {
-            List<GmsBrand> brands = gmsBrandService.list();
-            if (brands != null) {
-                for (GmsBrand b : brands) {
-                    map.put(String.valueOf(b.getId()), b.getName());
-                }
-            }
+            return brandNameQuery.findNamesByIds(brandIds);
         } catch (Exception e) {
             log.warn("⚠️ 获取品牌映射表失败", e);
+            return new HashMap<>();
         }
-        return map;
     }
 
     /**
@@ -127,7 +120,8 @@ public class UmsMemberProfileService {
             Map<Long, List<UmsMemberBrandLevel>> blMap = allBrandLevels.stream().collect(Collectors.groupingBy(UmsMemberBrandLevel::getMemberId));
 
             // 🌟 核心防爆破：一次性加载双擎缓存，避免在 for 循环中查库
-            Map<String, String> brandMap = getBrandMap();
+            Map<String, String> brandMap = getBrandMap(allBrandLevels.stream()
+                    .map(UmsMemberBrandLevel::getBrand).collect(Collectors.toSet()));
             Map<String, String> levelDictMap = getMemberLevelDictMap();
 
             for (UmsMemberVO vo : pageVO.getRecords()) {
@@ -271,7 +265,8 @@ public class UmsMemberProfileService {
 
         if (levels != null && !levels.isEmpty()) {
             // 🌟 详情页依然执行双擎翻译
-            Map<String, String> brandMap = getBrandMap();
+            Map<String, String> brandMap = getBrandMap(levels.stream()
+                    .map(UmsMemberBrandLevel::getBrand).collect(Collectors.toSet()));
             Map<String, String> levelDictMap = getMemberLevelDictMap();
 
             for (UmsMemberBrandLevel bl : levels) {

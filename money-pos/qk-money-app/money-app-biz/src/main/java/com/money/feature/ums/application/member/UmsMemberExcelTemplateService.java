@@ -1,8 +1,8 @@
 package com.money.feature.ums.application.member;
 
 import com.alibaba.excel.EasyExcel;
-import com.money.dto.SelectVO;
-import com.money.feature.gms.application.catalog.GmsBrandService;
+import com.money.contract.goods.BrandSelectionQuery;
+import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.service.SysDictDetailService;
 import com.money.util.ExcelDropDownHandler;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UmsMemberExcelTemplateService {
 
-    private final GmsBrandService gmsBrandService;
+    private final BrandSelectionQuery brandSelectionQuery;
     private final SysDictDetailService sysDictDetailService;
 
     public void writeTemplate(HttpServletResponse response) throws IOException {
@@ -55,8 +55,8 @@ public class UmsMemberExcelTemplateService {
         heads.add(List.of("初始会员余额(本金)"));
         heads.add(List.of("初始会员券(赠送)"));
         heads.add(List.of("初始满减券(张数)"));
-        for (SelectVO brand : gmsBrandService.getBrandSelect()) {
-            heads.add(List.of("[品牌特权] " + brand.getLabel()));
+        for (BrandSelectionSnapshot brand : brandSelectionQuery.listBrandSelections()) {
+            heads.add(List.of("[品牌特权] " + brand.getName()));
         }
         return heads;
     }

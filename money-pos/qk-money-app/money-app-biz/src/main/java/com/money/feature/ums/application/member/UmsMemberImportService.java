@@ -6,8 +6,18 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.money.entity.*;
-import com.money.mapper.*;
+import com.money.contract.goods.BrandSelectionQuery;
+import com.money.contract.goods.BrandSelectionSnapshot;
+import com.money.entity.PosMemberCoupon;
+import com.money.entity.SysDictDetail;
+import com.money.entity.UmsMember;
+import com.money.entity.UmsMemberBrandLevel;
+import com.money.entity.UmsMemberLog;
+import com.money.mapper.PosMemberCouponMapper;
+import com.money.mapper.SysDictDetailMapper;
+import com.money.mapper.UmsMemberBrandLevelMapper;
+import com.money.mapper.UmsMemberLogMapper;
+import com.money.mapper.UmsMemberMapper;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -34,7 +44,7 @@ public class UmsMemberImportService {
     private final UmsMemberMapper umsMemberMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
-    private final GmsBrandMapper gmsBrandMapper;
+    private final BrandSelectionQuery brandSelectionQuery;
     private final SysDictDetailMapper sysDictDetailMapper;
     private final UmsMemberLogMapper umsMemberLogMapper;
 
@@ -75,10 +85,9 @@ public class UmsMemberImportService {
             dictReverseMap.put(dict.getCnDesc(), dict.getValue());
         }
 
-        List<GmsBrand> allBrands = gmsBrandMapper.selectList(new LambdaQueryWrapper<>());
         Map<String, String> brandName2IdMap = new HashMap<>();
-        for (GmsBrand b : allBrands) {
-            brandName2IdMap.put(b.getName(), String.valueOf(b.getId()));
+        for (BrandSelectionSnapshot brand : brandSelectionQuery.listBrandSelections()) {
+            brandName2IdMap.put(brand.getName(), String.valueOf(brand.getId()));
         }
 
         List<UmsMember> parsedMembers = new ArrayList<>();
