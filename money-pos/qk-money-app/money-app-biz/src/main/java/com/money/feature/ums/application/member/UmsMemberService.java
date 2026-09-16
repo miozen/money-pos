@@ -6,8 +6,10 @@ import com.money.web.vo.PageVO;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
+import com.money.dto.UmsMember.MemberRankVO;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -95,4 +97,10 @@ public interface UmsMemberService extends IService<UmsMember> {
      * 获取单条会员完整画像详情 (包含余额、券、品牌特权等)
      */
     UmsMemberVO getDetail(Long id);
+
+    List<MemberRankVO> getTopConsumeMembers();
+
+    List<MemberRankVO> getTopBalanceMembers();
+
+    List<MemberRankVO> getTopFrequencyMembers();
 }

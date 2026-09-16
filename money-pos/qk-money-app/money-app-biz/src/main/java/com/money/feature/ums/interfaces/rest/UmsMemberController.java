@@ -3,7 +3,7 @@ package com.money.feature.ums.interfaces.rest;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
-import com.money.mapper.UmsMemberMapper;
+import com.money.dto.UmsMember.MemberRankVO;
 import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.ums.application.member.UmsMemberServiceImpl.MemberGoodsRankVO;
 import com.money.web.dto.ValidGroup;
@@ -27,7 +27,6 @@ import java.util.Set;
 public class UmsMemberController {
 
     private final UmsMemberService umsMemberService;
-    private final UmsMemberMapper umsMemberMapper; // 仅用于排行榜直查
 
     @Operation(summary = "分页查询")
     @GetMapping
@@ -82,21 +81,21 @@ public class UmsMemberController {
     @Operation(summary = "排行榜-累计消费Top50")
     @PreAuthorize("@rbac.hasPermission('umsMember:list')")
     @GetMapping("/rank/consume")
-    public List<com.money.dto.UmsMember.MemberRankVO> getTopConsume() {
-        return umsMemberMapper.getTopConsumeMembers();
+    public List<MemberRankVO> getTopConsume() {
+        return umsMemberService.getTopConsumeMembers();
     }
 
     @Operation(summary = "排行榜-余额Top50")
     @PreAuthorize("@rbac.hasPermission('umsMember:list')")
     @GetMapping("/rank/balance")
-    public List<com.money.dto.UmsMember.MemberRankVO> getTopBalance() {
-        return umsMemberMapper.getTopBalanceMembers();
+    public List<MemberRankVO> getTopBalance() {
+        return umsMemberService.getTopBalanceMembers();
     }
 
     @Operation(summary = "排行榜-频次Top50")
     @PreAuthorize("@rbac.hasPermission('umsMember:list')")
     @GetMapping("/rank/frequency")
-    public List<com.money.dto.UmsMember.MemberRankVO> getTopFrequency() {
-        return umsMemberMapper.getTopFrequencyMembers();
+    public List<MemberRankVO> getTopFrequency() {
+        return umsMemberService.getTopFrequencyMembers();
     }
 }

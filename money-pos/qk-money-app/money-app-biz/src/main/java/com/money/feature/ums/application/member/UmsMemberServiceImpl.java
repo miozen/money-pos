@@ -5,6 +5,7 @@ import com.money.dto.Ums.RechargeDTO;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
+import com.money.dto.UmsMember.MemberRankVO;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
 import com.money.feature.ums.application.memberasset.UmsMemberRechargeService;
@@ -140,5 +141,20 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     @Override
     public UmsMemberVO getDetail(Long id) {
         return UmsMemberProfileService.getDetail(id); // 直接把活儿派给档案子域
+    }
+
+    @Override
+    public List<MemberRankVO> getTopConsumeMembers() {
+        return baseMapper.getTopConsumeMembers();
+    }
+
+    @Override
+    public List<MemberRankVO> getTopBalanceMembers() {
+        return baseMapper.getTopBalanceMembers();
+    }
+
+    @Override
+    public List<MemberRankVO> getTopFrequencyMembers() {
+        return baseMapper.getTopFrequencyMembers();
     }
 }
