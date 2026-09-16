@@ -36,6 +36,7 @@
 - [x] 4.6.4a 已完成 GMS→SYS 品牌配置窄契约设计：明确由 SYS 服务独占 `SysBrandConfigMapper`，GMS 应用服务负责 `/gms/brand/config` 的默认值与 JSON 兼容映射；保留“无配置为 `true/null`、空等级为数组、按品牌更新指定字段”的语义。商品 Excel 与 POS facade 的既有 SYS Mapper 使用不混入本切片。详见 `MoneyPOS-Stage4-Gms-Sys-Brand-Config-Contract.md`。下一最小任务是按该设计迁移控制器并补集成测试。
 - [x] 4.6.4b 已迁移 `GmsBrandConfigController`：新增中立 `BrandPricingPolicy`/`View` DTO、SYS 配置持久化服务与 GMS 路由应用服务；Controller 不再导入 SYS Entity 或 Mapper。`GET`/`POST /gms/brand/config`、无配置的 `true/null` 默认值、空等级数组、按品牌更新/首次插入语义和前端 JSON 字段保持不变。新增集成测试；全量测试、打包与 additions-only 门禁通过。扫描降为 2/0/0/64。下一最小任务是为 GMS 商品 Excel 入口盘点并拆分动态模板、导出与导入的服务边界。
 - [x] 4.6.5a 已完成 GMS 商品 Excel 盘点：模板和全量导出共享动态会员价格表头，适合作为同一个只读 Excel 生成服务迁移；现有导入已由事务型 `GmsGoodsExcelManager` 承担，保持不动。分类、品牌和会员等级读取可经既有 GMS/SYS 服务完成，Controller 无需保留 Mapper。详见 `MoneyPOS-Stage4-Gms-Goods-Excel-Inventory.md`。下一最小任务是实现该只读模板/导出服务、迁移两个 GET 路由并补工作簿集成测试。
+- [x] 4.6.5b 已迁移 GMS 商品 Excel 的只读输出边界：新增 `GmsGoodsExcelReadService`，统一生成模板与全量导出工作簿；`GmsGoodsExcelController` 的两个 GET 路由仅委托该服务，导入 POST 仍原样委托事务型 `GmsGoodsExcelManager`。动态会员价表头、下拉、示例行、文件名、商品状态/满减/分类品牌/价格矩阵映射均保持不变。新增工作簿集成测试覆盖模板/导出共同表头、导出数据和空商品导出不查询价格矩阵；隔离 `money_pos_test` 的 15 个测试类、30 项用例通过，打包和 additions-only 门禁通过。扫描降为 1/0/0/64，仅剩 `UmsMemberImportController`。下一最小任务是盘点 UMS 会员导入的模板、导出、导入与批量发券边界，拆出安全子切片。
 
 ## 4.0 验收结论
 
