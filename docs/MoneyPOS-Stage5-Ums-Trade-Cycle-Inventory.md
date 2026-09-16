@@ -18,7 +18,7 @@ money-app-biz (future boot/composition module) wires all implementations
 
 | 现有调用方 | 当前依赖与行为 | 类型 | 物理拆分阻塞点 | 最小替代契约 |
 | --- | --- | --- | --- | --- |
-| `UmsMemberAssetExcelExportService` | `MemberCouponQueryService.countUnusedCouponsByMemberIds` | 只读批量聚合 | 接口当前位于 TRADE 源码包，UMS 因而依赖 TRADE 模块 | 将接口及 `Map<Long,Long>` 语义下沉为契约模块的 `MemberCouponCountQuery`；TRADE 保留实现和优惠券 Mapper。 |
+| `UmsMemberAssetExcelExportService` | `MemberCouponCountQuery.countUnusedCouponsByMemberIds` | 只读批量聚合 | **已由 P1.1 收敛**：接口位于 API 中立契约包，UMS 不再依赖 TRADE 源码包 | TRADE 保留实现和优惠券 Mapper；后续物理拆分时可将该接口迁入独立契约模块。 |
 | `CheckoutValidationService` | `UmsMemberService.getById`，将 `UmsMember` 放入 `CheckoutContext` | 结算前只读核验 | TRADE 获得 UMS Entity，后续下单和资产处理继续使用它 | `MemberCheckoutLookup.findActiveMember(id)` 返回 `MemberCheckoutSnapshot(id,name,phone)`；`CheckoutContext` 改持快照。 |
 | `PosServiceImpl.listMember` | `UmsMemberService.lambdaQuery()`，并直接读取 `UmsMemberBrandLevelMapper`、`PosMemberCouponMapper` | POS 会员查询 | TRADE 同时依赖 UMS `IService<Entity>`、UMS Mapper/Entity 和会员权益数据 | `PosMemberLookup.search(keyword)` 返回现有 POS 所需的中立会员/品牌等级/券规则快照；需先确认优惠券规则详情的归属，不能把 Mapper 移入 TRADE 模块。 |
 | `PosAssetActionService.consume` | 调用会员消费、余额扣减、读取会员姓名电话、写 `UmsMemberLogMapper`、更新最后到店时间 | 交易写侧协调 | TRADE 写 UMS 日志、使用 UMS Entity 和 `lambdaUpdate`；直接拆分会破坏资产操作的同事务语义 | `MemberSettlementCommand.apply(SettlementMemberAssetRequest)` 由 UMS 实现，封装消费、余额、到店时间和日志。券核销的原子性须与 TRADE 券处理共同设计，不能先机械移动。 |
@@ -36,6 +36,6 @@ money-app-biz (future boot/composition module) wires all implementations
 
 ## 5.1 决策
 
-阶段 5.1 的结论为：**不授权物理拆分，也不授权在本阶段直接创建空壳 Maven 模块。** 破环的最小技术前置是中立契约模块及其 DTO/接口设计；其中最小、风险最低的首个实现候选是将现有 UMS→TRADE 的 `MemberCouponQueryService` 契约下沉为中立契约，因其已是 Entity-free 的只读聚合。
+阶段 5.1 的结论为：**不授权物理拆分，也不授权在本阶段直接创建空壳 Maven 模块。** 破环的最小技术前置是中立契约模块及其 DTO/接口设计；其中最低风险的首切片已在 P1.1 完成：Entity-free 的券数量查询已下沉为 `MemberCouponCountQuery`。
 
 下一最小任务为 **5.2：评估 GMS 的单向模块候选边界，并同时确认该中立契约模块的依赖最小集和独立编译收益**。不在 5.2 修改 POM。

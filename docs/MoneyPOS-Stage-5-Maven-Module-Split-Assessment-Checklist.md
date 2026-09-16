@@ -34,4 +34,4 @@
 
 阶段 5 已完成“是否应当拆分”的评估，结论是暂不拆分。当前最大风险不是 POM 语法，而是 UMS↔TRADE 的循环：直接把两者拆成相互依赖的 JAR 会使 Maven reactor 无法拓扑排序。阶段 4 已消除实现层/Mapper 层违规，但这不等于所有服务接口已经具备模块契约稳定性。
 
-阶段 5 不遗留未关闭的评估项。若未来需要重新评估，必须先完成决策文档列出的五项条件：提取中立优惠券计数契约、替换 TRADE 的 UMS 只读 Entity/Mapper 依赖、收口结算退款写命令、为 GMS 建立独立编译/测试证明，并以候选模块 `test-compile` 验证无环依赖。此前继续保持现有 reactor 和 `bash scripts/architecture-scan.sh --check-new` 门禁。
+阶段 5 不遗留未关闭的评估项。P1.1 已完成第一项中立优惠券计数契约；若未来需要重新评估，仍须完成余下四项：替换 TRADE 的 UMS 只读 Entity/Mapper 依赖、收口结算退款写命令、为 GMS 建立独立编译/测试证明，并以候选模块 `test-compile` 验证无环依赖。此前继续保持现有 reactor 和 `bash scripts/architecture-scan.sh --check-new` 门禁。

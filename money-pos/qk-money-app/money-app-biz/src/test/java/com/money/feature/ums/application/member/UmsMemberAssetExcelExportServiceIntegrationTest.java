@@ -5,7 +5,7 @@ import com.money.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
-import com.money.feature.trade.application.coupon.MemberCouponQueryService;
+import com.money.contract.member.MemberCouponCountQuery;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.SysDictDetailMapper;
@@ -42,7 +42,7 @@ class UmsMemberAssetExcelExportServiceIntegrationTest {
     @Autowired
     private UmsMemberAssetExcelExportService exportService;
     @Autowired
-    private MemberCouponQueryService memberCouponQueryService;
+    private MemberCouponCountQuery memberCouponCountQuery;
     @Autowired
     private GmsBrandMapper brandMapper;
     @Autowired
@@ -110,7 +110,7 @@ class UmsMemberAssetExcelExportServiceIntegrationTest {
         insertCoupon(member.getId(), "UNUSED");
         insertCoupon(member.getId(), "USED");
 
-        assertThat(memberCouponQueryService.countUnusedCouponsByMemberIds(List.of(member.getId())))
+        assertThat(memberCouponCountQuery.countUnusedCouponsByMemberIds(List.of(member.getId())))
                 .containsEntry(member.getId(), 1L);
 
         MockHttpServletResponse response = new MockHttpServletResponse();

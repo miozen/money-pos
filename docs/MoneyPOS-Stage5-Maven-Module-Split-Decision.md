@@ -60,11 +60,11 @@ money-app-gms   money-app-ums   money-app-trade ───┘
 
 只有以下工作实际完成并验证后，才重新打开物理拆分评估：
 
-1. 将 `MemberCouponQueryService` 及其 Entity-free 语义下沉为中立契约，并由 TRADE 实现；UMS 不再 import TRADE 源码包。
-2. 用会员快照、POS 会员查询和订单档案 DTO 替代 TRADE 对 `UmsMemberService`、`UmsMember`、`UmsMemberBrandLevelMapper` 的只读依赖。
-3. 用会员结算/退款命令替代 TRADE 对 `UmsMemberLogMapper`、`lambdaUpdate` 和 UMS 资产服务的直接写入；结算、并发券核销与退款特征测试必须保持通过。
-4. GMS 对外读取不再以 `IService<Entity>` 作为新增契约，并为候选模块建立不依赖完整 Boot 组合层的编译/测试证明。
-5. 在不改变业务行为的前提下，先用依赖图和 `mvn -pl <candidate> -am test-compile` 验证一个候选模块；通过后才提出单独的 POM/源码移动任务。
+1. [x] P1.1 已将 Entity-free 的券数量查询下沉为 API 中立契约 `MemberCouponCountQuery`，由 TRADE 实现；UMS 不再 import TRADE 源码包。
+2. [ ] 用会员快照、POS 会员查询和订单档案 DTO 替代 TRADE 对 `UmsMemberService`、`UmsMember`、`UmsMemberBrandLevelMapper` 的只读依赖。
+3. [ ] 用会员结算/退款命令替代 TRADE 对 `UmsMemberLogMapper`、`lambdaUpdate` 和 UMS 资产服务的直接写入；结算、并发券核销与退款特征测试必须保持通过。
+4. [ ] GMS 对外读取不再以 `IService<Entity>` 作为新增契约，并为候选模块建立不依赖完整 Boot 组合层的编译/测试证明。
+5. [ ] 在不改变业务行为的前提下，先用依赖图和 `mvn -pl <candidate> -am test-compile` 验证一个候选模块；通过后才提出单独的 POM/源码移动任务。
 
 ## 维护规则
 

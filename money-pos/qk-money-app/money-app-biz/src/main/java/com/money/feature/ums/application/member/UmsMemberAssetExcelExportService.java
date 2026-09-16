@@ -2,11 +2,11 @@ package com.money.feature.ums.application.member;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.member.MemberCouponCountQuery;
 import com.money.dto.SelectVO;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
 import com.money.feature.gms.application.catalog.GmsBrandService;
-import com.money.feature.trade.application.coupon.MemberCouponQueryService;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class UmsMemberAssetExcelExportService {
     private final GmsBrandService gmsBrandService;
     private final UmsMemberMapper umsMemberMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
-    private final MemberCouponQueryService memberCouponQueryService;
+    private final MemberCouponCountQuery memberCouponCountQuery;
 
     public void writeExport(HttpServletResponse response) throws IOException {
         List<List<String>> heads = templateService.buildDynamicHeads();
@@ -42,7 +42,7 @@ public class UmsMemberAssetExcelExportService {
         }
 
         List<Long> memberIds = allMembers.stream().map(UmsMember::getId).collect(Collectors.toList());
-        Map<Long, Long> memberVoucherCountMap = memberCouponQueryService.countUnusedCouponsByMemberIds(memberIds);
+        Map<Long, Long> memberVoucherCountMap = memberCouponCountQuery.countUnusedCouponsByMemberIds(memberIds);
         Map<Long, Map<String, String>> memberBrandMatrix = loadMemberBrandMatrix(memberIds);
         Map<String, String> levelCodeToNameMap = templateService.getMemberTypeNameByCode();
 

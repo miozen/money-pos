@@ -162,6 +162,16 @@ Add the rules with a short architecture guide for future changes.
 
 Physical Maven splitting is an assessment gate, not an implementation commitment. Consider it only when facade boundaries are stable, no cyclic dependency remains, and independent compilation/testing offers proven value. GMS, UMS, and TRADE are the only initial candidates.
 
+## P1: Cross-Feature Contract Convergence
+
+P1 follows the Stage 4 ownership plan and Stage 5 deferral decision. It incrementally replaces scenario-specific cross-Feature Entity, Mapper and `IService<Entity>` usage with neutral read snapshots and command/query interfaces. It is not a physical Maven split and must preserve the single-process transaction model.
+
+### Completed: P1.1 Neutral Member Coupon Count Contract
+
+- Added `MemberCouponCountQuery` under the existing `money-app-api` neutral contract package and moved the UMS member-asset export dependency to it. TRADE remains the implementation owner and retains `PosMemberCouponMapper`; UMS now has no source import of TRADE for this read.
+- The contract returns only a member-ID-to-`UNUSED`-coupon-count map. It contains no Spring, MyBatis or Entity type and introduces no POM/module split. `UmsMemberAssetExcelExportServiceIntegrationTest` continues to verify the exported count excludes `USED` coupons.
+- Published `MoneyPOS-P1-Contract-Convergence-Checklist.md`. The next smallest task is a field-level design for the checkout member-validation snapshot; settlement and refund writes remain explicitly out of scope until their transaction characteristics are isolated and tested.
+
 ### Completed: Stage 5 Maven-Reactor Baseline
 
 - Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.
