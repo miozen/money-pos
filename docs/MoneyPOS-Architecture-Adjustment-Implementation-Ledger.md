@@ -195,6 +195,11 @@ P1 follows the Stage 4 ownership plan and Stage 5 deferral decision. It incremen
 - Added `PosGoodsCatalogSnapshot` and `PosGoodsCatalogQuery`; GMS now owns POS product keyword search and level-price/coupon matrix assembly.
 - TRADE `PosService` converts this narrow snapshot into the unchanged `PosGoodsVO` response and no longer reads the GMS goods service, goods Entity, or level-price Mapper directly.
 
+### Completed: P1.5.1 Member Asset Write-Side Inventory
+
+- Published `MoneyPOS-P1.5-Member-Asset-Command-Checklist.md`, recording the remaining TRADE-owned direct writes for member consumption, vouchers, balance, logs and visit time.
+- The baseline preserves existing settlement/refund behavior and identifies two missing feature tests before commands are migrated: partial refunds after balance payment and voucher conditional-update rollback.
+
 ### Completed: Stage 5 Maven-Reactor Baseline
 
 - Published `MoneyPOS-Stage-5-Maven-Module-Split-Assessment-Checklist.md`. The current reactor has only `money-app-api`, `money-app-system` and one business module, `money-app-biz`; GMS (36 source files), UMS (14) and TRADE (43) are logical packages inside that business module, not separately compilable Maven units.
