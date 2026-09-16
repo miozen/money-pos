@@ -197,6 +197,30 @@ class CheckoutIntegrationTest {
     }
 
     @Test
+    void partialRefundAfterBalancePaymentDoesNotRestoreTheWholeOrderBalance() {
+        String suffix = String.valueOf(System.nanoTime());
+        String orderNo = "RB-PARTIAL-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("50.00"));
+        checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00")));
+        OmsOrderDetail detail = omsOrderDetailMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
+                .eq(OmsOrderDetail::getOrderNo, orderNo));
+        ReturnGoodsDTO request = new ReturnGoodsDTO();
+        request.setReqId("RB-PARTIAL-RETURN-" + suffix);
+        request.setOrderNo(orderNo);
+        request.setDetailId(detail.getId());
+        request.setReturnQty(1);
+
+        refundService.returnGoods(request);
+
+        UmsMember updatedMember = umsMemberMapper.selectById(member.getId());
+        assertThat(updatedMember.getBalance()).isEqualByComparingTo("26.00");
+        assertThat(updatedMember.getConsumeAmount()).isEqualByComparingTo("12.00");
+        assertThat(omsOrderMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                .eq(OmsOrder::getOrderNo, orderNo)).getStatus()).isEqualTo("PARTIAL_REFUNDED");
+    }
+
+    @Test
     void couponSettlementDeductsVoucherAndMarksMemberCouponUsed() {
         String suffix = String.valueOf(System.nanoTime());
         String orderNo = "CP-" + suffix;
@@ -268,6 +292,44 @@ class CheckoutIntegrationTest {
             assertThat(updatedMember.getConsumeAmount()).isEqualByComparingTo("0.00");
             assertThat(updatedMember.getConsumeTimes()).isZero();
         } finally {
+            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
+                    .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
+            omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
+                    .eq(OmsOrderDetail::getOrderNo, orderNo));
+            omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderNo, orderNo));
+            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
+                    .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + orderNo));
+            umsMemberMapper.deleteById(member.getId());
+            gmsGoodsMapper.deleteById(goods.getId());
+        }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void insufficientVoucherCountRollsBackOrderStockAndMemberAssets() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        String orderNo = "VR-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
+        PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("10.00"), new BigDecimal("1.00"));
+        PosMemberCoupon coupon = tradeFixture.issueCoupon(member.getId(), rule.getId());
+
+        try {
+            com.money.dto.pos.SettleAccountsDTO request = tradeFixture.cashSettlement(orderNo, goods.getId(), 2, new BigDecimal("22.00"));
+            request.setMember(member.getId());
+            request.setUsedCouponRuleId(rule.getId());
+            request.setUsedCouponCount(2);
+
+            assertThatThrownBy(() -> checkoutOrchestrator.orchestrate(request)).isInstanceOf(BaseException.class);
+
+            assertThat(omsOrderMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderNo, orderNo))).isZero();
+            assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
+            assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("0.00");
+            assertThat(posMemberCouponMapper.selectById(coupon.getId()).getStatus()).isEqualTo("UNUSED");
+        } finally {
+            posMemberCouponMapper.deleteById(coupon.getId());
             omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
                     .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
             omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
