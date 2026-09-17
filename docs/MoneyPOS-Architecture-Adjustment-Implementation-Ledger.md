@@ -1013,3 +1013,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - `HomeServiceImpl` now maps only API snapshots to its existing `TrendChartVO` and `BrandPieVO`; it no longer imports the order-detail Mapper. The `today` seven-day trend rule and all `today`/`month`/`year`/`total` ranges are unchanged.
 - Extended HOME characterization coverage with real order and order-detail fixtures. It verifies the 20 sales trend increment, 10 net brand-revenue increment after one returned item, and exact HOME-to-TRADE output correspondence in every time range.
 - The next smallest task is P2.2.4: move the member-level chart to a UMS-owned query contract while retaining the brand-name, level-code and member-count response fields.
+
+### Completed: P2.2.4 HOME Member-Level Distribution Query
+
+- Added API-neutral `HomeMemberDistributionQuery` and its immutable snapshot. UMS owns the aggregation of active members by brand and level, while the existing GMS `BrandNameQuery` translates requested numeric brand IDs without exposing GMS entities to HOME.
+- `HomeServiceImpl` no longer imports `UmsMemberBrandLevelMapper`; it maps only the UMS snapshot to the existing `MemberBarVO`. The member-level chart remains a current-state view and deliberately ignores the selected order-chart range.
+- Added an integration regression with a unique GMS brand, one active member and one logically deleted member. It verifies the resolved brand name, level code, count excluding the deleted member, and the same bar output for `today` and `month`.
+- The next smallest task is P2.2.5: complete the HOME report-snapshot acceptance review with endpoint-output, full automated and architecture-gate verification.

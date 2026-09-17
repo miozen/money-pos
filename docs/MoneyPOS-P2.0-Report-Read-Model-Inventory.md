@@ -11,7 +11,7 @@ P2.0 基线时架构扫描有 4 项跨 Feature 实现 import，其中 3 项属�
 | 调用方/接口 | 读取数据与当前实现 | 所有者 | 风险 | 建议切片 |
 | --- | --- | --- | --- | --- |
 | `HomeServiceImpl.homeCount()` | 已通过 `InventoryValuationQuery` 读取库存估值；已通过 TRADE `HomeOrderReadQuery` 读取订单金额/成本聚合 | GMS、TRADE | 该服务入口不再依赖跨域订单 Entity/Mapper | 已完成 P2.1、P2.2、P2.2.1 |
-| `HomeServiceImpl.getChartsData()` / `GET /home/charts` | 已通过 TRADE `HomeOrderReadQuery` 读取趋势、品牌饼图；`UmsMemberBrandLevelMapper` 的会员等级柱图 | TRADE、UMS | 订单图表已收敛；会员等级 Mapper 仍直接泄露到 HOME | 已完成 P2.2.3；后续 P2.2.4 UMS 图表快照 |
+| `HomeServiceImpl.getChartsData()` / `GET /home/charts` | 已通过 TRADE `HomeOrderReadQuery` 读取趋势、品牌饼图；已通过 UMS `HomeMemberDistributionQuery` 读取会员等级柱图 | TRADE、UMS | HOME 不再直接读取跨域图表 Mapper | 已完成 P2.2.3、P2.2.4；P2.2.5 验收 |
 | `DecisionEngineServiceImpl.generateDailySnapshot()` | 已通过 TRADE `HomeOrderReadQuery` 读取订单原子值；`JdbcTemplate` 直读 `ums_member`；已通过 `InventoryValuationQuery` 读取库存估值，写 HOME 自有 `OmsDailySummary` | TRADE、UMS、GMS、HOME | 订单读取已收敛；会员新增数 SQL 仍在调用方硬编码 | 已完成 P2.1、P2.2、P2.2.2；后续 UMS 日快照输入 |
 | `DecisionEngineServiceImpl.getTodayDashboardWithAlerts()` / `/home/count` | 读取 HOME `OmsDailySummary` 与其均值；调用补偿/生成日快照 | HOME | `OmsDailySummary` 是 HOME 归属读模型，保留写入 | P2.2 保持写时机，仅替换输入读取 |
 
@@ -44,4 +44,4 @@ P2.0 基线时架构扫描有 4 项跨 Feature 实现 import，其中 3 项属�
 
 ## 下一最小任务
 
-**P2.2.4：迁移 HOME 会员等级图表到 UMS 窄查询契约，并保持品牌名称、等级代码和人数输出。**
+**P2.2.5：验收 HOME 报表快照，复核接口输出、自动化回归和架构门禁。**

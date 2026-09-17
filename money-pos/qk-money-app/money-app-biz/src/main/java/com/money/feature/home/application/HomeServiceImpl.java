@@ -1,6 +1,8 @@
 package com.money.feature.home.application;
 
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.member.HomeMemberDistributionQuery;
+import com.money.contract.member.HomeMemberDistributionSnapshot;
 import com.money.contract.trade.HomeBrandSalesSnapshot;
 import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
@@ -9,7 +11,6 @@ import com.money.dto.Home.BrandPieVO;
 import com.money.dto.Home.HomeCountVO;
 import com.money.dto.Home.TrendChartVO;
 import com.money.dto.OmsOrder.OrderCountVO;
-import com.money.mapper.UmsMemberBrandLevelMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class HomeServiceImpl implements HomeService {
 
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
-    private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
+    private final HomeMemberDistributionQuery homeMemberDistributionQuery;
 
     @Override
     public HomeCountVO homeCount() {
@@ -90,7 +91,7 @@ public class HomeServiceImpl implements HomeService {
         chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
 
         // 会员等级是即时状态（总资产），不跟时间联动
-        chartsVO.setBarData(umsMemberBrandLevelMapper.getMemberBarData());
+        chartsVO.setBarData(toMemberBarData(homeMemberDistributionQuery.listActiveMemberDistribution()));
 
         return chartsVO;
     }
@@ -110,6 +111,16 @@ public class HomeServiceImpl implements HomeService {
             BrandPieVO point = new BrandPieVO();
             point.setName(snapshot.getName());
             point.setValue(snapshot.getValue());
+            return point;
+        }).collect(Collectors.toList());
+    }
+
+    private List<com.money.dto.Home.MemberBarVO> toMemberBarData(List<HomeMemberDistributionSnapshot> snapshots) {
+        return snapshots.stream().map(snapshot -> {
+            com.money.dto.Home.MemberBarVO point = new com.money.dto.Home.MemberBarVO();
+            point.setBrandName(snapshot.getBrandName());
+            point.setLevelCode(snapshot.getLevelCode());
+            point.setCount(snapshot.getCount());
             return point;
         }).collect(Collectors.toList());
     }
