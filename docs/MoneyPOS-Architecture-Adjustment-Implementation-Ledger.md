@@ -992,3 +992,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - It deliberately separates five TRADE query methods because the existing order states, date boundaries and amount formulas differ. HOME will retain time-range conversion, DTO assembly, trends, alert behavior and all `OmsDailySummary` compensation/write timing.
 - UMS will own the active member brand-level counts and use the existing GMS `BrandNameQuery` for narrow brand-name translation; this removes the intended HOME→UMS Mapper dependency without exposing UMS entities.
 - No production code, route, SQL, database object or report output changed. The next smallest task is P2.2.1: introduce TRADE `HomeOrderReadQuery.summarizeHomeCount`, migrate only the four `HomeService.homeCount()` order aggregations, and characterize their status/zero/time-boundary behavior.
+
+### Completed: P2.2.1 HOME Count Order Read Query
+
+- Added API-neutral `HomeOrderReadQuery` and immutable `HomeOrderReadSnapshot`. TRADE owns the existing `OmsOrderMapper` aggregate, including its `PAID`/`PARTIAL_REFUNDED`/`REFUNDED` financial-status set, final-sales-to-pay fallback, zero defaults and right-open time boundaries.
+- Migrated all four `HomeService.homeCount()` aggregates (today, month, year and total). HOME now only converts the narrow snapshot into its existing `OrderCountVO`; it no longer imports TRADE's order Entity, Mapper or query wrapper for this entry.
+- Extended `HomeCountSnapshotCharacterizationTest` with real test-database orders. It verifies included/excluded statuses, the midnight boundary, amounts, costs, profits and agreement between the TRADE contract and HOME output. The test runs inside a rollback transaction.
+- The next smallest task is P2.2.2: replace TRADE reads in HOME daily snapshot generation and the comprehensive dashboard while retaining HOME's snapshot write, compensation and alert timing.

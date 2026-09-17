@@ -51,7 +51,7 @@ TRADE 的实现可以继续在本域使用既有 `OmsOrderMapper`、`OmsOrderAna
 ## 实施切片与顺序
 
 - [x] **P2.2 设计**：固定六个现有读口径，确认不复用 FIN 的分析服务，详见本文档。
-- [ ] **P2.2.1 首页区间订单汇总**：实现 `summarizeHomeCount`，迁移 `HomeService.homeCount()` 的四次订单聚合；补零值、状态集及 `[start, end)` 特征测试。
+- [x] **P2.2.1 首页区间订单汇总**：已实现 `summarizeHomeCount`，并迁移 `HomeService.homeCount()` 的四次订单聚合；特征测试覆盖 `PAID`/`REFUNDED` 计入、`CLOSED` 排除、零值、金额成本利润和 `[start, end)` 边界。
 - [ ] **P2.2.2 日快照与大盘区间汇总**：实现 `summarizeDailySnapshot` 与 `summarizeDashboardRange`，迁移 `DecisionEngineServiceImpl` 的 TRADE Mapper/JDBC 查询；保留 HOME 写入和警报时机；补 `OmsDailySummary`、ASP、同比环比回归。
 - [ ] **P2.2.3 销售趋势与品牌营收图表**：实现 `listSalesTrend`、`listBrandSales`，迁移 HOME 的订单明细 Mapper 依赖；补 `today` 最近 7 天特例与四个时间范围回归。
 - [ ] **P2.2.4 会员等级图表**：实现 `HomeMemberDistributionQuery`，迁移 UMS Mapper 依赖，并用 `BrandNameQuery` 保持品牌名称；补有效/逻辑删除会员及未知品牌回归。
@@ -67,4 +67,4 @@ TRADE 的实现可以继续在本域使用既有 `OmsOrderMapper`、`OmsOrderAna
 
 ## 下一最小任务
 
-**P2.2.1：实现 TRADE `HomeOrderReadQuery.summarizeHomeCount`，仅迁移 `HomeService.homeCount()` 的四次区间订单汇总并补特征测试。**
+**P2.2.2：设计并迁移 HOME 日快照和综合大盘的 TRADE 订单读取，保持 `OmsDailySummary` 写入、补偿和警报时机。**

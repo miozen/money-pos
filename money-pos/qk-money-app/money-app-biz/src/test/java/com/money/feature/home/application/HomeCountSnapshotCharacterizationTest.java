@@ -2,11 +2,16 @@ package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.trade.HomeOrderReadQuery;
+import com.money.contract.trade.HomeOrderReadSnapshot;
 import com.money.dto.Home.HomeCountVO;
+import com.money.dto.OmsOrder.OrderCountVO;
+import com.money.entity.OmsOrder;
 import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
+import com.money.mapper.OmsOrderMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +27,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +49,10 @@ class HomeCountSnapshotCharacterizationTest {
     private InventoryValuationQuery inventoryValuationQuery;
     @Autowired
     private HomeService homeService;
+    @Autowired
+    private HomeOrderReadQuery homeOrderReadQuery;
+    @Autowired
+    private OmsOrderMapper omsOrderMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -94,6 +104,64 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(updatedSnapshot.getSalesAmount()).isNotEqualByComparingTo("-1.00");
         assertThat(dailySummaryMapper.selectCount(new LambdaQueryWrapper<OmsDailySummary>()
                 .eq(OmsDailySummary::getRecordDate, today))).isEqualTo(1);
+    }
+
+    @Test
+    void homeCountContractKeepsFinancialStatusesAmountsAndRightOpenTimeRange() {
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime tomorrowStart = todayStart.plusDays(1);
+        HomeOrderReadSnapshot beforeToday = homeOrderReadQuery.summarizeHomeCount(todayStart, tomorrowStart);
+        HomeOrderReadSnapshot beforeTotal = homeOrderReadQuery.summarizeHomeCount(null, null);
+
+        insertOrder("PAID", new BigDecimal("10.00"), new BigDecimal("4.00"), todayStart.plusHours(1));
+        insertOrder("REFUNDED", new BigDecimal("3.00"), BigDecimal.ZERO, todayStart.plusHours(2));
+        insertOrder("CLOSED", new BigDecimal("99.00"), new BigDecimal("1.00"), todayStart.plusHours(3));
+        insertOrder("PAID", new BigDecimal("7.00"), new BigDecimal("2.00"), tomorrowStart);
+
+        HomeOrderReadSnapshot today = homeOrderReadQuery.summarizeHomeCount(todayStart, tomorrowStart);
+        HomeOrderReadSnapshot total = homeOrderReadQuery.summarizeHomeCount(null, null);
+        HomeCountVO homeCount = homeService.homeCount();
+
+        assertThat(today.getOrderCount() - beforeToday.getOrderCount()).isEqualTo(2L);
+        assertThat(today.getSaleCount().subtract(beforeToday.getSaleCount())).isEqualByComparingTo("13.00");
+        assertThat(today.getCostCount().subtract(beforeToday.getCostCount())).isEqualByComparingTo("4.00");
+        assertThat(today.getProfit().subtract(beforeToday.getProfit())).isEqualByComparingTo("9.00");
+        assertThat(total.getOrderCount() - beforeTotal.getOrderCount()).isEqualTo(3L);
+        assertThat(total.getSaleCount().subtract(beforeTotal.getSaleCount())).isEqualByComparingTo("20.00");
+        assertThat(total.getCostCount().subtract(beforeTotal.getCostCount())).isEqualByComparingTo("6.00");
+        assertThat(total.getProfit().subtract(beforeTotal.getProfit())).isEqualByComparingTo("14.00");
+        assertOrderCount(homeCount.getToday(), today);
+        assertOrderCount(homeCount.getTotal(), total);
+
+        HomeOrderReadSnapshot empty = homeOrderReadQuery.summarizeHomeCount(
+                LocalDate.of(2099, 1, 1).atStartOfDay(), LocalDate.of(2099, 1, 2).atStartOfDay());
+        assertThat(empty.getOrderCount()).isZero();
+        assertThat(empty.getSaleCount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(empty.getCostCount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(empty.getProfit()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    private void assertOrderCount(OrderCountVO actual, HomeOrderReadSnapshot expected) {
+        assertThat(actual.getOrderCount()).isEqualTo(expected.getOrderCount());
+        assertThat(actual.getSaleCount()).isEqualByComparingTo(expected.getSaleCount());
+        assertThat(actual.getCostCount()).isEqualByComparingTo(expected.getCostCount());
+        assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
+    }
+
+    private void insertOrder(String status, BigDecimal finalSalesAmount, BigDecimal costAmount, LocalDateTime createTime) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo("HOME-P2-" + System.nanoTime());
+        order.setStatus(status);
+        order.setVip(false);
+        order.setFinalSalesAmount(finalSalesAmount);
+        order.setPayAmount(new BigDecimal("3.00"));
+        order.setCostAmount(costAmount);
+        order.setTotalAmount(finalSalesAmount == null ? new BigDecimal("3.00") : finalSalesAmount);
+        order.setCouponAmount(BigDecimal.ZERO);
+        order.setPaymentTime(createTime);
+        order.setTenantId(0L);
+        order.setCreateTime(createTime);
+        omsOrderMapper.insert(order);
     }
 
     private OmsDailySummary todaySnapshot(LocalDate date) {

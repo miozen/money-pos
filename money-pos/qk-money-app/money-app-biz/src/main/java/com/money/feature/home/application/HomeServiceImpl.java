@@ -1,31 +1,26 @@
 package com.money.feature.home.application;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.money.constant.OrderStatusEnum;
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.trade.HomeOrderReadQuery;
+import com.money.contract.trade.HomeOrderReadSnapshot;
 import com.money.dto.Home.HomeCountVO;
 import com.money.dto.OmsOrder.OrderCountVO;
-import com.money.entity.OmsOrder;
-import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
 
     private final InventoryValuationQuery inventoryValuationQuery;
-    private final OmsOrderMapper omsOrderMapper;
+    private final HomeOrderReadQuery homeOrderReadQuery;
     private final OmsOrderDetailMapper omsOrderDetailMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
 
@@ -52,34 +47,12 @@ public class HomeServiceImpl implements HomeService {
     }
 
     private OrderCountVO executeAggregateQuery(LocalDateTime startTime, LocalDateTime endTime) {
-        QueryWrapper<OmsOrder> wrapper = new QueryWrapper<>();
-        wrapper.select(
-                "COUNT(id) AS orderCount",
-                "IFNULL(SUM(IFNULL(final_sales_amount, pay_amount)), 0) AS saleCount",
-                "IFNULL(SUM(cost_amount), 0) AS costCount"
-        );
-        wrapper.in("status", OrderStatusEnum.getValidFinancialStatus());
-        if (startTime != null) wrapper.ge("create_time", startTime);
-        if (endTime != null) wrapper.lt("create_time", endTime);
-
+        HomeOrderReadSnapshot snapshot = homeOrderReadQuery.summarizeHomeCount(startTime, endTime);
         OrderCountVO vo = new OrderCountVO();
-        vo.setOrderCount(0L);
-        vo.setSaleCount(BigDecimal.ZERO);
-        vo.setCostCount(BigDecimal.ZERO);
-        vo.setProfit(BigDecimal.ZERO);
-
-        List<Map<String, Object>> maps = omsOrderMapper.selectMaps(wrapper);
-        if (maps != null && !maps.isEmpty() && maps.get(0) != null) {
-            Map<String, Object> map = maps.get(0);
-            long count = map.get("orderCount") != null ? Long.parseLong(map.get("orderCount").toString()) : 0L;
-            BigDecimal sales = map.get("saleCount") != null ? new BigDecimal(map.get("saleCount").toString()) : BigDecimal.ZERO;
-            BigDecimal costs = map.get("costCount") != null ? new BigDecimal(map.get("costCount").toString()) : BigDecimal.ZERO;
-
-            vo.setOrderCount(count);
-            vo.setSaleCount(sales);
-            vo.setCostCount(costs);
-            vo.setProfit(sales.subtract(costs));
-        }
+        vo.setOrderCount(snapshot.getOrderCount());
+        vo.setSaleCount(snapshot.getSaleCount());
+        vo.setCostCount(snapshot.getCostCount());
+        vo.setProfit(snapshot.getProfit());
         return vo;
     }
 
