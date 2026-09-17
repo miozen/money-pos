@@ -3,7 +3,6 @@ package com.money.mapper;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.GoodsSalesRankVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.MarketingRoiVO;
-import com.money.dto.OmsOrder.OmsSalesDataVO.CategorySalesVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -68,18 +67,17 @@ public interface OmsOrderAnalysisMapper {
     List<MarketingRoiVO> getMarketingRoiStats(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     @Select("SELECT " +
-            "  IFNULL(c.name, '未分类') AS categoryName, " +
+            "  d.category_id AS categoryId, " +
             "  SUM(d.quantity - IFNULL(d.return_quantity, 0)) AS salesQty, " +
             "  SUM((d.quantity - IFNULL(d.return_quantity, 0)) * IFNULL(d.goods_price, 0)) AS salesAmount " +
             "FROM oms_order_detail d " +
             "INNER JOIN oms_order o ON d.order_no = o.order_no " +
-            "LEFT JOIN gms_goods_category c ON d.category_id = c.id " +
             "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED') " +
             "  AND o.create_time >= #{startTime} AND o.create_time <= #{endTime} " +
-            "GROUP BY d.category_id, categoryName " +
+            "GROUP BY d.category_id " +
             "HAVING salesQty > 0 " +
             "ORDER BY salesAmount DESC")
-    List<CategorySalesVO> getCategorySalesDistribution(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+    List<java.util.Map<String, Object>> getCategorySalesAmounts(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     // ==========================================
     // 🌟 P0-2 引擎：按日聚合会员与散客经营体征

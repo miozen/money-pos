@@ -3,6 +3,7 @@ package com.money.feature.fin.application.analysis;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.money.contract.goods.BrandNameQuery;
+import com.money.contract.goods.GoodsCategoryNameQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.contract.system.FinanceTrafficStrategySnapshot;
 import com.money.contract.trade.FinanceHourlyTrafficSnapshot;
@@ -14,6 +15,9 @@ import com.money.contract.trade.FinanceDashboardTopGoodsSnapshot;
 import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.contract.trade.FinanceTimeTrafficSnapshot;
 import com.money.contract.trade.FinanceTrafficQuery;
+import com.money.contract.trade.FinanceCategorySalesSnapshot;
+import com.money.contract.trade.FinanceDailyGoodsMetricSnapshot;
+import com.money.contract.trade.FinanceProductAnalysisQuery;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
@@ -46,6 +50,8 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
     private final FinanceTrafficQuery financeTrafficQuery;
     private final FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     private final BrandNameQuery brandNameQuery;
+    private final GoodsCategoryNameQuery goodsCategoryNameQuery;
+    private final FinanceProductAnalysisQuery financeProductAnalysisQuery;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
     private final OmsOrderAuditMapper omsOrderAuditMapper;
 
@@ -265,7 +271,24 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     @Override
     public List<CategorySalesVO> getCategorySales(String startDate, String endDate) {
-        return omsOrderAnalysisMapper.getCategorySalesDistribution(parseStartTime(startDate), parseEndTime(endDate));
+        List<FinanceCategorySalesSnapshot> snapshots = financeProductAnalysisQuery
+                .listCategorySales(parseStartTime(startDate), parseEndTime(endDate));
+        Set<String> categoryIds = new HashSet<>();
+        for (FinanceCategorySalesSnapshot snapshot : snapshots) {
+            if (snapshot.getCategoryId() != null) categoryIds.add(String.valueOf(snapshot.getCategoryId()));
+        }
+        Map<String, String> namesById = goodsCategoryNameQuery.findNamesByIds(categoryIds);
+        List<CategorySalesVO> result = new ArrayList<>();
+        for (FinanceCategorySalesSnapshot snapshot : snapshots) {
+            String categoryName = snapshot.getCategoryId() == null ? null
+                    : namesById.get(String.valueOf(snapshot.getCategoryId()));
+            CategorySalesVO vo = new CategorySalesVO();
+            vo.setCategoryName(categoryName == null ? "未分类" : categoryName);
+            vo.setSalesQty((int) snapshot.getSalesQuantity());
+            vo.setSalesAmount(snapshot.getSalesAmount());
+            result.add(vo);
+        }
+        return result;
     }
 
     private List<TimeTrafficVO> toTimeTrafficVos(List<FinanceTimeTrafficSnapshot> snapshots) {
@@ -287,7 +310,8 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         LocalDateTime startTime = parseStartTime(startDate);
         LocalDateTime endTime = parseEndTime(endDate);
 
-        List<DailyGoodsStatDTO> rawStats = omsOrderAnalysisMapper.getDailyGoodsStats(startTime, endTime, goodsIds);
+        List<FinanceDailyGoodsMetricSnapshot> rawStats = financeProductAnalysisQuery
+                .listDailyGoodsMetrics(startTime, endTime, goodsIds);
         // 委托装配器填装多维数组
         return metricAssembler.assembleGoodsTrend(rawStats, goodsIds, startTime, endTime);
     }

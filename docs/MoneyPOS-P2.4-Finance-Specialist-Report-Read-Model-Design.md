@@ -244,6 +244,8 @@ TRADE 快照使用 `Long` 标识、`long` 数量、`BigDecimal` 金额和订单 
 
 P2.4.4.4.1 将只实施这两个契约并迁移上述两个 FIN 方法。TRADE 保留 `OmsOrderAnalysisMapper` 的内部 SQL；该 Mapper 的品类 SQL 删除 `gms_goods_category` join 并返回 ID/数值。GMS 在其数据所有者内实现类目名称查询。不改路由、页面字段、数据库表、Flyway 或事务边界。
 
+P2.4.4.4.1 已按此边界实施。TRADE `FinanceProductAnalysisQuery` 返回品类 ID 数值与单品逐日交易事实；GMS `GoodsCategoryNameQuery` 批量解析当前类目名称；FIN 不再直接读取订单分析或类目 Mapper，继续承担名称回退和连续数组装配。
+
 ### 验收与回滚
 
 回归应写入已支付、部分退款和全额退款订单明细，覆盖已知类目、空/缺失类目、正净销量、完全退货及同商品跨日明细。断言品类快照和 FIN 图表的状态/金额/名称回退，及单品快照和 FIN 连续数组的 `GREATEST` 钳制、日期补零、历史名称和空 ID 行为。若有差异，仅回滚 P2.4.4.4.1 的 TRADE/GMS 契约和这两个 FIN 入口；不影响销售看板、客流、利润审计或瀑布流。

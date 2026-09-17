@@ -1126,3 +1126,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Separated category sales from selected-goods trends despite their shared order-detail source. Category aggregation returns TRADE category IDs and amounts while GMS owns current category labels; selected-goods trends retain transaction-time detail names and never need a GMS lookup.
 - Recorded the compatibility-sensitive difference in return treatment: category sales sums net quantity before its positive `HAVING` test, while daily selected-goods trends sum `GREATEST(net quantity, 0)`. FIN keeps date parsing, empty-ID behavior, name fallbacks and continuous daily arrays.
 - No production source, SQL, route, database object, page field or test behavior changed. The next smallest task is P2.4.4.4.1: implement and migrate the two TRADE/GMS query boundaries.
+
+### Completed: P2.4.4.4.1 FIN Category-Sales and Goods-Trend Snapshots
+
+- Added Java 8 API-neutral TRADE `FinanceProductAnalysisQuery` with immutable category-sales and daily-goods snapshots, plus GMS `GoodsCategoryNameQuery` for bulk category-name translation. TRADE retains the order-detail SQL; its category aggregation now returns only `category_id` and numeric facts, without a GMS table join.
+- Migrated `OmsSalesAnalysisServiceImpl.getCategorySales` and `getTopGoodsTrend`. FIN retains closed-range/default date parsing, TRADE SQL order, `未分类` and `商品 ID:<id>` fallbacks, and the existing per-day zero-filled chart arrays; GMS names are applied only to category display rows, never to historical detail names.
+- Extended the FIN regression with paid, partial-refunded, fully-refunded and fully-returned detail rows across two days. It verifies state filtering, both return formulas, category-name and missing-category display behavior, historical product name, missing-product fallback and date filling. The next smallest task is P2.4.4.5: migrate FIN profit audit while retaining its pagination and audit filters.

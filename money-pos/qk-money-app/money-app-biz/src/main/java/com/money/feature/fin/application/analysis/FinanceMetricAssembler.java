@@ -2,6 +2,7 @@ package com.money.feature.fin.application.analysis;
 
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.contract.trade.FinanceDashboardMemberDailySnapshot;
+import com.money.contract.trade.FinanceDailyGoodsMetricSnapshot;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.util.MoneyUtil;
@@ -165,7 +166,7 @@ public class FinanceMetricAssembler {
     /**
      * 组装单品连续销量趋势
      */
-    public List<GoodsTrendVO> assembleGoodsTrend(List<DailyGoodsStatDTO> rawStats, List<Long> goodsIds, LocalDateTime startTime, LocalDateTime endTime) {
+    public List<GoodsTrendVO> assembleGoodsTrend(List<FinanceDailyGoodsMetricSnapshot> rawStats, List<Long> goodsIds, LocalDateTime startTime, LocalDateTime endTime) {
         if (goodsIds == null || goodsIds.isEmpty()) return new ArrayList<>();
 
         Map<Long, GoodsTrendVO> resultMap = new HashMap<>();
@@ -184,11 +185,11 @@ public class FinanceMetricAssembler {
                 GoodsTrendVO vo = resultMap.get(goodsId);
                 int dailyQty = 0;
 
-                for (DailyGoodsStatDTO stat : rawStats) {
+                for (FinanceDailyGoodsMetricSnapshot stat : rawStats) {
                     if (stat.getGoodsId().equals(goodsId)) {
                         vo.setGoodsName(stat.getGoodsName());
-                        if (matchDate.equals(stat.getDateStr())) {
-                            dailyQty += (stat.getSalesQty() != null ? stat.getSalesQty() : 0);
+                        if (matchDate.equals(stat.getDate())) {
+                            dailyQty += (int) stat.getSalesQuantity();
                         }
                     }
                 }

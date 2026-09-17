@@ -12,6 +12,7 @@ import com.money.contract.trade.FinanceOperatingAnalysisQuery;
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.contract.trade.FinanceTrafficQuery;
+import com.money.contract.trade.FinanceProductAnalysisQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
@@ -20,6 +21,7 @@ import com.money.dto.OmsOrder.OmsSalesDataVO.SalesDashboardVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.GmsInventoryDoc;
 import com.money.entity.GmsBrand;
+import com.money.entity.GmsGoodsCategory;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
 import com.money.entity.OmsOrderPay;
@@ -28,6 +30,7 @@ import com.money.entity.UmsMemberLog;
 import com.money.entity.SysStrategy;
 import com.money.mapper.GmsInventoryDocMapper;
 import com.money.mapper.GmsBrandMapper;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
@@ -84,6 +87,8 @@ class FinanceFeatureIntegrationTest {
     @Autowired
     private FinanceTrafficQuery financeTrafficQuery;
     @Autowired
+    private FinanceProductAnalysisQuery financeProductAnalysisQuery;
+    @Autowired
     private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     @Autowired
     private OmsSalesAnalysisService salesAnalysisService;
@@ -98,6 +103,8 @@ class FinanceFeatureIntegrationTest {
     private OmsOrderDetailMapper orderDetailMapper;
     @Autowired
     private GmsBrandMapper brandMapper;
+    @Autowired
+    private GmsGoodsCategoryMapper goodsCategoryMapper;
     @Autowired
     private FinanceMemberAssetQuery financeMemberAssetQuery;
     @Autowired
@@ -392,6 +399,63 @@ class FinanceFeatureIntegrationTest {
     }
 
     @Test
+    void productAnalysisUsesTradeSnapshotsAndGmsCategoryNames() {
+        String suffix = "CA" + (System.nanoTime() % 1_000_000L);
+        GmsGoodsCategory category = new GmsGoodsCategory();
+        category.setPid(0L);
+        category.setIcon("");
+        category.setName(suffix);
+        category.setGoodsCount(0);
+        category.setTenantId(0L);
+        goodsCategoryMapper.insert(category);
+
+        LocalDate date = LocalDate.of(2027, 3, 1);
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.plusDays(1).atTime(LocalTime.MAX);
+        insertProductAnalysisOrder(suffix + "-KNOWN", "PAID", start, 887L, category.getId(),
+                "Hist " + suffix, new BigDecimal("10.00"), 3, 1);
+        insertProductAnalysisOrder(suffix + "-UNKNOWN", "PARTIAL_REFUNDED", date.plusDays(1).atStartOfDay(),
+                888L, null, "Other " + suffix, new BigDecimal("5.00"), 2, 1);
+        insertProductAnalysisOrder(suffix + "-ZERO", "PAID", start.plusHours(1), 887L, category.getId(),
+                "Hist " + suffix, new BigDecimal("10.00"), 1, 1);
+        insertProductAnalysisOrder(suffix + "-REFUNDED", "REFUNDED", start.plusHours(2), 889L, category.getId(),
+                "Refunded " + suffix, new BigDecimal("99.00"), 5, 0);
+
+        assertThat(financeProductAnalysisQuery.listCategorySales(start, end)).anySatisfy(row -> {
+            assertThat(row.getCategoryId()).isEqualTo(category.getId());
+            assertThat(row.getSalesQuantity()).isEqualTo(2L);
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("20.00"));
+        });
+        assertThat(financeProductAnalysisQuery.listDailyGoodsMetrics(start, end,
+                java.util.Arrays.asList(887L, 888L))).anySatisfy(row -> {
+            assertThat(row.getGoodsId()).isEqualTo(887L);
+            assertThat(row.getDate()).isEqualTo(date.toString());
+            assertThat(row.getSalesQuantity()).isEqualTo(2L);
+        });
+        assertThat(salesAnalysisService.getCategorySales(date.toString(), date.plusDays(1).toString()))
+                .anySatisfy(row -> {
+                    assertThat(row.getCategoryName()).isEqualTo(category.getName());
+                    assertThat(row.getSalesQty()).isEqualTo(2);
+                    assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("20.00"));
+                })
+                .anySatisfy(row -> {
+                    assertThat(row.getCategoryName()).isEqualTo("未分类");
+                    assertThat(row.getSalesQty()).isEqualTo(1);
+                    assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("5.00"));
+                });
+        assertThat(salesAnalysisService.getTopGoodsTrend(date.toString(), date.plusDays(1).toString(),
+                java.util.Arrays.asList(887L, 999999L))).anySatisfy(row -> {
+            assertThat(row.getGoodsId()).isEqualTo(887L);
+            assertThat(row.getGoodsName()).isEqualTo("Hist " + suffix);
+            assertThat(row.getTrendSalesQty()).containsExactly(2, 0);
+        }).anySatisfy(row -> {
+            assertThat(row.getGoodsId()).isEqualTo(999999L);
+            assertThat(row.getGoodsName()).isEqualTo("商品 ID:999999");
+            assertThat(row.getTrendSalesQty()).containsExactly(0, 0);
+        });
+    }
+
+    @Test
     void trafficAnalysisUsesTradeMetricsAndSystemStrategySnapshots() {
         LocalDateTime start = LocalDateTime.now().minusMinutes(1).withNano(0);
         LocalDateTime end = LocalDateTime.now().plusMinutes(1).withNano(0);
@@ -635,6 +699,45 @@ class FinanceFeatureIntegrationTest {
         detail.setSalePrice(salesAmount);
         detail.setPurchasePrice(costAmount);
         detail.setVipPrice(salesAmount);
+        detail.setQuantity(quantity);
+        detail.setReturnQuantity(returnQuantity);
+        detail.setCoupon(BigDecimal.ZERO);
+        detail.setTenantId(0L);
+        orderDetailMapper.insert(detail);
+    }
+
+    private void insertProductAnalysisOrder(String orderNo, String status, LocalDateTime createTime,
+                                            Long goodsId, Long categoryId, String goodsName,
+                                            BigDecimal goodsPrice, int quantity, int returnQuantity) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(false);
+        order.setTotalAmount(goodsPrice.multiply(BigDecimal.valueOf(quantity)));
+        order.setPayAmount(order.getTotalAmount());
+        order.setFinalSalesAmount(order.getTotalAmount());
+        order.setCostAmount(BigDecimal.ZERO);
+        order.setCouponAmount(BigDecimal.ZERO);
+        order.setActualCouponDeduct(BigDecimal.ZERO);
+        order.setWaivedCouponAmount(BigDecimal.ZERO);
+        order.setUseVoucherAmount(BigDecimal.ZERO);
+        order.setManualDiscountAmount(BigDecimal.ZERO);
+        order.setTenantId(0L);
+        order.setPaymentTime(createTime);
+        order.setCreateTime(createTime);
+        orderMapper.insert(order);
+
+        OmsOrderDetail detail = new OmsOrderDetail();
+        detail.setOrderNo(orderNo);
+        detail.setStatus(status);
+        detail.setGoodsId(goodsId);
+        detail.setCategoryId(categoryId);
+        detail.setGoodsBarcode("PRODUCT-ANALYSIS-TEST");
+        detail.setGoodsName(goodsName);
+        detail.setGoodsPrice(goodsPrice);
+        detail.setSalePrice(goodsPrice);
+        detail.setPurchasePrice(BigDecimal.ZERO);
+        detail.setVipPrice(goodsPrice);
         detail.setQuantity(quantity);
         detail.setReturnQuantity(returnQuantity);
         detail.setCoupon(BigDecimal.ZERO);
