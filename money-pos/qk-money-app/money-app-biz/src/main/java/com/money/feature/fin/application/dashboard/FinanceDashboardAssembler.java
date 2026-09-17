@@ -2,9 +2,11 @@ package com.money.feature.fin.application.dashboard;
 
 import com.money.constant.PayMethodEnum;
 import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
+import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
+import com.money.contract.member.FinanceMemberRechargeSnapshot;
+import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
 import com.money.entity.OmsOrder;
-import com.money.entity.UmsMemberLog;
 import com.money.web.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -43,10 +45,10 @@ public class FinanceDashboardAssembler {
     /**
      * 1. 组装今日资产概览 (本金/赠金比例)
      */
-    public void assembleAssetDashboard(AssetDashboardVO dashboard, Map<String, Object> composition) {
+    public void assembleAssetDashboard(AssetDashboardVO dashboard, FinanceMemberAssetCompositionSnapshot composition) {
         if (composition != null) {
-            BigDecimal principal = parseAmt(composition.get("totalPrincipal"));
-            BigDecimal gift = parseAmt(composition.get("totalGift"));
+            BigDecimal principal = null2Zero(composition.getPrincipalAmount());
+            BigDecimal gift = null2Zero(composition.getGiftAmount());
             BigDecimal total = principal.add(gift);
             if (total.compareTo(BigDecimal.ZERO) > 0) {
                 dashboard.setPrincipalRatio(principal.multiply(new BigDecimal(100)).divide(total, 2, RoundingMode.HALF_UP));
@@ -118,7 +120,8 @@ public class FinanceDashboardAssembler {
     /**
      * 3. 组装资金流入分布与饼图
      */
-    public void assembleIncomeAndPie(FinanceDashboardVO vo, List<Map<String, Object>> dailyNetPays, List<UmsMemberLog> dailyRecharges, BigDecimal totalDebt) {
+    public void assembleIncomeAndPie(FinanceDashboardVO vo, List<Map<String, Object>> dailyNetPays,
+                                     List<FinanceMemberRechargeSnapshot> dailyRecharges, BigDecimal totalDebt) {
         BigDecimal scanIncomeTotal = BigDecimal.ZERO, cashIncome = BigDecimal.ZERO, balancePay = BigDecimal.ZERO;
         Map<String, BigDecimal> scanTagMap = new HashMap<>();
 
@@ -158,7 +161,9 @@ public class FinanceDashboardAssembler {
     /**
      * 4. 组装近7日财务趋势折线图
      */
-    public void assembleTrendLines(FinanceDashboardVO vo, LocalDate targetDate, List<Map<String, Object>> paySummary, List<Map<String, Object>> rechargeSummary, List<Map<String, Object>> dailyOrderStats) {
+    public void assembleTrendLines(FinanceDashboardVO vo, LocalDate targetDate, List<Map<String, Object>> paySummary,
+                                   List<FinanceMemberRechargeTotalSnapshot> rechargeSummary,
+                                   List<Map<String, Object>> dailyOrderStats) {
         Map<String, BigDecimal> historyRefundMap = new HashMap<>();
         for (Map<String, Object> stat : dailyOrderStats) {
             String dStr = String.valueOf(stat.get("dateStr"));
@@ -206,8 +211,8 @@ public class FinanceDashboardAssembler {
             for (String tag : allTags) dynamicTrendMap.get(tag).add(dailyTagAmt.getOrDefault(tag, BigDecimal.ZERO));
 
             BigDecimal dailyRecharge = BigDecimal.ZERO;
-            for(Map<String, Object> r : rechargeSummary){
-                if(matchDateStr.equals(String.valueOf(r.get("dateStr")))) dailyRecharge = dailyRecharge.add(parseAmt(r.get("totalAmt")));
+            for(FinanceMemberRechargeTotalSnapshot r : rechargeSummary){
+                if(d.equals(r.getDate())) dailyRecharge = dailyRecharge.add(null2Zero(r.getTotalAmount()));
             }
 
             trendScan.add(dailyScan); trendCash.add(dailyCash); trendRecharge.add(dailyRecharge);

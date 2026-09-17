@@ -2,6 +2,7 @@ package com.money.mapper;
 
 import com.money.entity.UmsMember;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
@@ -46,6 +47,18 @@ public interface UmsMemberMapper extends BaseMapper<UmsMember> {
     // 3. 铁粉榜：到店频次 Top 50
     @Select("SELECT id, name, phone, consume_times as times FROM ums_member WHERE deleted = 0 ORDER BY consume_times DESC LIMIT 50")
     List<com.money.dto.UmsMember.MemberRankVO> getTopFrequencyMembers();
+
+    /**
+     * Keeps the legacy FIN asset-composition scope: all non-deleted members,
+     * independent of the current tenant-line interceptor.
+     */
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT " +
+            "  IFNULL(SUM(balance), 0) as totalPrincipal, " +
+            "  IFNULL(SUM(coupon), 0) as totalGift " +
+            "FROM ums_member " +
+            "WHERE deleted = 0")
+    Map<String, Object> getFinanceAssetComposition();
 
     // ==========================================
     // 🌟 V4.0 新增：原子级安全资产更新接口 (完全替代原始 setSql)

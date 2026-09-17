@@ -1,6 +1,5 @@
 package com.money.feature.fin.infrastructure.persistence.mapper;
 
-import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.money.constant.FinancialMetric;
 import com.money.dto.Finance.FinanceDataVO;
 import com.money.dto.Finance.FinanceWaterfallVO;
@@ -73,11 +72,4 @@ public interface FinanceReportMapper {
             "AND status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED')")
     FinanceDataVO.AssetDashboardVO getTodayAssetSummary();
 
-    @InterceptorIgnore(tenantLine = "true")
-    @Select("SELECT " +
-            "  IFNULL(SUM(balance), 0) as totalPrincipal, " +
-            "  IFNULL(SUM(coupon), 0) as totalGift " +
-            "FROM ums_member " +
-            "WHERE deleted = 0")
-    java.util.Map<String, Object> getAssetComposition();
 }

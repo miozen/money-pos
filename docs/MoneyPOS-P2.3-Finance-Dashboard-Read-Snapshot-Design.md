@@ -46,6 +46,8 @@ getAssetComposition()
 
 单笔充值快照只含 `realAmount`；按日快照只含 `date`、`totalAmount`；资产构成只含 `principalAmount`、`giftAmount`。UMS 在自身边界内保留 `UmsMemberLogMapper`、`UmsMemberMapper` 与逻辑删除/租户处理。FIN 不再使用 `UmsMemberService.listObjs(UmsMember)`，这一步同时消除当前 FIN→UMS 实现 import。
 
+**已完成。** `FinanceMemberAssetQuery` 及三类不可变快照已由 UMS 实现：当日单笔充值、日期汇总与资产构成。会员资产构成查询在 UMS Mapper 内保留原 `tenantLine` 忽略和 `deleted = 0` 条件；FIN 的 UMS Mapper、Entity、`UmsMemberService` import 以及废弃的 `FinanceReportMapper` 会员资产 SQL 均已移除。
+
 ### P2.3.3：TRADE 订单/支付快照
 
 在 `contract.trade` 增加 `FinanceOrderPaymentQuery` 和下列不可变快照，按用途分开，避免隐含改变状态或金额口径：
@@ -90,4 +92,4 @@ FIN 仅依赖 API 契约；每个查询实现只在数据所有者内部触达 E
 
 ## 下一最小任务
 
-**P2.3.2：新增 UMS `FinanceMemberAssetQuery`，迁移当日充值、七日充值趋势、正余额总额和资产本金/赠金构成读取。**
+**P2.3.3：新增 TRADE `FinanceOrderPaymentQuery`，迁移当日订单核心指标、支付渠道、退款趋势、渠道优惠和今日订单资产概览读取。**

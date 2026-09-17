@@ -5,16 +5,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.constant.OrderStatusEnum;
 import com.money.contract.goods.FinanceInventoryDocumentQuery;
 import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
+import com.money.contract.member.FinanceMemberAssetQuery;
+import com.money.contract.member.FinanceMemberRechargeSnapshot;
+import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
 import com.money.entity.OmsOrder;
-import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberLog;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
-import com.money.mapper.UmsMemberLogMapper;
 import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
 import com.money.feature.fin.application.dashboard.FinanceDashboardService;
-import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.feature.fin.application.dashboard.FinanceDashboardAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,7 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
 
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderPayMapper omsOrderPayMapper;
-    private final UmsMemberService umsMemberService;
-    private final UmsMemberLogMapper umsMemberLogMapper;
+    private final FinanceMemberAssetQuery financeMemberAssetQuery;
     private final FinanceInventoryDocumentQuery financeInventoryDocumentQuery;
     private final FinanceReportMapper financeReportMapper;
 
@@ -52,7 +50,7 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
         }
 
         // 委托装配器计算比例
-        assembler.assembleAssetDashboard(dashboard, financeReportMapper.getAssetComposition());
+        assembler.assembleAssetDashboard(dashboard, financeMemberAssetQuery.getAssetComposition());
         return dashboard;
     }
 
@@ -75,21 +73,13 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
 
         List<Map<String, Object>> dailyNetPays = omsOrderPayMapper.getDailyPaySummary(startOfDay, endOfDay);
 
-        List<UmsMemberLog> dailyRecharges = umsMemberLogMapper.selectList(new LambdaQueryWrapper<UmsMemberLog>()
-                .ge(UmsMemberLog::getCreateTime, startOfDay).le(UmsMemberLog::getCreateTime, endOfDay)
-                .in(UmsMemberLog::getOperateType, "RECHARGE", "REVERSAL"));
-
-        // 强势过滤负数余额
-        List<Object> balanceObjs = umsMemberService.listObjs(new LambdaQueryWrapper<UmsMember>()
-                .select(UmsMember::getBalance).isNotNull(UmsMember::getBalance).gt(UmsMember::getBalance, 0));
-        BigDecimal totalDebt = balanceObjs.stream().map(obj -> (BigDecimal) obj).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<FinanceMemberRechargeSnapshot> dailyRecharges = financeMemberAssetQuery.listDailyRecharges(targetDate);
+        BigDecimal totalDebt = financeMemberAssetQuery.getPositiveBalanceTotal();
 
         // 获取趋势所需基础数据
         List<Map<String, Object>> paySummary = omsOrderPayMapper.getDailyPaySummary(startOf7DaysAgo, endOfDay);
-        List<Map<String, Object>> rechargeSummary = umsMemberLogMapper.selectMaps(new QueryWrapper<UmsMemberLog>()
-                .select("DATE_FORMAT(create_time, '%Y-%m-%d') AS dateStr", "SUM(real_amount) AS totalAmt")
-                .ge("create_time", startOf7DaysAgo).le("create_time", endOfDay)
-                .in("operate_type", "RECHARGE", "REVERSAL").groupBy("DATE(create_time)"));
+        List<FinanceMemberRechargeTotalSnapshot> rechargeSummary = financeMemberAssetQuery
+                .listDailyRechargeTotals(targetDate.minusDays(6), targetDate);
         List<Map<String, Object>> dailyOrderStats = omsOrderMapper.selectMaps(new QueryWrapper<OmsOrder>()
                 .select("DATE_FORMAT(create_time, '%Y-%m-%d') AS dateStr", "SUM(pay_amount) AS dailyGrossPay", "SUM(final_sales_amount) AS dailyNetPay")
                 .ge("create_time", startOf7DaysAgo).le("create_time", endOfDay)
