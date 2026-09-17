@@ -135,3 +135,36 @@ P2.4.4.1 已按此边界实施：`FinanceOperatingAnalysisQuery` 和不可变 `F
 P2.4.4.1 的回归在同一滚回事务内写入已支付、部分退款和非金融有效订单，并覆盖日/周/月分组及起止闭区间。断言 TRADE 快照与 FIN 绩效、汇总卡片的订单数、商品数、净销售额、成本、利润和客单价一致。迁移后运行专项 FIN 回归、全量 Maven 测试、打包、架构门禁和空白检查。
 
 若发现差异，回滚只恢复 FIN 对 `getPeriodAtomicStats` 的两处读取并删除 P2.4.4.1 契约实现；不触及销售看板、客流、品类/单品趋势、利润审计或瀑布流。
+
+## P2.4.4.2：销售看板商品、品牌与会员趋势盘点
+
+`GET /oms/analysis/dashboard` 是一个固定的四段式 FIN 装配入口，不能以“经营分析”名义同客流、品类或单品趋势合并。FIN 解析开始/结束时间：空值为当天向前 29 日 `00:00:00` 到当天 `23:59:59.999999999`，显式日期同样使用闭区间；它还负责按日期补零、`MM-dd` 标签、客单价两位半舍五入和响应字段组装。
+
+| 看板段 | 当前读取与数据归属 | 必须保持的口径 | 设计边界 |
+| --- | --- | --- | --- |
+| 基础趋势与卡片 | `getPeriodAtomicStats(..., DAILY)`；TRADE | `PAID`、`PARTIAL_REFUNDED`；闭区间；净销售额、成本、订单数及订单明细净件数；仅净销售额大于零的日订单数计入卡片总订单数 | 复用 P2.4.4.1 `FinanceOperatingAnalysisQuery` 的 `DAILY` 快照；FIN 保留补零和卡片规则 |
+| 商品排行 | `getTopGoodsRank`；TRADE 订单明细 | `quantity - return_quantity` 的净销量与乘以订单明细 `goods_price` 的销售额；仅正净销量；按销量降序，最多 50 条 | 新增 TRADE 商品排行快照，保留订单明细中的历史 `goodsName`，不为名称回查 GMS |
+| 品牌销售分布 | 订单明细聚合加 `gms_brand` 名称 join；数值属 TRADE，名称属 GMS | 与商品排行相同的金融状态、闭区间和净数量/金额；仅正销售额，按金额降序；空或缺失档案展示 `无品牌/未知` | TRADE 仅返回 `brandId` 与销售额；FIN 使用既有 GMS `BrandNameQuery` 批量翻译再装配 `BrandSalesVO` |
+| 会员/散客趋势 | `getDailyMemberStats`；TRADE 订单历史字段 | 日分组；`member_id > 0 OR vip = 1` 为会员；金融状态与闭区间同上；销售额、订单数按日/身份分别聚合 | 新增 TRADE 会员日趋势快照；不读取 UMS 当前会员档案，FIN 保留每日补零及两条 ASP 曲线 |
+
+### 拟定所有者查询契约与实施顺序
+
+基础趋势不创建重复契约，直接消费既有 `FinanceOperatingAnalysisQuery.listPeriodMetrics(startInclusive, endInclusive, "DAILY")`。商品、品牌数值和会员趋势则新增独立的 Java 8 不可变快照，避免把 FIN 的 `SalesDashboardVO` 或现有可变 Mapper DTO 暴露给 TRADE：
+
+```text
+FinanceSalesDashboardQuery
+  listTopGoods(startInclusive, endInclusive)
+    -> [ { goodsId, goodsName, salesQuantity, salesAmount } ]
+  listBrandSales(startInclusive, endInclusive)
+    -> [ { brandId, salesAmount } ]
+  listDailyMemberMetrics(startInclusive, endInclusive)
+    -> [ { date, member, orderCount, salesAmount } ]
+```
+
+`goodsName` 是订单明细保存的交易时名称，属于 TRADE 事实快照；`brandId` 可为空，GMS 不存在时 FIN 仍使用原有回退显示。`date` 保持原 SQL 的 `yyyy-MM-dd` 键，不让 TRADE 承担 FIN 的展示格式。数量使用 `long`，金额使用 `BigDecimal`，标识使用 `Long`，会员标记使用 `boolean`；所有对象均为普通 `final` 字段、构造函数和 getter 的 Java 8 类。
+
+P2.4.4.2.1 的实施将一次迁移该单一 `/dashboard` 入口的四段读取：基础 `DAILY` 复用已有契约，其余三段使用新 TRADE 快照，品牌名经 `BrandNameQuery` 翻译。FIN 的 `FinanceMetricAssembler` 继续掌握日期补零、订单数卡片判定、ASP 及成员/散客曲线；不改 HTTP 路由、响应字段、表、Flyway 或事务边界。
+
+### 验收与回滚
+
+回归在同一滚回事务写入两个日期的已支付、部分退款、全额退款订单及明细：覆盖一个退货后仍为正销量商品、一个净销量为零商品、已知品牌、空品牌、会员和散客。断言 TRADE 快照中的过滤/排序/限额，GMS 名称和 `无品牌/未知` 回退，以及 FIN 的连续日期、卡片、商品排行、品牌分布与双线 ASP 字段。若存在口径差异，仅回滚 P2.4.4.2.1 的 dashboard 消费端和新增契约；不影响 P2.4.4.1 绩效/汇总、客流或其他专项报表。
