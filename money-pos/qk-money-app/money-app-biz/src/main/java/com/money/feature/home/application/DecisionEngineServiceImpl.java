@@ -2,10 +2,11 @@ package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
-import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
+import com.money.contract.trade.HomeDailyOrderSnapshot;
+import com.money.contract.trade.HomeDashboardOrderSnapshot;
+import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
-import com.money.mapper.OmsOrderAnalysisMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -29,9 +29,9 @@ import java.util.Map;
 public class DecisionEngineServiceImpl implements DecisionEngineService {
 
     private final OmsDailySummaryMapper omsDailySummaryMapper;
-    private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
     private final JdbcTemplate jdbcTemplate;
     private final InventoryValuationQuery inventoryValuationQuery;
+    private final HomeOrderReadQuery homeOrderReadQuery;
 
     @Override
     public void compensateSnapshots(int daysToCheck) {
@@ -50,23 +50,15 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
     @Override
     public void generateDailySnapshot(LocalDate date) {
         LocalDateTime startTime = date.atStartOfDay();
-        LocalDateTime endTime = date.atTime(LocalTime.MAX);
+        LocalDateTime endTime = date.atTime(java.time.LocalTime.MAX);
 
         OmsDailySummary summary = new OmsDailySummary();
         summary.setRecordDate(date);
 
-        List<AnalysisAtomicDataDTO> stats = omsOrderAnalysisMapper.getPeriodAtomicStats(startTime, endTime, "DAILY");
-        BigDecimal salesAmount = BigDecimal.ZERO;
-        BigDecimal profitAmount = BigDecimal.ZERO;
-        int orderCount = 0;
-
-        if (stats != null && !stats.isEmpty()) {
-            AnalysisAtomicDataDTO dayStat = stats.get(0);
-            salesAmount = dayStat.getNetSalesAmount() != null ? dayStat.getNetSalesAmount() : BigDecimal.ZERO;
-            BigDecimal costAmount = dayStat.getCostAmount() != null ? dayStat.getCostAmount() : BigDecimal.ZERO;
-            profitAmount = salesAmount.subtract(costAmount);
-            orderCount = dayStat.getOrderCount() != null ? dayStat.getOrderCount() : 0;
-        }
+        HomeDailyOrderSnapshot orderSnapshot = homeOrderReadQuery.summarizeDailySnapshot(date);
+        BigDecimal salesAmount = orderSnapshot.getSalesAmount();
+        BigDecimal profitAmount = salesAmount.subtract(orderSnapshot.getCostAmount());
+        int orderCount = orderSnapshot.getOrderCount();
 
         summary.setSalesAmount(salesAmount);
         summary.setProfitAmount(profitAmount);
@@ -161,13 +153,13 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
         LocalDateTime nextYearStart = yearStart.plusYears(1);
         LocalDateTime lastYearStart = yearStart.minusYears(1);
 
-        Map<String, Object> thisMonth = queryActualData(monthStart, nextMonthStart);
-        Map<String, Object> lastMonth = queryActualData(lastMonthStart, monthStart);
+        Map<String, Object> thisMonth = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(monthStart, nextMonthStart));
+        Map<String, Object> lastMonth = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(lastMonthStart, monthStart));
 
-        Map<String, Object> thisYear = queryActualData(yearStart, nextYearStart);
-        Map<String, Object> lastYear = queryActualData(lastYearStart, yearStart);
+        Map<String, Object> thisYear = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(yearStart, nextYearStart));
+        Map<String, Object> lastYear = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(lastYearStart, yearStart));
 
-        Map<String, Object> totalStat = queryActualData(null, null);
+        Map<String, Object> totalStat = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(null, null));
 
         OmsDailySummary ts = (OmsDailySummary) todayData.get("todayStat");
         Map<String, String> trends = (Map<String, String>) todayData.get("trendRate");
@@ -199,32 +191,15 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
         return result;
     }
 
-    private Map<String, Object> queryActualData(LocalDateTime startTime, LocalDateTime endTime) {
-        StringBuilder sql = new StringBuilder(
-                "SELECT " +
-                        "  COUNT(id) AS orderCount, " +
-                        "  IFNULL(SUM(IFNULL(final_sales_amount, pay_amount)), 0) AS saleCount, " +
-                        "  IFNULL(SUM(IFNULL(final_sales_amount, pay_amount) - IFNULL(cost_amount, 0)), 0) AS profit " +
-                        "FROM oms_order " +
-                        "WHERE status IN ('PAID', 'COMPLETED', 'PARTIAL_REFUNDED') ");
-
-        List<Object> params = new ArrayList<>();
-        if (startTime != null) {
-            sql.append("AND create_time >= ? ");
-            params.add(startTime);
-        }
-        if (endTime != null) {
-            sql.append("AND create_time < ? ");
-            params.add(endTime);
-        }
-
-        Map<String, Object> map = jdbcTemplate.queryForMap(sql.toString(), params.toArray());
-        long orderCount = ((Number) map.get("orderCount")).longValue();
-        BigDecimal saleCount = new BigDecimal(map.get("saleCount").toString());
-        BigDecimal asp = orderCount > 0 ? saleCount.divide(new BigDecimal(orderCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-
-        map.put("asp", asp);
-        return map;
+    private Map<String, Object> toDashboardMap(HomeDashboardOrderSnapshot snapshot) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("orderCount", snapshot.getOrderCount());
+        result.put("saleCount", snapshot.getSaleCount());
+        result.put("profit", snapshot.getProfit());
+        result.put("asp", snapshot.getOrderCount() > 0
+                ? snapshot.getSaleCount().divide(new BigDecimal(snapshot.getOrderCount()), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO);
+        return result;
     }
 
     private void attachTrends(Map<String, Object> target, Map<String, Object> current, Map<String, Object> previous) {

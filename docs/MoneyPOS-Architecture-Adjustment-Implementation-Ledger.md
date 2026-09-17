@@ -999,3 +999,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Migrated all four `HomeService.homeCount()` aggregates (today, month, year and total). HOME now only converts the narrow snapshot into its existing `OrderCountVO`; it no longer imports TRADE's order Entity, Mapper or query wrapper for this entry.
 - Extended `HomeCountSnapshotCharacterizationTest` with real test-database orders. It verifies included/excluded statuses, the midnight boundary, amounts, costs, profits and agreement between the TRADE contract and HOME output. The test runs inside a rollback transaction.
 - The next smallest task is P2.2.2: replace TRADE reads in HOME daily snapshot generation and the comprehensive dashboard while retaining HOME's snapshot write, compensation and alert timing.
+
+### Completed: P2.2.2 HOME Daily Snapshot and Comprehensive Dashboard Order Reads
+
+- Extended TRADE `HomeOrderReadQuery` with separate immutable daily-snapshot and comprehensive-dashboard aggregates. Their existing state sets remain deliberately different: the daily snapshot uses `PAID`/`PARTIAL_REFUNDED`, while the comprehensive dashboard uses `PAID`/`COMPLETED`/`PARTIAL_REFUNDED`.
+- `DecisionEngineServiceImpl` no longer imports `OmsOrderAnalysisMapper` or embeds an `oms_order` JDBC query. It retains its own daily-summary writes, seven-day compensation, average/alert calculations, UMS new-member count query, inventory valuation query and response DTO assembly.
+- Extended the HOME characterization regression with real test orders to verify both state sets, the persisted snapshot's sales/profit/order count, and the comprehensive month output. The test remains transaction-rolled-back.
+- The next smallest task is P2.2.3: migrate the HOME sales-trend and brand-sales charts to TRADE-owned reads while retaining the `today` seven-day display behavior and all four selected time ranges.

@@ -1,5 +1,6 @@
 package com.money.contract.trade;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** TRADE-owned order aggregate for the legacy HOME count service. */
@@ -10,4 +11,10 @@ public interface HomeOrderReadQuery {
      * A null boundary means unbounded on that side.
      */
     HomeOrderReadSnapshot summarizeHomeCount(LocalDateTime startInclusive, LocalDateTime endExclusive);
+
+    /** Uses the established daily-snapshot order states and its closed day boundary. */
+    HomeDailyOrderSnapshot summarizeDailySnapshot(LocalDate date);
+
+    /** Uses the established comprehensive-dashboard states and a right-open time range. */
+    HomeDashboardOrderSnapshot summarizeDashboardRange(LocalDateTime startInclusive, LocalDateTime endExclusive);
 }

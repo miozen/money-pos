@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
 import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
+import com.money.contract.trade.HomeDailyOrderSnapshot;
+import com.money.contract.trade.HomeDashboardOrderSnapshot;
 import com.money.dto.Home.HomeCountVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.OmsOrder;
@@ -53,6 +55,8 @@ class HomeCountSnapshotCharacterizationTest {
     private HomeOrderReadQuery homeOrderReadQuery;
     @Autowired
     private OmsOrderMapper omsOrderMapper;
+    @Autowired
+    private DecisionEngineService decisionEngineService;
 
     @BeforeEach
     void authenticateTenant() {
@@ -139,6 +143,44 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(empty.getSaleCount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(empty.getCostCount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(empty.getProfit()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void dailySnapshotAndComprehensiveDashboardKeepTheirSeparateTradeOrderRules() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime tomorrowStart = todayStart.plusDays(1);
+        HomeDailyOrderSnapshot beforeDaily = homeOrderReadQuery.summarizeDailySnapshot(today);
+        HomeDashboardOrderSnapshot beforeDashboard = homeOrderReadQuery.summarizeDashboardRange(todayStart, tomorrowStart);
+
+        insertOrder("PAID", new BigDecimal("10.00"), new BigDecimal("4.00"), todayStart.plusHours(4));
+        insertOrder("PARTIAL_REFUNDED", new BigDecimal("6.00"), new BigDecimal("1.00"), todayStart.plusHours(5));
+        insertOrder("REFUNDED", new BigDecimal("3.00"), BigDecimal.ZERO, todayStart.plusHours(6));
+        insertOrder("COMPLETED", new BigDecimal("8.00"), new BigDecimal("2.00"), todayStart.plusHours(7));
+        insertOrder("CLOSED", new BigDecimal("99.00"), new BigDecimal("1.00"), todayStart.plusHours(8));
+
+        HomeDailyOrderSnapshot daily = homeOrderReadQuery.summarizeDailySnapshot(today);
+        HomeDashboardOrderSnapshot dashboard = homeOrderReadQuery.summarizeDashboardRange(todayStart, tomorrowStart);
+        decisionEngineService.generateDailySnapshot(today);
+        OmsDailySummary storedSnapshot = todaySnapshot(today);
+        Map<String, Object> response = decisionEngineService.getComprehensiveDashboard();
+        Map<String, Object> month = (Map<String, Object>) response.get("month");
+
+        assertThat(daily.getOrderCount() - beforeDaily.getOrderCount()).isEqualTo(2);
+        assertThat(daily.getSalesAmount().subtract(beforeDaily.getSalesAmount())).isEqualByComparingTo("16.00");
+        assertThat(daily.getCostAmount().subtract(beforeDaily.getCostAmount())).isEqualByComparingTo("5.00");
+        assertThat(dashboard.getOrderCount() - beforeDashboard.getOrderCount()).isEqualTo(3L);
+        assertThat(dashboard.getSaleCount().subtract(beforeDashboard.getSaleCount())).isEqualByComparingTo("24.00");
+        assertThat(dashboard.getProfit().subtract(beforeDashboard.getProfit())).isEqualByComparingTo("17.00");
+        assertThat(storedSnapshot.getOrderCount()).isEqualTo(daily.getOrderCount());
+        assertThat(storedSnapshot.getSalesAmount()).isEqualByComparingTo(daily.getSalesAmount());
+        assertThat(storedSnapshot.getProfitAmount()).isEqualByComparingTo(daily.getSalesAmount().subtract(daily.getCostAmount()));
+
+        HomeDashboardOrderSnapshot monthSnapshot = homeOrderReadQuery.summarizeDashboardRange(
+                java.time.YearMonth.now().atDay(1).atStartOfDay(), java.time.YearMonth.now().atDay(1).atStartOfDay().plusMonths(1));
+        assertThat(month.get("orderCount")).isEqualTo(monthSnapshot.getOrderCount());
+        assertThat((BigDecimal) month.get("saleCount")).isEqualByComparingTo(monthSnapshot.getSaleCount());
+        assertThat((BigDecimal) month.get("profit")).isEqualByComparingTo(monthSnapshot.getProfit());
     }
 
     private void assertOrderCount(OrderCountVO actual, HomeOrderReadSnapshot expected) {
