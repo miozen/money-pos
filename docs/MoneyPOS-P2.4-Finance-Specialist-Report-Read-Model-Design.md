@@ -207,6 +207,8 @@ TRADE 快照携带原 SQL 已计算的均值和总值，避免 FIN 用不同精�
 
 P2.4.4.3.1 将仅实现这两个契约并迁移三个客流入口：TRADE 保留 `OmsOrderTrafficMapper` 与 SQL，SYS 保留策略 Mapper；FIN 保留 `now` 取值、默认值、星期映射、除数、补零、样本字段和建议判定。不得改路由、页面字段、数据库表、Flyway 或事务边界。
 
+P2.4.4.3.1 已按此边界实施。TRADE `FinanceTrafficQuery` 返回小时及时间键聚合快照，SYS `FinanceTrafficStrategyQuery` 返回全局策略快照；FIN 不再直接依赖 `OmsOrderTrafficMapper`、`SysStrategyMapper` 或 `SysStrategy`，且响应 DTO、默认值和页面字段不变。
+
 ### 验收与回滚
 
 回归应写入同一小时内的已支付、部分退款和全额退款订单，并在不同星期/日号放置受控订单；断言 TRADE 三类快照的状态过滤、闭区间、分组、总值和均值。写入/更新全局策略后，断言 FIN 的小时 `OUT`/`STAY`、24 个时段、样本数，以及周/月除数和默认回退不变。测试必须在事务回滚后恢复策略。出现差异时只回滚 P2.4.4.3.1 的 TRADE/SYS 契约和 FIN 客流读取，不影响销售看板或其他分析入口。

@@ -1114,3 +1114,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Separated the three TRADE order aggregates (hour, MySQL weekday and day-of-month) from SYS's global traffic thresholds and weekly/monthly windows. The design records each closed range, `PAID`/`PARTIAL_REFUNDED` state set, divisor and grouping key rather than treating traffic as one generic metric.
 - FIN remains responsible for the external-to-MySQL weekday conversion, the fixed 28-day hourly window, strategy defaults, 24-hour zero fill, sample fields and `OUT`/`STAY` predicate. TRADE receives the FIN-owned divisor so it preserves the existing SQL average calculation; SYS supplies only four immutable strategy values.
 - No production source, SQL, route, database object, page field or test behavior changed. The next smallest task is P2.4.4.3.1: implement and migrate the two owner contracts for FIN traffic.
+
+### Completed: P2.4.4.3.1 FIN Traffic Snapshots
+
+- Added API-neutral TRADE `FinanceTrafficQuery` with immutable hourly/time-key snapshots, and SYS `FinanceTrafficStrategyQuery` with the four required global strategy values. TRADE retains `OmsOrderTrafficMapper` and its database-side divisor calculation; SYS retains `SysStrategyMapper` and its global read semantics.
+- Migrated all three FIN traffic methods. FIN retains the 28/90/180 defaults, `now` ranges, MySQL weekday mapping, divisors, zero behavior, response DTOs and `OUT`/`STAY` predicate, while no longer directly accesses the TRADE traffic or SYS strategy Mapper/Entity.
+- Extended the rolled-back FIN regression with paid, partial-refunded and refunded orders plus a temporary global strategy. It verifies owner filtering, FIN hourly suggestion/sample values and weekly/monthly strategy divisors. The next smallest task is P2.4.4.4: design the category-sales and top-goods-trend slices.

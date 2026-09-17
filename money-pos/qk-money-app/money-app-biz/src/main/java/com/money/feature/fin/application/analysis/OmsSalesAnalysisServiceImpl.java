@@ -3,18 +3,23 @@ package com.money.feature.fin.application.analysis;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.money.contract.goods.BrandNameQuery;
+import com.money.contract.system.FinanceTrafficStrategyQuery;
+import com.money.contract.system.FinanceTrafficStrategySnapshot;
+import com.money.contract.trade.FinanceHourlyTrafficSnapshot;
 import com.money.contract.trade.FinanceOperatingAnalysisQuery;
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.contract.trade.FinanceDashboardBrandSalesSnapshot;
 import com.money.contract.trade.FinanceDashboardMemberDailySnapshot;
 import com.money.contract.trade.FinanceDashboardTopGoodsSnapshot;
 import com.money.contract.trade.FinanceSalesDashboardQuery;
+import com.money.contract.trade.FinanceTimeTrafficSnapshot;
+import com.money.contract.trade.FinanceTrafficQuery;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.dto.OmsOrder.ProfitAuditVO;
-import com.money.entity.SysStrategy;
-import com.money.mapper.*;
+import com.money.mapper.OmsOrderAnalysisMapper;
+import com.money.mapper.OmsOrderAuditMapper;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.feature.fin.application.analysis.FinanceMetricAssembler;
 import com.money.util.PageUtil;
@@ -36,12 +41,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
-    private final SysStrategyMapper sysStrategyMapper;
     private final FinanceOperatingAnalysisQuery financeOperatingAnalysisQuery;
     private final FinanceSalesDashboardQuery financeSalesDashboardQuery;
+    private final FinanceTrafficQuery financeTrafficQuery;
+    private final FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     private final BrandNameQuery brandNameQuery;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
-    private final OmsOrderTrafficMapper omsOrderTrafficMapper;
     private final OmsOrderAuditMapper omsOrderAuditMapper;
 
     private final FinanceMetricAssembler metricAssembler; // 🌟 专职处理复杂的拼装与计算
@@ -170,20 +175,27 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         LocalDateTime startTime = endTime.minusDays(28);
 
         // Mapper 已经升级，现在会同时返回 avg (平均) 和 total (总数)
-        List<HourlyTrafficVO> dbData = omsOrderTrafficMapper.getHourlyTrafficAnalysis(startTime, endTime, mysqlDow, divisor);
+        List<FinanceHourlyTrafficSnapshot> dbData = financeTrafficQuery
+                .listHourlyMetrics(startTime, endTime, mysqlDow, divisor);
         Map<Integer, HourlyTrafficVO> dataMap = new HashMap<>();
         if (dbData != null) {
-            for (HourlyTrafficVO vo : dbData) {
+            for (FinanceHourlyTrafficSnapshot snapshot : dbData) {
+                HourlyTrafficVO vo = new HourlyTrafficVO();
+                vo.setHour(snapshot.getHour());
+                vo.setAvgOrderCount(snapshot.getAverageOrderCount());
+                vo.setAvgSalesAmount(snapshot.getAverageSalesAmount());
+                vo.setTotalOrderCount(BigDecimal.valueOf(snapshot.getTotalOrderCount()));
+                vo.setTotalSalesAmount(snapshot.getTotalSalesAmount());
                 dataMap.put(vo.getHour(), vo);
             }
         }
 
-        SysStrategy strategy = sysStrategyMapper.getGlobalStrategy();
+        FinanceTrafficStrategySnapshot strategy = financeTrafficStrategyQuery.getTrafficStrategy();
         BigDecimal safeOrderThreshold = new BigDecimal("1.0");
         BigDecimal safeValueThreshold = new BigDecimal("50.0");
         if (strategy != null) {
-            if (strategy.getTrafficOrderThreshold() != null) safeOrderThreshold = strategy.getTrafficOrderThreshold();
-            if (strategy.getTrafficValueThreshold() != null) safeValueThreshold = strategy.getTrafficValueThreshold();
+            if (strategy.getOrderThreshold() != null) safeOrderThreshold = strategy.getOrderThreshold();
+            if (strategy.getValueThreshold() != null) safeValueThreshold = strategy.getValueThreshold();
         }
 
         List<HourlyTrafficVO> full24Hours = new ArrayList<>();
@@ -211,12 +223,13 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     @Override
     public List<TimeTrafficVO> getWeeklyTraffic() {
-        SysStrategy strategy = sysStrategyMapper.getGlobalStrategy();
+        FinanceTrafficStrategySnapshot strategy = financeTrafficStrategyQuery.getTrafficStrategy();
         int days = (strategy != null && strategy.getWeeklyAnalysisDays() != null) ? strategy.getWeeklyAnalysisDays() : 90;
         LocalDateTime endTime = LocalDateTime.now();
 
         Double divisor = days / 7.0; // 计算周期倍数
-        List<TimeTrafficVO> res = omsOrderTrafficMapper.getWeeklyTrafficAnalysis(endTime.minusDays(days), endTime, divisor);
+        List<TimeTrafficVO> res = toTimeTrafficVos(financeTrafficQuery
+                .listWeeklyMetrics(endTime.minusDays(days), endTime, divisor));
 
         // 🌟 下发采样周期系数
         if(res != null) {
@@ -231,12 +244,13 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     @Override
     public List<TimeTrafficVO> getMonthlyTraffic() {
-        SysStrategy strategy = sysStrategyMapper.getGlobalStrategy();
+        FinanceTrafficStrategySnapshot strategy = financeTrafficStrategyQuery.getTrafficStrategy();
         int days = (strategy != null && strategy.getMonthlyAnalysisDays() != null) ? strategy.getMonthlyAnalysisDays() : 180;
         LocalDateTime endTime = LocalDateTime.now();
 
         Double divisor = days / 30.43; // 换算成几个标准月
-        List<TimeTrafficVO> res = omsOrderTrafficMapper.getMonthlyTrafficAnalysis(endTime.minusDays(days), endTime, divisor);
+        List<TimeTrafficVO> res = toTimeTrafficVos(financeTrafficQuery
+                .listMonthlyMetrics(endTime.minusDays(days), endTime, divisor));
 
         // 🌟 下发采样周期系数
         if(res != null) {
@@ -252,6 +266,20 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
     @Override
     public List<CategorySalesVO> getCategorySales(String startDate, String endDate) {
         return omsOrderAnalysisMapper.getCategorySalesDistribution(parseStartTime(startDate), parseEndTime(endDate));
+    }
+
+    private List<TimeTrafficVO> toTimeTrafficVos(List<FinanceTimeTrafficSnapshot> snapshots) {
+        List<TimeTrafficVO> result = new ArrayList<>();
+        for (FinanceTimeTrafficSnapshot snapshot : snapshots) {
+            TimeTrafficVO vo = new TimeTrafficVO();
+            vo.setTimeKey(snapshot.getTimeKey());
+            vo.setAvgOrderCount(snapshot.getAverageOrderCount());
+            vo.setAvgSalesAmount(snapshot.getAverageSalesAmount());
+            vo.setTotalOrderCount(BigDecimal.valueOf(snapshot.getTotalOrderCount()));
+            vo.setTotalSalesAmount(snapshot.getTotalSalesAmount());
+            result.add(vo);
+        }
+        return result;
     }
 
     @Override

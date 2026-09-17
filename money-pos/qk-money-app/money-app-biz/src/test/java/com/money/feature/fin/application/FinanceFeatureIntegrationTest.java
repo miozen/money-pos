@@ -11,6 +11,8 @@ import com.money.contract.trade.FinanceRiskQuery;
 import com.money.contract.trade.FinanceOperatingAnalysisQuery;
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.contract.trade.FinanceSalesDashboardQuery;
+import com.money.contract.trade.FinanceTrafficQuery;
+import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.PerformanceReportVO;
@@ -23,6 +25,7 @@ import com.money.entity.OmsOrderDetail;
 import com.money.entity.OmsOrderPay;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
+import com.money.entity.SysStrategy;
 import com.money.mapper.GmsInventoryDocMapper;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.OmsOrderDetailMapper;
@@ -30,6 +33,7 @@ import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.mapper.SysStrategyMapper;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +82,10 @@ class FinanceFeatureIntegrationTest {
     @Autowired
     private FinanceSalesDashboardQuery financeSalesDashboardQuery;
     @Autowired
+    private FinanceTrafficQuery financeTrafficQuery;
+    @Autowired
+    private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
+    @Autowired
     private OmsSalesAnalysisService salesAnalysisService;
 
     @Autowired
@@ -96,6 +104,8 @@ class FinanceFeatureIntegrationTest {
     private UmsMemberMapper memberMapper;
     @Autowired
     private UmsMemberLogMapper memberLogMapper;
+    @Autowired
+    private SysStrategyMapper strategyMapper;
     @Autowired
     private TradeFixture tradeFixture;
 
@@ -379,6 +389,56 @@ class FinanceFeatureIntegrationTest {
         });
         assertThat(dashboard.getMemberTrend().getMemberSales()).contains(new BigDecimal("20.00"));
         assertThat(dashboard.getMemberTrend().getGuestSales()).contains(new BigDecimal("18.00"));
+    }
+
+    @Test
+    void trafficAnalysisUsesTradeMetricsAndSystemStrategySnapshots() {
+        LocalDateTime start = LocalDateTime.now().minusMinutes(1).withNano(0);
+        LocalDateTime end = LocalDateTime.now().plusMinutes(1).withNano(0);
+        int hour = LocalDateTime.now().getHour();
+        long beforeCount = financeTrafficQuery.listHourlyMetrics(start, end, null, 1.0).stream()
+                .filter(row -> row.getHour() == hour).mapToLong(row -> row.getTotalOrderCount()).sum();
+
+        String suffix = "T" + (System.nanoTime() % 1_000_000_000L);
+        insertOrder(suffix + "-PAID", "PAID", new BigDecimal("12.00"), new BigDecimal("12.00"),
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        insertOrder(suffix + "-PARTIAL", "PARTIAL_REFUNDED", new BigDecimal("8.00"), new BigDecimal("8.00"),
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        insertOrder(suffix + "-REFUND", "REFUNDED", new BigDecimal("99.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+
+        assertThat(financeTrafficQuery.listHourlyMetrics(start, end, null, 1.0)).anySatisfy(row -> {
+            assertThat(row.getHour()).isEqualTo(hour);
+            assertThat(row.getTotalOrderCount()).isEqualTo(beforeCount + 2L);
+            assertThat(row.getTotalSalesAmount()).isGreaterThanOrEqualTo(new BigDecimal("20.00"));
+        });
+
+        SysStrategy strategy = strategyMapper.getGlobalStrategy();
+        if (strategy == null) {
+            strategy = new SysStrategy();
+            strategy.setTenantId(0L);
+            strategyMapper.insert(strategy);
+        }
+        strategy.setTrafficOrderThreshold(new BigDecimal("999"));
+        strategy.setTrafficValueThreshold(new BigDecimal("999"));
+        strategy.setWeeklyAnalysisDays(7);
+        strategy.setMonthlyAnalysisDays(30);
+        strategyMapper.updateById(strategy);
+
+        assertThat(financeTrafficStrategyQuery.getTrafficStrategy().getWeeklyAnalysisDays()).isEqualTo(7);
+        assertThat(salesAnalysisService.getTrafficAnalysis(null)).anySatisfy(row -> {
+            assertThat(row.getHour()).isEqualTo(hour);
+            assertThat(row.getSuggestion()).isEqualTo("OUT");
+            assertThat(row.getSampleDays()).isEqualTo(28);
+        });
+        assertThat(salesAnalysisService.getWeeklyTraffic()).anySatisfy(row -> {
+            assertThat(row.getSampleDays()).isEqualTo(1.0);
+            assertThat(row.getTotalOrderCount()).isGreaterThanOrEqualTo(new BigDecimal("2"));
+        });
+        assertThat(salesAnalysisService.getMonthlyTraffic()).anySatisfy(row -> {
+            assertThat(row.getSampleDays()).isEqualTo(30 / 30.43);
+            assertThat(row.getTotalSalesAmount()).isGreaterThanOrEqualTo(new BigDecimal("20.00"));
+        });
     }
 
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
