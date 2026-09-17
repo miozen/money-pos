@@ -93,3 +93,43 @@ FinanceProfitQuery
 利润排行保持近 30 天起点、无显式结束边界，以及 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED` 状态；数量、销售额和利润继续按退货后的订单明细数量计算。活动复盘保持近 3 个月起点至当前时刻闭区间，仅包含 `PAID`、`PARTIAL_REFUNDED`；满减券和会员券继续是两条独立 SQL 聚合。FIN 保留总优惠为零时 ROI 为零、否则按 `revenue / discount` 两位半舍五入，以及按 ROI 降序排序的展示规则。
 
 回归以一个带唯一活动备注、满减券和会员券的已支付订单及其明细验证排行金额、活动使用次数、优惠/营收与 `6.67` ROI。不得把该回归的日期范围或状态集推广给其他 FIN 专项报表。
+
+## P2.4.4：经营分析、客流与利润审计盘点
+
+这一组入口虽然都由 `OmsSalesAnalysisServiceImpl` 提供，但不能视为同一张“经营报表”。当前读取面和所有者边界如下：
+
+| FIN 入口/方法 | 当前读取 | 数据所有者 | 必须保留的口径 | 迁移边界 |
+| --- | --- | --- | --- | --- |
+| 绩效报表 `getPerformanceReport`、汇总卡片 `countOrderAndSales` | `OmsOrderAnalysisMapper.getPeriodAtomicStats` | TRADE | 输入范围由 FIN 解析；`PAID`、`PARTIAL_REFUNDED`；闭区间；按日/周/月的现有 SQL 分组；订单数、商品数、净销售额、成本额各自保持原聚合 | **P2.4.4.1 首个实施切片** |
+| 销售看板 `getSalesDashboard` | 周期原子指标、商品排行、品牌分布、会员日统计 | TRADE；品牌名称当前由 SQL 读取 GMS；会员趋势展示在 FIN | 默认近 30 日、`DAILY` 指标和图表补零/装配规则不能随绩效契约改变 | 后续独立拆分，不能因复用周期指标而一次迁移整个看板 |
+| 客流分析 `getTrafficAnalysis`、`getWeeklyTraffic`、`getMonthlyTraffic` | `OmsOrderTrafficMapper` 与 `SysStrategyMapper.getGlobalStrategy` | TRADE、SYS | TRADE 的小时/周/月分组、闭区间、`PAID`/`PARTIAL_REFUNDED`；SYS 的阈值、默认值、样本天数除数和 `STAY`/`OUT` 判定 | TRADE 客流数据与 SYS 策略读取分成两个契约，且三个入口保留各自默认窗口 |
+| 品类销售、单品趋势 | 订单分析 Mapper，品类名称 SQL join GMS | TRADE、GMS | 销售与退货数量公式、时间范围、品类/商品显示名归属各自保持 | 先输出 TRADE 的 ID/数值快照，再由 GMS 翻译显示档案 |
+| 利润审计 `getProfitAuditPage` | `OmsOrderAuditMapper.getProfitAuditPage` | TRADE | `PAID`、`PARTIAL_REFUNDED`、`REFUNDED`；订单号和 `ANOMALY` 筛选；成本缺失/负毛利谓词；既有分页、排序和字段 | 独立分页契约；不能与无分页指标查询或风控异常清单合并 |
+
+### P2.4.4.1：TRADE 周期经营原子指标
+
+首个实现切片选择绩效报表和汇总卡片共同使用的周期原子指标。它完全由 TRADE 的订单表计算，没有 GMS 名称翻译、SYS 策略读取、分页或写入影响；同时它的消费者可以各自继续保持展示规则。
+
+在 `money-app-api` 的 `contract.trade` 增加 Java 8 兼容的窄契约：
+
+```text
+FinanceOperatingAnalysisQuery
+  listPeriodMetrics(startInclusive, endInclusive, periodDimension)
+    -> [ { period, orderCount, goodsCount, netSalesAmount, costAmount } ]
+```
+
+快照是普通不可变 DTO：`period` 为既有 SQL 输出的字符串，数量使用 `long`，金额使用 `BigDecimal`。`periodDimension` 仅接受既有 `DAILY`、`WEEKLY`、`MONTHLY` 分支；契约实现位于 TRADE，保留 `OmsOrderAnalysisMapper` 或其等价的 TRADE 内部 SQL。不得向 FIN 暴露 `AnalysisAtomicDataDTO`、订单 Entity、Mapper、QueryWrapper 或动态 SQL 细节。
+
+FIN 继续负责：日期/默认范围解析，绩效响应 DTO 映射及倒序展示，和汇总卡片的销售额、成本、利润、客单价等二次计算。首轮仅迁移 `getPerformanceReport` 与 `countOrderAndSales`；`getSalesDashboard` 即使复用同一 TRADE 原子指标，也留待其商品、品牌、会员图表一起设计，避免一个入口同时落入新旧读取路径。
+
+### 客流、利润审计与后续切片约束
+
+- 客流的 TRADE 契约只返回已聚合的小时/周/月访问量与销售额；FIN 不将 `dayOfWeek` 的 MySQL 映射、空时段补零、阈值默认值或 `STAY`/`OUT` 判定下沉到 TRADE。SYS 另行提供只读策略值契约，且仍由 FIN 按入口保留 28、90、180 日默认窗口及 `4`、`days / 7.0`、`days / 30.43` 的样本除数。
+- 利润审计使用独立的 TRADE 分页快照和筛选对象，保留订单号、状态与 `ANOMALY` 语义，及按创建时间倒序的分页行为。P2.4.1 的异常清单最多 50 条且按利润升序，不能与它合并。
+- 销售看板、品类销售和单品趋势分别在后续任务中逐入口迁移。涉及品牌/品类名称时，TRADE 只提供标识与数值，GMS 通过已有或新增的窄名称查询承担显示档案；不得继续让 FIN 或 TRADE 跨域 join GMS。
+
+### 验收与回滚
+
+P2.4.4.1 的回归在同一滚回事务内写入已支付、部分退款和非金融有效订单，并覆盖日/周/月分组及起止闭区间。断言 TRADE 快照与 FIN 绩效、汇总卡片的订单数、商品数、净销售额、成本、利润和客单价一致。迁移后运行专项 FIN 回归、全量 Maven 测试、打包、架构门禁和空白检查。
+
+若发现差异，回滚只恢复 FIN 对 `getPeriodAtomicStats` 的两处读取并删除 P2.4.4.1 契约实现；不触及销售看板、客流、品类/单品趋势、利润审计或瀑布流。
