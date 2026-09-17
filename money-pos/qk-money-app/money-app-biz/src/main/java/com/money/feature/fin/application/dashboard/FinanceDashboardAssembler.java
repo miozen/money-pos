@@ -1,8 +1,8 @@
 package com.money.feature.fin.application.dashboard;
 
 import com.money.constant.PayMethodEnum;
+import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.entity.GmsInventoryDoc;
 import com.money.entity.OmsOrder;
 import com.money.entity.UmsMemberLog;
 import com.money.web.exception.BaseException;
@@ -64,7 +64,8 @@ public class FinanceDashboardAssembler {
     /**
      * 2. 组装核心交易指标 (应收/实收/退款/净收/毛利)
      */
-    public void assembleCoreMetrics(FinanceDashboardVO vo, List<OmsOrder> dailyOrders, List<GmsInventoryDoc> inventoryDocs) {
+    public void assembleCoreMetrics(FinanceDashboardVO vo, List<OmsOrder> dailyOrders,
+                                    List<FinanceInventoryDocumentSnapshot> inventoryDocs) {
         BigDecimal totalAmount = BigDecimal.ZERO, totalDiscount = BigDecimal.ZERO;
         BigDecimal payAmount = BigDecimal.ZERO, refundAmount = BigDecimal.ZERO, costAmount = BigDecimal.ZERO;
 
@@ -96,7 +97,7 @@ public class FinanceDashboardAssembler {
         BigDecimal salesGrossProfit = netIncome.subtract(costAmount);
 
         BigDecimal inventoryLoss = BigDecimal.ZERO;
-        for (GmsInventoryDoc doc : inventoryDocs) {
+        for (FinanceInventoryDocumentSnapshot doc : inventoryDocs) {
             if (doc.getTotalAmount() != null && doc.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
                 inventoryLoss = inventoryLoss.add(doc.getTotalAmount().abs());
             }

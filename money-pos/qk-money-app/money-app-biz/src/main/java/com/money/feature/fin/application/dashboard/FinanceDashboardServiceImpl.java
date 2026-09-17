@@ -2,11 +2,16 @@ package com.money.feature.fin.application.dashboard;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.money.constant.InventoryDocTypeEnum;
 import com.money.constant.OrderStatusEnum;
+import com.money.contract.goods.FinanceInventoryDocumentQuery;
+import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.entity.*;
-import com.money.mapper.*;
+import com.money.entity.OmsOrder;
+import com.money.entity.UmsMember;
+import com.money.entity.UmsMemberLog;
+import com.money.mapper.OmsOrderMapper;
+import com.money.mapper.OmsOrderPayMapper;
+import com.money.mapper.UmsMemberLogMapper;
 import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
 import com.money.feature.fin.application.dashboard.FinanceDashboardService;
 import com.money.feature.ums.application.member.UmsMemberService;
@@ -31,7 +36,7 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
     private final OmsOrderPayMapper omsOrderPayMapper;
     private final UmsMemberService umsMemberService;
     private final UmsMemberLogMapper umsMemberLogMapper;
-    private final GmsInventoryDocMapper gmsInventoryDocMapper;
+    private final FinanceInventoryDocumentQuery financeInventoryDocumentQuery;
     private final FinanceReportMapper financeReportMapper;
 
     private final FinanceDashboardAssembler assembler; // 🌟 专职组装工厂
@@ -65,10 +70,8 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
                 .ge(OmsOrder::getCreateTime, startOfDay).le(OmsOrder::getCreateTime, endOfDay)
                 .in(OmsOrder::getStatus, OrderStatusEnum.getValidFinancialStatus()));
 
-        List<GmsInventoryDoc> inventoryDocs = gmsInventoryDocMapper.selectList(new LambdaQueryWrapper<GmsInventoryDoc>()
-                .select(GmsInventoryDoc::getDocType, GmsInventoryDoc::getTotalAmount)
-                .ge(GmsInventoryDoc::getCreateTime, startOfDay).le(GmsInventoryDoc::getCreateTime, endOfDay)
-                .in(GmsInventoryDoc::getDocType, InventoryDocTypeEnum.OUTBOUND.name(), InventoryDocTypeEnum.CHECK.name()));
+        List<FinanceInventoryDocumentSnapshot> inventoryDocs = financeInventoryDocumentQuery
+                .listDailyFinancialDocuments(targetDate);
 
         List<Map<String, Object>> dailyNetPays = omsOrderPayMapper.getDailyPaySummary(startOfDay, endOfDay);
 

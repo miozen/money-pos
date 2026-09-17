@@ -31,6 +31,8 @@ listDailyFinancialDocuments(LocalDate date)
 
 GMS 实现在本 Feature 内保留 `GmsInventoryDocMapper` 和现有 `OUTBOUND`/`CHECK`、闭区间查询。FIN 将快照映射给现有装配器，或将装配器参数收窄为该快照；不得把 `GmsInventoryDoc` 留在 FIN。该切片没有写操作、没有跨所有者 join，且只影响毛利中的库存损耗，因此先实施。
 
+**已完成。** `FinanceInventoryDocumentQuery` 与不可变 `FinanceInventoryDocumentSnapshot` 已由 GMS 实现；FIN 的服务和装配器均不再导入库存单据 Mapper 或 Entity。集成回归以迁移前后的毛利差值验证：`OUTBOUND -5.50` 只使毛利减少 `5.50`，`CHECK +3.25` 与 `INBOUND +99.00` 不增加库存损耗。
+
 ### P2.3.2：UMS 会员资产快照
 
 在 `contract.member` 增加 `FinanceMemberAssetQuery`，以两个不可变数据结构表达不同时间粒度：
@@ -88,4 +90,4 @@ FIN 仅依赖 API 契约；每个查询实现只在数据所有者内部触达 E
 
 ## 下一最小任务
 
-**P2.3.1：新增 GMS `FinanceInventoryDocumentQuery` 与库存单据快照，迁移 FIN 财务大盘的库存损耗读取，并用负/正单据回归验证毛利计算。**
+**P2.3.2：新增 UMS `FinanceMemberAssetQuery`，迁移当日充值、七日充值趋势、正余额总额和资产本金/赠金构成读取。**
