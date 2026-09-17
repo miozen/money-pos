@@ -1,7 +1,6 @@
 package com.money.feature.fin.infrastructure.persistence.mapper;
 
 import com.money.constant.FinancialMetric;
-import com.money.dto.Finance.FinanceDataVO;
 import com.money.dto.Finance.FinanceWaterfallVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -62,14 +61,5 @@ public interface FinanceReportMapper {
             "ORDER BY date DESC " +
             "</script>")
     List<FinanceWaterfallVO> getDailyWaterfallReport(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
-
-    @Select("SELECT " +
-            "  IFNULL(SUM(final_sales_amount), 0) as todayRealCash, " +
-            "  IFNULL(SUM(waived_coupon_amount), 0) as todayWaivedAmount, " +
-            "  IFNULL(SUM(actual_coupon_deduct), 0) as todayAssetDeduct " +
-            "FROM oms_order " +
-            "WHERE DATE(create_time) = CURDATE() " +
-            "AND status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED')")
-    FinanceDataVO.AssetDashboardVO getTodayAssetSummary();
 
 }

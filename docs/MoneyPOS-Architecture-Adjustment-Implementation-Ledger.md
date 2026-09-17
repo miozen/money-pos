@@ -1054,3 +1054,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Preserved the existing financial-status set (`PAID`, `PARTIAL_REFUNDED`, `REFUNDED`) and all closed calendar-day boundaries. Payment summaries retain the full-refund zero rule plus `net_amount` with `pay_amount` fallback; refund trend remains `SUM(pay_amount) - SUM(final_sales_amount)` clamped to zero; channel discounts still group `actual_coupon_deduct` and `use_voucher_amount` by day.
 - Extended `FinanceFeatureIntegrationTest` with rolled-back paid and fully-refunded orders/payments. It verifies core amounts, the distinct refund formulas, full-refund payment exclusion, cash channel input, coupon/voucher aggregates, and the order-side asset overview.
 - The next smallest task is P2.3.4: remove any remaining FIN-dashboard cross-domain Mapper/Entity dependency, then perform the controlled-data, full-regression, packaging and additions-only architecture-gate closure.
+
+### Completed: P2.3.4 FIN Dashboard Assembly Closure
+
+- Removed the now-unused `FinanceReportMapper.getTodayAssetSummary()` cross-owner `oms_order` SQL. `FinanceReportMapper` retains only the explicitly deferred TRADE/GMS waterfall query for P2.4; the dashboard has no direct cross-domain Mapper or Entity dependency.
+- The FIN dashboard now assembles all order/payment, inventory-document and member-asset inputs exclusively from the three API query contracts. Existing controlled fixtures cover core amounts, payment channels, full-refund net-payment exclusion, refund/recharge trends, channel discounts, inventory loss, debt and asset ratios.
+- Full Maven regression, package build, whitespace validation and the additions-only architecture scan are the closure evidence. The next smallest task is P2.4: inventory and design the first owner-specific FIN specialist-report query without combining report formulas.
