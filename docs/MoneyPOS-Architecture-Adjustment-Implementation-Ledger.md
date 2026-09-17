@@ -985,3 +985,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Replaced all three HOME call sites across `HomeServiceImpl` and `DecisionEngineServiceImpl`. HOME now consumes only the single valuation value; the `/home/count` response, HOME daily snapshot generation and `HomeService.homeCount()` retain their fields and timing.
 - Extended `HomeCountSnapshotCharacterizationTest` to assert that the endpoint response, stored daily snapshot and statistics service agree with the GMS contract. Full verification passed: 20 test classes / 42 tests, `mvn package -DskipTests`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`. Cross-Feature implementation imports fell from 4 to 2; shared Entity importers remain 69 and report-only.
 - The next smallest task is P2.2: inventory HOME's remaining TRADE order aggregation and UMS membership-chart reads before defining their independent snapshots.
+
+### Completed: P2.2 HOME Order and Membership Read-Snapshot Design
+
+- Published `MoneyPOS-P2.2-Home-Read-Snapshot-Design.md` and updated the P2 checklist/baseline. The design records the existing behavior for the service-level order counts, HOME daily snapshot, comprehensive dashboard comparisons, sales trend, brand pie and member-level chart before any production migration.
+- It deliberately separates five TRADE query methods because the existing order states, date boundaries and amount formulas differ. HOME will retain time-range conversion, DTO assembly, trends, alert behavior and all `OmsDailySummary` compensation/write timing.
+- UMS will own the active member brand-level counts and use the existing GMS `BrandNameQuery` for narrow brand-name translation; this removes the intended HOME→UMS Mapper dependency without exposing UMS entities.
+- No production code, route, SQL, database object or report output changed. The next smallest task is P2.2.1: introduce TRADE `HomeOrderReadQuery.summarizeHomeCount`, migrate only the four `HomeService.homeCount()` order aggregations, and characterize their status/zero/time-boundary behavior.
