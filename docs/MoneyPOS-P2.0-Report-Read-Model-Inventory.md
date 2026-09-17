@@ -4,15 +4,15 @@
 
 FIN/HOME 当前以同步只读聚合为主，不参与订单、库存或会员资产写入；唯一写入是 HOME 对其自有 `OmsDailySummary` 日快照的补偿与更新。风险集中在调用方跨域直接使用 Mapper、Entity、`IService<Entity>` 或 Feature 实现服务，导致报表字段与底层表结构耦合。
 
-当前架构扫描的 4 项跨 Feature 实现 import 中，3 项属于 HOME→GMS，1 项属于 FIN→UMS；P2 不将这四项简单删除，而是按页面所需数据设计窄读快照。
+P2.0 基线时架构扫描有 4 项跨 Feature 实现 import，其中 3 项属于 HOME→GMS，1 项属于 FIN→UMS。P2.1 已将 HOME→GMS 收敛为 `InventoryValuationQuery`，当前只剩 FIN→UMS 与 TRADE→FIN 两项；P2 继续按页面所需数据设计窄读快照，而不是简单删除依赖。
 
 ## HOME 调用面
 
 | 调用方/接口 | 读取数据与当前实现 | 所有者 | 风险 | 建议切片 |
 | --- | --- | --- | --- | --- |
-| `HomeServiceImpl.homeCount()` | `GmsGoodsService.getCurrentStockValue()`；`OmsOrderMapper` 对订单金额/成本聚合 | GMS、TRADE | HOME→GMS 实现依赖；订单聚合直接依赖 TRADE Entity/Mapper | P2.1 库存估值；P2.2 首页销售汇总 |
+| `HomeServiceImpl.homeCount()` | 已通过 `InventoryValuationQuery` 读取库存估值；`OmsOrderMapper` 对订单金额/成本聚合 | GMS、TRADE | 库存估值已收敛；订单聚合仍直接依赖 TRADE Entity/Mapper | 已完成 P2.1；P2.2 首页销售汇总 |
 | `HomeServiceImpl.getChartsData()` / `GET /home/charts` | `OmsOrderDetailMapper` 的趋势、品牌饼图；`UmsMemberBrandLevelMapper` 的会员等级柱图 | TRADE、UMS | 图表 SQL 和 Mapper 直接泄露到 HOME | P2.2 HOME 图表快照 |
-| `DecisionEngineServiceImpl.generateDailySnapshot()` | `OmsOrderAnalysisMapper`、`JdbcTemplate` 直读 `ums_member`、`GmsGoodsService.getCurrentStockValue()`，写 HOME 自有 `OmsDailySummary` | TRADE、UMS、GMS、HOME | HOME→GMS 实现依赖；订单/会员 SQL 在调用方硬编码 | P2.1 库存估值；P2.2 日快照输入 |
+| `DecisionEngineServiceImpl.generateDailySnapshot()` | `OmsOrderAnalysisMapper`、`JdbcTemplate` 直读 `ums_member`、已通过 `InventoryValuationQuery` 读取库存估值，写 HOME 自有 `OmsDailySummary` | TRADE、UMS、GMS、HOME | 库存估值已收敛；订单/会员 SQL 仍在调用方硬编码 | 已完成 P2.1；P2.2 日快照输入 |
 | `DecisionEngineServiceImpl.getTodayDashboardWithAlerts()` / `/home/count` | 读取 HOME `OmsDailySummary` 与其均值；调用补偿/生成日快照 | HOME | `OmsDailySummary` 是 HOME 归属读模型，保留写入 | P2.2 保持写时机，仅替换输入读取 |
 
 ## FIN 调用面
@@ -44,4 +44,4 @@ FIN/HOME 当前以同步只读聚合为主，不参与订单、库存或会员�
 
 ## 下一最小任务
 
-**P2.1：确认 `GmsGoodsService.getCurrentStockValue()` 的计算口径、调用点和现有回归覆盖，再设计/迁移 `InventoryValuationQuery`。**
+**P2.2：将 HOME 的订单汇总、趋势、品牌分布和会员等级图表按 TRADE/UMS 所有者划分为只读快照。**

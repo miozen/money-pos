@@ -38,6 +38,7 @@
 ## P2.0 报表读模型基线（2026-09-16）
 
 - FIN/HOME 的完整调用面、Entity/Mapper 归属及迁移顺序已记录于 `MoneyPOS-P2.0-Report-Read-Model-Inventory.md`。首个安全切片是 HOME 的库存估值单值查询；订单、支付、库存单据、会员资产和瀑布流仍按各自口径分组迁移。
+- P2.1 已完成：`InventoryValuationQuery` 保留 GMS 的“正库存 × 采购价”计算与异常语义，HOME 的统计服务和决策快照均只消费该单值。剩余 HOME 订单/图表读取进入 P2.2。
 
 ## 执行约束
 

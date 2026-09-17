@@ -1,6 +1,9 @@
 package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.goods.InventoryValuationQuery;
+import com.money.dto.Home.HomeCountVO;
+import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
@@ -36,6 +39,10 @@ class HomeCountSnapshotCharacterizationTest {
 
     @Autowired
     private OmsDailySummaryMapper dailySummaryMapper;
+    @Autowired
+    private InventoryValuationQuery inventoryValuationQuery;
+    @Autowired
+    private HomeService homeService;
 
     @BeforeEach
     void authenticateTenant() {
@@ -59,6 +66,7 @@ class HomeCountSnapshotCharacterizationTest {
                 .eq(OmsDailySummary::getRecordDate, today));
 
         Map<String, Object> firstResponse = homeController.homeCountVO();
+        BigDecimal expectedInventoryValue = inventoryValuationQuery.getCurrentStockValue();
 
         assertThat(firstResponse).containsOnlyKeys("today", "month", "year", "total", "inventoryValue", "alerts");
         assertThat(firstResponse.get("today")).isInstanceOf(Map.class);
@@ -69,6 +77,10 @@ class HomeCountSnapshotCharacterizationTest {
 
         OmsDailySummary firstSnapshot = todaySnapshot(today);
         assertThat(firstSnapshot).isNotNull();
+        assertThat((BigDecimal) firstResponse.get("inventoryValue")).isEqualByComparingTo(expectedInventoryValue);
+        assertThat(firstSnapshot.getInventoryValue()).isEqualByComparingTo(expectedInventoryValue);
+        HomeCountVO homeCount = homeService.homeCount();
+        assertThat(homeCount.getInventoryValue()).isEqualByComparingTo(expectedInventoryValue);
         Long snapshotId = firstSnapshot.getId();
 
         firstSnapshot.setSalesAmount(new BigDecimal("-1.00"));

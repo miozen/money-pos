@@ -9,7 +9,7 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 ## 实施顺序
 
 - [x] P2.0 建立 FIN/HOME 报表读模型调用面基线，详见 `MoneyPOS-P2.0-Report-Read-Model-Inventory.md`。
-- [ ] P2.1 迁移 HOME 库存估值：GMS 提供单值 `InventoryValuationQuery`，替换 `HomeServiceImpl` 与 `DecisionEngineServiceImpl` 对 `GmsGoodsService` 的直接调用；验证首页 `/home/count` 的库存金额与日汇总口径。
+- [x] P2.1 已迁移 HOME 库存估值：GMS 提供单值 `InventoryValuationQuery`，替换 `HomeServiceImpl` 与 `DecisionEngineServiceImpl` 的全部三处库存估值读取；验证首页 `/home/count`、HOME 日汇总和统计服务均保持相同库存金额及原有计算口径。
 - [ ] P2.2 设计 HOME 销售/图表快照：TRADE 提供首页区间订单汇总、趋势、品牌分布所需只读模型；HOME 保留页面组装和 `OmsDailySummary` 写入。
 - [ ] P2.3 迁移 FIN 财务大盘读模型：按“订单/支付”“库存单据”“会员资产”三组快照替换 `FinanceDashboardServiceImpl` 的跨域 Mapper、Entity 和 `UmsMemberService` 读取；保持资产、收入、渠道与七日趋势口径。
 - [ ] P2.4 迁移 FIN 专项报表：交接班、利润、营销复盘、风控、经营分析与瀑布流 SQL 分别收敛为 TRADE/GMS/UMS 所有者查询；不把不同财务口径强行合并。
@@ -26,4 +26,4 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2.1：盘点 HOME 的库存估值调用和现有金额公式，设计 GMS `InventoryValuationQuery`。**
+**P2.2：盘点并设计 HOME 销售汇总、趋势、品牌分布和会员等级图表的 TRADE/UMS 只读快照边界。**

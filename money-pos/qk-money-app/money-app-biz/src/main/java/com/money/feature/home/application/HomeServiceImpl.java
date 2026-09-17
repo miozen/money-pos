@@ -2,13 +2,13 @@ package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.constant.OrderStatusEnum;
+import com.money.contract.goods.InventoryValuationQuery;
 import com.money.dto.Home.HomeCountVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.OmsOrder;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
-import com.money.feature.gms.application.product.GmsGoodsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
 
-    private final GmsGoodsService gmsGoodsService;
+    private final InventoryValuationQuery inventoryValuationQuery;
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderDetailMapper omsOrderDetailMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
@@ -46,7 +46,7 @@ public class HomeServiceImpl implements HomeService {
         homeCountVO.setYear(this.executeAggregateQuery(yearStart, nextYearStart));
 
         homeCountVO.setTotal(this.executeAggregateQuery(null, null));
-        homeCountVO.setInventoryValue(gmsGoodsService.getCurrentStockValue());
+        homeCountVO.setInventoryValue(inventoryValuationQuery.getCurrentStockValue());
 
         return homeCountVO;
     }

@@ -978,3 +978,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Published `MoneyPOS-P2-Report-Read-Model-Checklist.md` and `MoneyPOS-P2.0-Report-Read-Model-Inventory.md`. The baseline separates HOME's self-owned `OmsDailySummary` writes from its cross-domain read inputs, and separates FIN dashboard, handover, analysis, risk and waterfall formulas rather than treating them as one migration.
 - Identified the current four cross-Feature implementation imports as FIN→UMS and HOME→GMS. The inventory also records direct TRADE/GMS/UMS Mapper and Entity read surfaces that the implementation-import gate intentionally does not count.
 - No production code, route, SQL formula, table or report behavior changed. P2.1 is the next safe slice: replace the two HOME calls to GMS inventory valuation with one GMS-owned single-value query contract.
+
+### Completed: P2.1 HOME Inventory Valuation Query
+
+- Added API-neutral `InventoryValuationQuery`, implemented inside GMS by delegating to the existing stock valuation service. The formula remains exactly `SUM(stock * purchase_price)` for `stock > 0`, with zero fallback and the existing GMS error behavior.
+- Replaced all three HOME call sites across `HomeServiceImpl` and `DecisionEngineServiceImpl`. HOME now consumes only the single valuation value; the `/home/count` response, HOME daily snapshot generation and `HomeService.homeCount()` retain their fields and timing.
+- Extended `HomeCountSnapshotCharacterizationTest` to assert that the endpoint response, stored daily snapshot and statistics service agree with the GMS contract. Full verification passed: 20 test classes / 42 tests, `mvn package -DskipTests`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`. Cross-Feature implementation imports fell from 4 to 2; shared Entity importers remain 69 and report-only.
+- The next smallest task is P2.2: inventory HOME's remaining TRADE order aggregation and UMS membership-chart reads before defining their independent snapshots.

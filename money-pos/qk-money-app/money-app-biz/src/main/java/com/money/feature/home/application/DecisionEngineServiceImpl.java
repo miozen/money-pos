@@ -1,11 +1,11 @@
 package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.goods.InventoryValuationQuery;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderAnalysisMapper;
-import com.money.feature.gms.application.product.GmsGoodsService; // 🌟 重新引回商品服务
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,7 +31,7 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
     private final OmsDailySummaryMapper omsDailySummaryMapper;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
     private final JdbcTemplate jdbcTemplate;
-    private final GmsGoodsService gmsGoodsService; // 🌟 注入靠谱的算库存管家
+    private final InventoryValuationQuery inventoryValuationQuery;
 
     @Override
     public void compensateSnapshots(int daysToCheck) {
@@ -78,8 +78,7 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
                 Integer.class, startTime, endTime);
         summary.setNewMemberCount(newMemberCount != null ? newMemberCount : 0);
 
-        // 🌟 修复库存 Bug：回归老办法，调用最准确的方法算成本
-        BigDecimal inventoryValue = gmsGoodsService.getCurrentStockValue();
+        BigDecimal inventoryValue = inventoryValuationQuery.getCurrentStockValue();
         summary.setInventoryValue(inventoryValue != null ? inventoryValue : BigDecimal.ZERO);
 
         OmsDailySummary exist = omsDailySummaryMapper.selectOne(
@@ -187,8 +186,7 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
         Map<String, Object> yearFmt = new HashMap<>();
         attachTrends(yearFmt, thisYear, lastYear);
 
-        // 🌟 修复库存 Bug：再次确保使用正确方法
-        BigDecimal inventoryValue = gmsGoodsService.getCurrentStockValue();
+        BigDecimal inventoryValue = inventoryValuationQuery.getCurrentStockValue();
 
         Map<String, Object> result = new HashMap<>();
         result.put("today", todayFmt);
