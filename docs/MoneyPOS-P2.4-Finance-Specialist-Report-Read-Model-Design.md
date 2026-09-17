@@ -1,0 +1,57 @@
+# MoneyPOS P2.4：FIN 专项报表读模型设计
+
+## 目的与边界
+
+P2.4 将 FIN 专项报表对 TRADE、GMS、UMS 的直接 Mapper/SQL 读取逐项迁移为数据所有者提供的窄查询契约。FIN 仍负责 HTTP 参数解析、展示 DTO/Map 组装、排序、图表补零及打印调用；数据所有者仍在自身 Feature 内保留 Mapper、Entity 和 SQL。
+
+本阶段不修改路由、权限、页面字段、数据库表、Flyway、事务边界或打印协议；不把不同报表的状态集、日边界或金额公式抽成一个通用“财务报表”查询。所有新增 `money-app-api` 契约都必须是 Java 8 兼容的普通不可变类，不能暴露 Entity、Mapper、Spring 或通用 `Map`。
+
+## 当前专项报表盘点
+
+| FIN 入口 | 现有直接读面 | 数据所有者 | 现有关键口径 | 拟定切片 |
+| --- | --- | --- | --- | --- |
+| `GET /finance/risk-control` | `OmsOrderAuditMapper.getCashierRiskSummary`、`getAbnormalOrderList` | TRADE | 默认近 7 个日历日；日期参数以 `00:00:00` / `23:59:59.999999999` 闭区间解析；SQL 不额外过滤订单状态 | **P2.4.1 首个实施切片** |
+| `GET /finance/shift-handover` 与打印入口 | 订单、支付、订单明细三个 Mapper | TRADE（品牌显示需明确 GMS 归属） | 指定班次起点到当前时刻闭区间；可选收银员；支付使用全额退款为零的 `net_amount` 回退公式；退款、优惠、品牌贡献各有独立公式 | P2.4.2，单独设计 |
+| `GET /finance/profit-ranking` | `OmsOrderDetailMapper.getProfitRankingData` | TRADE | 最近 30 天起点至今；状态含 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED`；按退货后的明细销量/利润排行 | P2.4.3a |
+| `GET /finance/campaign-review` | `OmsOrderAnalysisMapper.getMarketingRoiStats` | TRADE | 最近 3 个月闭区间；仅 `PAID`、`PARTIAL_REFUNDED`；满减券与会员券是两条独立聚合口径，FIN 再计算并排序 ROI | P2.4.3b，不与排行合并 |
+| 经营分析、绩效、营销、客流、品类、单品趋势、利润审计 | 订单分析、客流、审计 Mapper，另有 SYS 策略 Mapper | TRADE、SYS；品牌/品类 SQL join 需标注 GMS 归属 | 每个入口的默认范围、状态集、分组维度和前端补零规则不同 | P2.4.4，按入口拆分 |
+| `GET /finance/report/waterfall/daily` | FIN 内 `FinanceReportMapper` 的 `oms_order` / `gms_inventory_doc` UNION ALL | TRADE、GMS | 金融有效订单的应收、优惠、支付、退款、净收与入库采购额按日 UNION；空查询对象短路 | P2.4.5，最后拆解多所有者组合 |
+
+## P2.4.1：TRADE 收银风控查询契约
+
+选择风控作为第一个实现切片，原因是它只读取 `oms_order` 审计投影、无跨所有者 join、无写操作，也不影响收银或退款事务。它的两个原 SQL 已有确定的输出字段，FIN 可以继续承担页面卡片的二次聚合。
+
+在 `money-app-api` 的 `contract.trade` 增加：
+
+```text
+FinanceRiskQuery
+  listCashierRiskSummaries(LocalDateTime startInclusive, LocalDateTime endInclusive)
+    -> [ { cashierName, orderCount, manualDiscountAmount, refundCount } ]
+  listAbnormalOrders(LocalDateTime startInclusive, LocalDateTime endInclusive)
+    -> [ { orderNo, createTimeLabel, cashierName, payAmount, costAmount,
+           profitAmount, riskType } ]
+```
+
+两个快照均为普通不可变 DTO。`orderCount` 与 `refundCount` 可使用 `long`；金额使用 `BigDecimal`；时间展示值仍是 TRADE 原 SQL `DATE_FORMAT(create_time, '%m-%d %H:%i')` 生成的字符串，避免 FIN 重写时区或格式口径。实现放在 TRADE 报表/审计应用包，内部保留 `OmsOrderAuditMapper`，转换其现有查询结果后再返回快照。
+
+### 必须保持的风险口径
+
+- FIN 的空日期默认保持：开始为当天向前六天 `00:00:00`，结束为当天 `23:59:59.999999999`；显式日期也保持闭区间。契约不负责默认值或字符串解析。
+- 收银员汇总仍在时间范围内按 `create_by` 分组，订单数是 `COUNT(id)`，手工优惠是 `SUM(IFNULL(manual_discount_amount, 0))`，退款单数仅计 `PARTIAL_REFUNDED` 与 `REFUNDED`。
+- 异常单仍最多返回 50 条并按利润升序；原有三条风险谓词不变：支付额至少 10 且成本缺失/非正、最终销售额减成本为负且支付额为正、或手工优惠大于 50。
+- 风控 SQL 当前没有金融有效状态过滤；迁移不得添加 `PAID` 等状态筛选。
+- FIN 仍计算四张卡片：异常单数为异常快照数量，损失仅累计负利润绝对值，手工优惠和退款单数由收银员快照累加。接口仍返回现有 `Map<String, Object>` 字段及列表字段，直到独立的 HTTP DTO 收敛任务获授权。
+
+### 验收与回滚
+
+新增 TRADE/FIN 集成回归，以同一时间范围写入正常单、成本缺失单、倒挂亏损单、大额手工优惠单、部分退款单和全额退款单；断言两类快照、FIN 卡片与原页面字段一致，并验证日期边界和 50 条上限。迁移后运行专项 FIN 回归、全量 Maven 测试、打包、`architecture-scan.sh --check-new` 与 `git diff --check`。
+
+若出现口径差异，回滚仅限 P2.4.1 本地提交：恢复 FIN 对审计 Mapper 的三处读取及删除的契约实现；不触及交接班、利润、经营分析或瀑布流。
+
+## 后续顺序
+
+1. P2.4.1 实现 TRADE `FinanceRiskQuery`，仅迁移风控两类审计读取。
+2. P2.4.2 设计并迁移交接班支付、优惠和品牌贡献快照；先确认品牌名称 join 的 GMS 归属。
+3. P2.4.3 分别迁移利润排行与活动复盘，保持它们的时间范围和状态集不同。
+4. P2.4.4 按入口拆分经营分析/客流/审计查询，并将 SYS 策略读取与 TRADE 数据读取分开。
+5. P2.4.5 最后处理瀑布流的 TRADE/GMS 组合公式，不创建跨所有者 Mapper。
