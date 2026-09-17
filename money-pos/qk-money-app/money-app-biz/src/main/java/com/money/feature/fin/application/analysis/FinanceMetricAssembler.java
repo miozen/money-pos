@@ -1,5 +1,6 @@
 package com.money.feature.fin.application.analysis;
 
+import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
@@ -141,13 +142,13 @@ public class FinanceMetricAssembler {
     /**
      * 汇总全局销售额、成本与利润
      */
-    public OrderCountVO aggregateTotalMetrics(List<AnalysisAtomicDataDTO> stats) {
+    public OrderCountVO aggregateTotalMetrics(List<FinanceOperatingMetricSnapshot> stats) {
         OrderCountVO vo = new OrderCountVO();
         long totalOrder = 0;
         BigDecimal totalSales = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
 
-        for (AnalysisAtomicDataDTO stat : stats) {
+        for (FinanceOperatingMetricSnapshot stat : stats) {
             totalOrder += stat.getOrderCount();
             totalSales = MoneyUtil.add(totalSales, stat.getNetSalesAmount());
             totalCost = MoneyUtil.add(totalCost, stat.getCostAmount());

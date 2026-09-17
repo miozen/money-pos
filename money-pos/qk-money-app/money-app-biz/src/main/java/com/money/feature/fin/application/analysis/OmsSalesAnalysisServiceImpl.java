@@ -2,6 +2,8 @@ package com.money.feature.fin.application.analysis;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.money.contract.trade.FinanceOperatingAnalysisQuery;
+import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
@@ -31,6 +33,7 @@ import java.util.*;
 public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     private final SysStrategyMapper sysStrategyMapper;
+    private final FinanceOperatingAnalysisQuery financeOperatingAnalysisQuery;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
     private final OmsOrderTrafficMapper omsOrderTrafficMapper;
     private final OmsOrderAuditMapper omsOrderAuditMapper;
@@ -76,12 +79,13 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         LocalDateTime startTime = parseStartTime(startDate);
         LocalDateTime endTime = parseEndTime(endDate);
 
-        List<AnalysisAtomicDataDTO> stats = omsOrderAnalysisMapper.getPeriodAtomicStats(startTime, endTime, dimension);
+        List<FinanceOperatingMetricSnapshot> stats = financeOperatingAnalysisQuery
+                .listPeriodMetrics(startTime, endTime, dimension);
         List<PerformanceReportVO> result = new ArrayList<>();
-        for (AnalysisAtomicDataDTO stat : stats) {
+        for (FinanceOperatingMetricSnapshot stat : stats) {
             result.add(new PerformanceReportVO(
-                    stat.getPeriod(), stat.getOrderCount(), stat.getGoodsCount(),
-                    stat.getNetSalesAmount(), stat.getAsp()
+                    stat.getPeriod(), (int) stat.getOrderCount(), (int) stat.getGoodsCount(),
+                    stat.getNetSalesAmount(), calculateAsp(stat.getNetSalesAmount(), stat.getOrderCount())
             ));
         }
         Collections.reverse(result);
@@ -100,9 +104,16 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     @Override
     public OrderCountVO countOrderAndSales(LocalDateTime startTime, LocalDateTime endTime) {
-        List<AnalysisAtomicDataDTO> stats = omsOrderAnalysisMapper.getPeriodAtomicStats(startTime, endTime, "DAILY");
+        List<FinanceOperatingMetricSnapshot> stats = financeOperatingAnalysisQuery
+                .listPeriodMetrics(startTime, endTime, "DAILY");
         // 委托装配器进行全局汇总累加
         return metricAssembler.aggregateTotalMetrics(stats);
+    }
+
+    private BigDecimal calculateAsp(BigDecimal netSalesAmount, long orderCount) {
+        return orderCount == 0 ? BigDecimal.ZERO
+                : (netSalesAmount == null ? BigDecimal.ZERO : netSalesAmount)
+                .divide(BigDecimal.valueOf(orderCount), 2, java.math.RoundingMode.HALF_UP);
     }
 
     @Override

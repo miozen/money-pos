@@ -8,7 +8,12 @@ import com.money.feature.fin.application.analysis.FinanceProfitService;
 import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
 import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.trade.FinanceRiskQuery;
+import com.money.contract.trade.FinanceOperatingAnalysisQuery;
+import com.money.contract.trade.FinanceOperatingMetricSnapshot;
+import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
+import com.money.dto.OmsOrder.OmsSalesDataVO.PerformanceReportVO;
+import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.GmsInventoryDoc;
 import com.money.entity.GmsBrand;
 import com.money.entity.OmsOrder;
@@ -39,6 +44,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -65,6 +71,10 @@ class FinanceFeatureIntegrationTest {
     private FinanceProfitService financeProfitService;
     @Autowired
     private FinanceRiskQuery financeRiskQuery;
+    @Autowired
+    private FinanceOperatingAnalysisQuery financeOperatingAnalysisQuery;
+    @Autowired
+    private OmsSalesAnalysisService salesAnalysisService;
 
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
@@ -267,6 +277,46 @@ class FinanceFeatureIntegrationTest {
         });
     }
 
+    @Test
+    void operatingAnalysisUsesTradePeriodSnapshotsWithClosedRangesAndFinancialStates() {
+        String suffix = "OA" + (System.nanoTime() % 1_000_000_000L);
+        LocalDate date = LocalDate.of(2027, 2, 1);
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(LocalTime.MAX);
+        insertAnalysisOrder(suffix + "-PAID", "PAID", start, new BigDecimal("20.00"), new BigDecimal("5.00"), 2);
+        insertAnalysisOrder(suffix + "-PARTIAL", "PARTIAL_REFUNDED", end, new BigDecimal("10.00"), new BigDecimal("3.00"), 1);
+        insertAnalysisOrder(suffix + "-REFUND", "REFUNDED", start.plusHours(1), new BigDecimal("99.00"), BigDecimal.ZERO, 9);
+        insertAnalysisOrder(suffix + "-OUTSIDE", "PAID", date.plusDays(1).atStartOfDay(), new BigDecimal("88.00"), BigDecimal.ZERO, 8);
+
+        java.util.List<FinanceOperatingMetricSnapshot> daily = financeOperatingAnalysisQuery
+                .listPeriodMetrics(start, end, "DAILY");
+        assertThat(daily).singleElement().satisfies(row -> {
+            assertThat(row.getPeriod()).isEqualTo("2027-02-01");
+            assertThat(row.getOrderCount()).isEqualTo(2L);
+            assertThat(row.getGoodsCount()).isEqualTo(3L);
+            assertThat(row.getNetSalesAmount()).isEqualByComparingTo(new BigDecimal("30.00"));
+            assertThat(row.getCostAmount()).isEqualByComparingTo(new BigDecimal("8.00"));
+        });
+        assertThat(financeOperatingAnalysisQuery.listPeriodMetrics(start, end, "WEEKLY"))
+                .singleElement().extracting(FinanceOperatingMetricSnapshot::getOrderCount).isEqualTo(2L);
+        assertThat(financeOperatingAnalysisQuery.listPeriodMetrics(start, end, "MONTHLY"))
+                .singleElement().extracting(FinanceOperatingMetricSnapshot::getPeriod).isEqualTo("2027-02");
+
+        java.util.List<PerformanceReportVO> report = salesAnalysisService
+                .getPerformanceReport(date.toString(), date.toString(), "DAILY");
+        assertThat(report).singleElement().satisfies(row -> {
+            assertThat(row.getOrderCount()).isEqualTo(2);
+            assertThat(row.getGoodsCount()).isEqualTo(3);
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("30.00"));
+            assertThat(row.getAvgOrderValue()).isEqualByComparingTo(new BigDecimal("15.00"));
+        });
+        OrderCountVO totals = salesAnalysisService.countOrderAndSales(start, end);
+        assertThat(totals.getOrderCount()).isEqualTo(2L);
+        assertThat(totals.getTotalSales()).isEqualByComparingTo(new BigDecimal("30.00"));
+        assertThat(totals.getCostCount()).isEqualByComparingTo(new BigDecimal("8.00"));
+        assertThat(totals.getProfit()).isEqualByComparingTo(new BigDecimal("22.00"));
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -388,6 +438,43 @@ class FinanceFeatureIntegrationTest {
         detail.setQuantity(1);
         detail.setReturnQuantity(0);
         detail.setCoupon(coupon);
+        detail.setTenantId(0L);
+        orderDetailMapper.insert(detail);
+    }
+
+    private void insertAnalysisOrder(String orderNo, String status, LocalDateTime createTime,
+                                     BigDecimal salesAmount, BigDecimal costAmount, int quantity) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(false);
+        order.setTotalAmount(salesAmount);
+        order.setPayAmount(salesAmount);
+        order.setFinalSalesAmount(salesAmount);
+        order.setCostAmount(costAmount);
+        order.setCouponAmount(BigDecimal.ZERO);
+        order.setActualCouponDeduct(BigDecimal.ZERO);
+        order.setWaivedCouponAmount(BigDecimal.ZERO);
+        order.setUseVoucherAmount(BigDecimal.ZERO);
+        order.setManualDiscountAmount(BigDecimal.ZERO);
+        order.setTenantId(0L);
+        order.setPaymentTime(createTime);
+        order.setCreateTime(createTime);
+        orderMapper.insert(order);
+
+        OmsOrderDetail detail = new OmsOrderDetail();
+        detail.setOrderNo(orderNo);
+        detail.setStatus(status);
+        detail.setGoodsId(9L);
+        detail.setGoodsBarcode("OPERATING-TEST");
+        detail.setGoodsName("Operating test goods");
+        detail.setGoodsPrice(salesAmount);
+        detail.setSalePrice(salesAmount);
+        detail.setPurchasePrice(costAmount);
+        detail.setVipPrice(salesAmount);
+        detail.setQuantity(quantity);
+        detail.setReturnQuantity(0);
+        detail.setCoupon(BigDecimal.ZERO);
         detail.setTenantId(0L);
         orderDetailMapper.insert(detail);
     }

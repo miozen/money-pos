@@ -122,6 +122,8 @@ FinanceOperatingAnalysisQuery
 
 FIN 继续负责：日期/默认范围解析，绩效响应 DTO 映射及倒序展示，和汇总卡片的销售额、成本、利润、客单价等二次计算。首轮仅迁移 `getPerformanceReport` 与 `countOrderAndSales`；`getSalesDashboard` 即使复用同一 TRADE 原子指标，也留待其商品、品牌、会员图表一起设计，避免一个入口同时落入新旧读取路径。
 
+P2.4.4.1 已按此边界实施：`FinanceOperatingAnalysisQuery` 和不可变 `FinanceOperatingMetricSnapshot` 由 TRADE 实现，内部仍使用既有周期 Mapper；FIN 不再在绩效报表和汇总卡片入口直接读取该 Mapper。回归覆盖 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED`、闭区间边界及日/周/月分组，并断言 FIN 的客单价、成本和利润展示结果。
+
 ### 客流、利润审计与后续切片约束
 
 - 客流的 TRADE 契约只返回已聚合的小时/周/月访问量与销售额；FIN 不将 `dayOfWeek` 的 MySQL 映射、空时段补零、阈值默认值或 `STAY`/`OUT` 判定下沉到 TRADE。SYS 另行提供只读策略值契约，且仍由 FIN 按入口保留 28、90、180 日默认窗口及 `4`、`days / 7.0`、`days / 30.43` 的样本除数。

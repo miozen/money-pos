@@ -1090,3 +1090,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Inventoried the remaining `OmsSalesAnalysisServiceImpl` direct reads by entry rather than treating them as one report: period metrics, dashboard charts, traffic, category/goods trends and profit audit have different owners, defaults, states, grouping and pagination behavior.
 - Selected TRADE-owned period operating metrics as the first implementation slice. The proposed `FinanceOperatingAnalysisQuery` returns only immutable period, count and amount snapshots; FIN continues to parse ranges and calculate/display performance and summary-card fields.
 - Explicitly deferred sales-dashboard charts, TRADE/SYS traffic composition, GMS display-name translation, and the TRADE profit-audit page. No source, SQL, route, database object or page field changed in this design-only task. The next smallest task is P2.4.4.1: implement and migrate the TRADE period metrics for FIN performance and summary cards.
+
+### Completed: P2.4.4.1 FIN Operating Period-Metric Snapshots
+
+- Added API-neutral TRADE `FinanceOperatingAnalysisQuery` and immutable `FinanceOperatingMetricSnapshot`. TRADE alone retains `OmsOrderAnalysisMapper` and converts its existing daily/weekly/monthly atomic results to the narrow API projection.
+- Migrated only FIN `getPerformanceReport` and `countOrderAndSales`; FIN retains string/default range parsing, reverse performance display, customer-unit-price rounding, and sales/cost/profit total assembly. The sales dashboard remains deliberately on its own, not partially migrated.
+- Extended the rolled-back FIN regression with day-start/day-end orders, `PAID` and `PARTIAL_REFUNDED` inclusions, `REFUNDED` and next-day exclusions, and daily/weekly/monthly assertions. It verifies the TRADE values and FIN performance/card output. The next smallest task is P2.4.4.2: design the separate sales-dashboard chart slices.
