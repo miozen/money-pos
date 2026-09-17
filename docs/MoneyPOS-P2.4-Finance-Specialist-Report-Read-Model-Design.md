@@ -249,3 +249,19 @@ P2.4.4.4.1 已按此边界实施。TRADE `FinanceProductAnalysisQuery` 返回品
 ### 验收与回滚
 
 回归应写入已支付、部分退款和全额退款订单明细，覆盖已知类目、空/缺失类目、正净销量、完全退货及同商品跨日明细。断言品类快照和 FIN 图表的状态/金额/名称回退，及单品快照和 FIN 连续数组的 `GREATEST` 钳制、日期补零、历史名称和空 ID 行为。若有差异，仅回滚 P2.4.4.4.1 的 TRADE/GMS 契约和这两个 FIN 入口；不影响销售看板、客流、利润审计或瀑布流。
+
+## P2.4.4.5：利润审计 TRADE 分页快照
+
+利润审计保留为独立分页读取，不能复用 P2.4.1 的最多 50 行、按利润升序的异常清单。TRADE 的既有明细 SQL 固定筛选 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED`，可选订单号精确匹配；仅当状态参数为 `ANOMALY` 时额外保留成本缺失、成本非正或单件毛利为负的谓词。分页 SQL 仍仅按 `create_time DESC` 排序，不增加并列时的次级排序。
+
+```text
+FinanceProfitAuditQuery                         // TRADE
+  getProfitAuditPage(page, size, orderNo, status)
+    -> { current, size, total,
+         records: [ { orderNo, goodsName, createTime, salePrice, goodsPrice,
+                      purchasePrice, unitProfit, profitMargin, missingCost } ] }
+```
+
+契约的页面元数据和行快照均是 Java 8 普通不可变类；不暴露 MyBatis `Page`、`ProfitAuditVO`、Mapper 或订单 Entity。TRADE 内部保留 `OmsOrderAuditMapper` 及其原 SQL。FIN 继续从既有 `OmsOrderQueryDTO` 取得页码、页大小和两个筛选项，并逐字段映射回未变的 `PageVO<ProfitAuditVO>`；不新增路由、表、Flyway 或事务边界。
+
+P2.4.4.5 已按此边界实施。FIN 不再直接依赖审计 Mapper；TRADE 返回审计分页快照，原筛选、状态集、计算字段、页元数据和按创建时间倒序语义保持不变。

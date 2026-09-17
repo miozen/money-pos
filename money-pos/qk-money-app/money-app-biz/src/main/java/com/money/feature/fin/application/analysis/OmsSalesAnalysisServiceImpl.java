@@ -1,7 +1,6 @@
 package com.money.feature.fin.application.analysis;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.goods.GoodsCategoryNameQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
@@ -18,15 +17,16 @@ import com.money.contract.trade.FinanceTrafficQuery;
 import com.money.contract.trade.FinanceCategorySalesSnapshot;
 import com.money.contract.trade.FinanceDailyGoodsMetricSnapshot;
 import com.money.contract.trade.FinanceProductAnalysisQuery;
+import com.money.contract.trade.FinanceProfitAuditPageSnapshot;
+import com.money.contract.trade.FinanceProfitAuditQuery;
+import com.money.contract.trade.FinanceProfitAuditSnapshot;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.dto.OmsOrder.ProfitAuditVO;
 import com.money.mapper.OmsOrderAnalysisMapper;
-import com.money.mapper.OmsOrderAuditMapper;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.feature.fin.application.analysis.FinanceMetricAssembler;
-import com.money.util.PageUtil;
 import com.money.web.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,7 +53,7 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
     private final GoodsCategoryNameQuery goodsCategoryNameQuery;
     private final FinanceProductAnalysisQuery financeProductAnalysisQuery;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
-    private final OmsOrderAuditMapper omsOrderAuditMapper;
+    private final FinanceProfitAuditQuery financeProfitAuditQuery;
 
     private final FinanceMetricAssembler metricAssembler; // 🌟 专职处理复杂的拼装与计算
 
@@ -162,10 +162,23 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     @Override
     public PageVO<ProfitAuditVO> getProfitAuditPage(OmsOrderQueryDTO queryDTO) {
-        Page<ProfitAuditVO> page = omsOrderAuditMapper.getProfitAuditPage(
-                PageUtil.toPage(queryDTO), queryDTO.getOrderNo(), queryDTO.getStatus()
-        );
-        return PageUtil.toPageVO(page);
+        FinanceProfitAuditPageSnapshot page = financeProfitAuditQuery.getProfitAuditPage(
+                queryDTO.getPage(), queryDTO.getSize(), queryDTO.getOrderNo(), queryDTO.getStatus());
+        List<ProfitAuditVO> records = new ArrayList<>();
+        for (FinanceProfitAuditSnapshot row : page.getRecords()) {
+            ProfitAuditVO vo = new ProfitAuditVO();
+            vo.setOrderNo(row.getOrderNo());
+            vo.setGoodsName(row.getGoodsName());
+            vo.setCreateTime(row.getCreateTime());
+            vo.setSalePrice(row.getSalePrice());
+            vo.setGoodsPrice(row.getGoodsPrice());
+            vo.setPurchasePrice(row.getPurchasePrice());
+            vo.setUnitProfit(row.getUnitProfit());
+            vo.setProfitMargin(row.getProfitMargin());
+            vo.setIsMissingCost(row.getMissingCost());
+            records.add(vo);
+        }
+        return new PageVO<>(page.getCurrent(), page.getSize(), page.getTotal(), records);
     }
 
     // ==========================================

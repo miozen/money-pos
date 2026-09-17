@@ -13,6 +13,7 @@ import com.money.contract.trade.FinanceOperatingMetricSnapshot;
 import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.contract.trade.FinanceTrafficQuery;
 import com.money.contract.trade.FinanceProductAnalysisQuery;
+import com.money.contract.trade.FinanceProfitAuditQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
@@ -88,6 +89,8 @@ class FinanceFeatureIntegrationTest {
     private FinanceTrafficQuery financeTrafficQuery;
     @Autowired
     private FinanceProductAnalysisQuery financeProductAnalysisQuery;
+    @Autowired
+    private FinanceProfitAuditQuery financeProfitAuditQuery;
     @Autowired
     private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     @Autowired
@@ -453,6 +456,53 @@ class FinanceFeatureIntegrationTest {
             assertThat(row.getGoodsName()).isEqualTo("商品 ID:999999");
             assertThat(row.getTrendSalesQty()).containsExactly(0, 0);
         });
+    }
+
+    @Test
+    void profitAuditUsesTradePageSnapshotAndPreservesFiltersAndOrder() {
+        String suffix = "PA" + (System.nanoTime() % 1_000_000L);
+        LocalDateTime base = LocalDate.of(2031, 1, 1).atStartOfDay();
+        insertDashboardOrder(suffix + "-NORMAL", "PAID", base, new BigDecimal("20.00"),
+                new BigDecimal("5.00"), 1, 0, null, false, "Normal " + suffix);
+        insertDashboardOrder(suffix + "-LOSS", "PARTIAL_REFUNDED", base.plusMinutes(1), new BigDecimal("10.00"),
+                new BigDecimal("20.00"), 1, 0, null, false, "Loss " + suffix);
+        insertDashboardOrder(suffix + "-MISSING", "REFUNDED", base.plusMinutes(2), new BigDecimal("15.00"),
+                BigDecimal.ZERO, 1, 0, null, false, "Missing " + suffix);
+
+        assertThat(financeProfitAuditQuery.getProfitAuditPage(1, 1, null, null).getRecords())
+                .singleElement().satisfies(row -> {
+                    assertThat(row.getOrderNo()).isEqualTo(suffix + "-MISSING");
+                    assertThat(row.getMissingCost()).isEqualTo(1);
+                });
+        assertThat(financeProfitAuditQuery.getProfitAuditPage(1, 10, suffix + "-NORMAL", null))
+                .satisfies(page -> {
+                    assertThat(page.getTotal()).isEqualTo(1L);
+                    assertThat(page.getRecords()).singleElement().satisfies(row -> {
+                        assertThat(row.getOrderNo()).isEqualTo(suffix + "-NORMAL");
+                        assertThat(row.getUnitProfit()).isEqualByComparingTo(new BigDecimal("15.00"));
+                        assertThat(row.getMissingCost()).isEqualTo(0);
+                    });
+                });
+        assertThat(financeProfitAuditQuery.getProfitAuditPage(1, 10, null, "ANOMALY").getRecords())
+                .anySatisfy(row -> {
+                    assertThat(row.getOrderNo()).isEqualTo(suffix + "-LOSS");
+                    assertThat(row.getUnitProfit()).isEqualByComparingTo(new BigDecimal("-10.00"));
+                })
+                .anySatisfy(row -> {
+                    assertThat(row.getOrderNo()).isEqualTo(suffix + "-MISSING");
+                    assertThat(row.getMissingCost()).isEqualTo(1);
+                })
+                .noneMatch(row -> (suffix + "-NORMAL").equals(row.getOrderNo()));
+
+        com.money.dto.OmsOrder.OmsOrderQueryDTO query = new com.money.dto.OmsOrder.OmsOrderQueryDTO();
+        query.setPage(1);
+        query.setSize(1);
+        query.setStatus("ANOMALY");
+        com.money.contract.trade.FinanceProfitAuditPageSnapshot anomalyFirst =
+                financeProfitAuditQuery.getProfitAuditPage(1, 1, null, "ANOMALY");
+        assertThat(salesAnalysisService.getProfitAuditPage(query).getRecords()).singleElement()
+                .extracting(com.money.dto.OmsOrder.ProfitAuditVO::getOrderNo)
+                .isEqualTo(anomalyFirst.getRecords().get(0).getOrderNo());
     }
 
     @Test
