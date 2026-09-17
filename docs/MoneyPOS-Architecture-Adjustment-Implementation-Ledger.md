@@ -1108,3 +1108,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added API-neutral TRADE `FinanceSalesDashboardQuery` and immutable snapshots for top-goods, brand-ID sales and daily member/guest metrics. TRADE retains `OmsOrderAnalysisMapper`; its brand aggregation now returns only `brand_id` and amount, with no `gms_brand` join.
 - Migrated only `OmsSalesAnalysisServiceImpl.getSalesDashboard`. It reuses the existing TRADE daily-period query, maps top-goods facts to the unchanged response DTO, translates brand IDs through GMS `BrandNameQuery`, and retains the `无品牌/未知` fallback. FIN's assembler still owns date filling, card rules and ASP curves.
 - Extended the rolled-back FIN regression with paid, partial-refunded, refunded, returned-to-zero, known-brand, null-brand, member and guest fixtures. It verifies owner snapshots and the unchanged dashboard totals, ranks, names and trends. The next smallest task is P2.4.4.3: design the separate TRADE/SYS traffic query slices.
+
+### Completed: P2.4.4.3 FIN Traffic Query-Slice Design
+
+- Separated the three TRADE order aggregates (hour, MySQL weekday and day-of-month) from SYS's global traffic thresholds and weekly/monthly windows. The design records each closed range, `PAID`/`PARTIAL_REFUNDED` state set, divisor and grouping key rather than treating traffic as one generic metric.
+- FIN remains responsible for the external-to-MySQL weekday conversion, the fixed 28-day hourly window, strategy defaults, 24-hour zero fill, sample fields and `OUT`/`STAY` predicate. TRADE receives the FIN-owned divisor so it preserves the existing SQL average calculation; SYS supplies only four immutable strategy values.
+- No production source, SQL, route, database object, page field or test behavior changed. The next smallest task is P2.4.4.3.1: implement and migrate the two owner contracts for FIN traffic.

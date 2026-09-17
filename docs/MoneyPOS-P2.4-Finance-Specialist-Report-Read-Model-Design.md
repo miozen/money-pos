@@ -170,3 +170,43 @@ P2.4.4.2.1 已按此边界实施。TRADE `FinanceSalesDashboardQuery` 提供商�
 ### 验收与回滚
 
 回归在同一滚回事务写入两个日期的已支付、部分退款、全额退款订单及明细：覆盖一个退货后仍为正销量商品、一个净销量为零商品、已知品牌、空品牌、会员和散客。断言 TRADE 快照中的过滤/排序/限额，GMS 名称和 `无品牌/未知` 回退，以及 FIN 的连续日期、卡片、商品排行、品牌分布与双线 ASP 字段。若存在口径差异，仅回滚 P2.4.4.2.1 的 dashboard 消费端和新增契约；不影响 P2.4.4.1 绩效/汇总、客流或其他专项报表。
+
+## P2.4.4.3：客流 TRADE/SYS 查询切片盘点
+
+客流有小时罗盘、按周潮汐和按月潮汐三个入口；它们共用 `PAID`、`PARTIAL_REFUNDED` 和闭区间，但默认窗口、分组键、平均值除数、FIN 补零和策略用途均不同，不能压缩为一个“流量统计”口径。
+
+| FIN 入口 | TRADE 聚合与范围 | SYS 输入 | FIN 保留行为 |
+| --- | --- | --- | --- |
+| `getTrafficAnalysis(dayOfWeek)` | 调用时 `now - 28 days` 至 `now` 闭区间；可选 `DAYOFWEEK(create_time)`；按 `HOUR(create_time)` 聚合订单数与 `final_sales_amount`，返回总值及除以样本数的均值 | `trafficOrderThreshold`，缺失默认 `1.0`；`trafficValueThreshold`，缺失默认 `50.0` | 外部星期 `1..7` 转 MySQL：`7 -> 1`，其他 `+1`；有星期筛选时除数 `4.0`，否则 `28.0`；补齐 0..23，设置整数样本天数；仅订单均值和销售额均小于阈值时为 `OUT`，否则 `STAY` |
+| `getWeeklyTraffic()` | 调用时 `now - weeklyAnalysisDays` 至 `now` 闭区间；按 `DAYOFWEEK(create_time)` 聚合 | `weeklyAnalysisDays`，缺失默认 `90` | 除数为 `days / 7.0`；只对 SQL 返回行补总值零并设置 `sampleDays`，不补齐星期键 |
+| `getMonthlyTraffic()` | 调用时 `now - monthlyAnalysisDays` 至 `now` 闭区间；按 `DAY(create_time)` 聚合 | `monthlyAnalysisDays`，缺失默认 `180` | 除数为 `days / 30.43`；只对 SQL 返回行补总值零并设置 `sampleDays`，不补齐日期键 |
+
+SYS 的现有 `getGlobalStrategy` 忽略租户线并读取首个全局策略；迁移必须保留这一全局读取语义，但 FIN 不再接触 `SysStrategy` Entity、Mapper 或 `SysStrategyService`。策略查询不能和 TRADE 订单聚合合并，也不能由 TRADE 读取 SYS 表。
+
+### 拟定所有者查询契约与实施顺序
+
+在 `money-app-api` 中定义两个 Java 8 窄读契约：
+
+```text
+FinanceTrafficQuery                 // TRADE
+  listHourlyMetrics(startInclusive, endInclusive, mysqlDayOfWeek, divisor)
+    -> [ { hour, averageOrderCount, averageSalesAmount,
+           totalOrderCount, totalSalesAmount } ]
+  listWeeklyMetrics(startInclusive, endInclusive, divisor)
+    -> [ { timeKey, averageOrderCount, averageSalesAmount,
+           totalOrderCount, totalSalesAmount } ]
+  listMonthlyMetrics(startInclusive, endInclusive, divisor)
+    -> same time-key snapshot
+
+FinanceTrafficStrategyQuery         // SYS
+  getTrafficStrategy()
+    -> { orderThreshold, valueThreshold, weeklyAnalysisDays, monthlyAnalysisDays }
+```
+
+TRADE 快照携带原 SQL 已计算的均值和总值，避免 FIN 用不同精度重演数据库除法；`divisor` 仍由 FIN 按入口传入。SYS 快照仅携带这四个客流字段，不暴露策略 Entity 或写入能力。所有快照使用普通不可变类、`BigDecimal` 金额/阈值、`long` 订单总数、`int` 分组键及构造函数/getter，保持 Java 8 兼容。
+
+P2.4.4.3.1 将仅实现这两个契约并迁移三个客流入口：TRADE 保留 `OmsOrderTrafficMapper` 与 SQL，SYS 保留策略 Mapper；FIN 保留 `now` 取值、默认值、星期映射、除数、补零、样本字段和建议判定。不得改路由、页面字段、数据库表、Flyway 或事务边界。
+
+### 验收与回滚
+
+回归应写入同一小时内的已支付、部分退款和全额退款订单，并在不同星期/日号放置受控订单；断言 TRADE 三类快照的状态过滤、闭区间、分组、总值和均值。写入/更新全局策略后，断言 FIN 的小时 `OUT`/`STAY`、24 个时段、样本数，以及周/月除数和默认回退不变。测试必须在事务回滚后恢复策略。出现差异时只回滚 P2.4.4.3.1 的 TRADE/SYS 契约和 FIN 客流读取，不影响销售看板或其他分析入口。
