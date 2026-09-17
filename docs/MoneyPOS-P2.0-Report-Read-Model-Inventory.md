@@ -19,7 +19,7 @@ P2.0 基线时架构扫描有 4 项跨 Feature 实现 import，其中 3 项属�
 
 | 调用方/接口 | 读取数据与当前实现 | 所有者 | 风险 | 建议切片 |
 | --- | --- | --- | --- | --- |
-| `FinanceDashboardServiceImpl` / `/finance/dashboard`、`/channel-mix`、`/dashboard/asset` | TRADE 订单/支付 Mapper 与 `OmsOrder`；GMS 库存单据 Mapper 与 `GmsInventoryDoc`；UMS 会员流水 Mapper、`UmsMemberService.listObjs(UmsMember)`；`FinanceReportMapper` 直查订单/会员表 | TRADE、GMS、UMS | FIN→UMS 实现依赖，且多个跨域 Entity/Mapper 混合参与金额公式 | P2.3，按订单支付、库存、会员资产三组快照拆分 |
+| `FinanceDashboardServiceImpl` / `/finance/dashboard`、`/channel-mix`、`/dashboard/asset` | TRADE 订单/支付 Mapper 与 `OmsOrder`；GMS 库存单据 Mapper 与 `GmsInventoryDoc`；UMS 会员流水 Mapper、`UmsMemberService.listObjs(UmsMember)`；`FinanceReportMapper` 直查订单/会员表 | TRADE、GMS、UMS | FIN→UMS 实现依赖，且多个跨域 Entity/Mapper 混合参与金额公式 | P2.3 设计已完成，按订单支付、库存、会员资产三组快照实施；首切片为 GMS 库存单据 |
 | `FinanceShiftServiceImpl` / `/finance/shift-handover` | 订单、支付、订单明细 Mapper 的班次支付、优惠、品牌贡献聚合 | TRADE | 班次口径与 TRADE 查询实现耦合 | P2.4 TRADE 班次快照 |
 | `FinanceProfitServiceImpl`、`OmsSalesAnalysisServiceImpl` / 利润排行、活动复盘、经营分析 | TRADE 订单分析、明细、审计、客流 Mapper；SYS 策略 Mapper | TRADE、SYS | 报表 DTO 直接绑定订单分析 Mapper；SYS 阈值是独立参考数据 | P2.4 TRADE 经营分析快照；策略读取单独保留/收敛 |
 | `FinanceRiskServiceImpl` / `/finance/risk-control` | `OmsOrderAuditMapper` 的收银员风险与异常订单 | TRADE | 风控指标直接绑定审计 SQL 返回 `Map` | P2.4 TRADE 风控快照 |
@@ -44,4 +44,4 @@ P2.0 基线时架构扫描有 4 项跨 Feature 实现 import，其中 3 项属�
 
 ## 下一最小任务
 
-**P2.3：盘点 FIN 财务大盘的订单/支付、库存单据和会员资产读取，再按数据所有者设计快照。**
+**P2.3.1：以 GMS 库存单据快照替换 FIN 的库存损耗读取。**

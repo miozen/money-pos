@@ -16,7 +16,11 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 - [x] P2.2.3 已迁移 HOME 销售趋势与品牌营收图表：TRADE `HomeOrderReadQuery` 提供趋势点和品牌营收快照；`HomeServiceImpl` 不再依赖订单明细 Mapper，保留 `today` 最近七天特例和既有时间范围转换。
 - [x] P2.2.4 已迁移 HOME 会员等级图表：UMS `HomeMemberDistributionQuery` 返回有效会员的品牌名称、等级代码和人数；HOME 不再依赖 UMS Mapper，品牌名称经既有 GMS `BrandNameQuery` 窄查询转换。
 - [x] P2.2.5 已完成 HOME 报表快照验收：`/home/count` 与 `/home/charts` 控制器回归覆盖，HOME 集成回归、全量测试、打包和架构门禁均通过；路由、页面字段及 HOME 日快照写入/补偿时机未改变。
-- [ ] P2.3 迁移 FIN 财务大盘读模型：按“订单/支付”“库存单据”“会员资产”三组快照替换 `FinanceDashboardServiceImpl` 的跨域 Mapper、Entity 和 `UmsMemberService` 读取；保持资产、收入、渠道与七日趋势口径。
+- [x] P2.3 已完成 FIN 财务大盘读模型盘点与快照设计：固定订单/支付、库存单据、会员资产及资产概览的公式、状态和日边界，并拆为三个数据所有者契约；详见 `MoneyPOS-P2.3-Finance-Dashboard-Read-Snapshot-Design.md`。
+- [ ] P2.3.1 迁移 GMS 库存单据快照：以 `FinanceInventoryDocumentQuery` 替换 FIN 对库存单据 Mapper/Entity 的读取，保持仅负金额计入库存损耗的毛利口径。
+- [ ] P2.3.2 迁移 UMS 会员资产快照：替换会员充值、正余额总额和资产本金/赠金读取，并消除 FIN→UMS 实现依赖。
+- [ ] P2.3.3 迁移 TRADE 订单/支付快照：替换当日核心指标、支付渠道、退款趋势、渠道优惠和今日订单资产概览读取。
+- [ ] P2.3.4 收敛 FIN 组装并验收：移除财务大盘服务的跨域 Mapper/Entity 依赖，完成受控数据回归、全量测试、打包和架构门禁。
 - [ ] P2.4 迁移 FIN 专项报表：交接班、利润、营销复盘、风控、经营分析与瀑布流 SQL 分别收敛为 TRADE/GMS/UMS 所有者查询；不把不同财务口径强行合并。
 - [ ] P2.5 验收与复核：增加 FIN/HOME 集成回归，运行全量 Maven 测试、构建和架构门禁；复核剩余跨 Feature 实现导入与共享 Entity 归属。
 
@@ -31,4 +35,4 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2.3：盘点并迁移 FIN 财务大盘读模型，按订单/支付、库存单据、会员资产三组快照拆分。**
+**P2.3.1：迁移 GMS 库存单据快照，先收敛 FIN 财务大盘的库存损耗读取。**
