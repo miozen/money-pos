@@ -3,8 +3,10 @@ package com.money.feature.fin.application;
 import com.money.feature.fin.application.dashboard.FinanceDashboardService;
 import com.money.feature.fin.application.report.FinanceReportService;
 import com.money.feature.fin.application.report.FinanceShiftService;
+import com.money.feature.fin.application.analysis.FinanceRiskService;
 import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
 import com.money.contract.member.FinanceMemberAssetQuery;
+import com.money.contract.trade.FinanceRiskQuery;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.entity.GmsInventoryDoc;
 import com.money.entity.OmsOrder;
@@ -52,6 +54,10 @@ class FinanceFeatureIntegrationTest {
 
     @Autowired
     private FinanceShiftService financeShiftService;
+    @Autowired
+    private FinanceRiskService financeRiskService;
+    @Autowired
+    private FinanceRiskQuery financeRiskQuery;
 
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
@@ -171,6 +177,32 @@ class FinanceFeatureIntegrationTest {
         assertThat(financeDashboardService.getAssetDashboard().getTodayRealCash()).isGreaterThanOrEqualTo(new BigDecimal("18.00"));
     }
 
+    @Test
+    void riskControlUsesTradeAuditSnapshotsAndPreservesCardsAndRows() {
+        String suffix = "R" + (System.nanoTime() % 1_000_000_000L);
+        String cashier = "risk-" + suffix;
+        insertRiskOrder(suffix + "-LOSS", cashier, "PAID", new BigDecimal("30.00"),
+                new BigDecimal("30.00"), new BigDecimal("40.00"), BigDecimal.ZERO);
+        insertRiskOrder(suffix + "-MANUAL", cashier, "REFUNDED", new BigDecimal("60.00"),
+                new BigDecimal("60.00"), new BigDecimal("10.00"), new BigDecimal("60.00"));
+
+        assertThat(financeRiskQuery.listCashierRiskSummaries(LocalDate.now().atStartOfDay(), LocalDateTime.now())
+                .stream().filter(row -> cashier.equals(row.getCashierName())).findFirst())
+                .isPresent();
+        assertThat(financeRiskQuery.listAbnormalOrders(LocalDate.now().atStartOfDay(), LocalDateTime.now())
+                .stream().map(row -> row.getOrderNo())).contains(suffix + "-LOSS", suffix + "-MANUAL");
+
+        java.util.Map<String, Object> result = financeRiskService.getRiskSummary(LocalDate.now().toString(), LocalDate.now().toString());
+        assertThat((Integer) result.get("abnormalOrderCount")).isGreaterThanOrEqualTo(2);
+        assertThat((BigDecimal) result.get("totalLossAmount")).isGreaterThanOrEqualTo(new BigDecimal("10.00"));
+        assertThat((BigDecimal) result.get("totalManualDiscount")).isGreaterThanOrEqualTo(new BigDecimal("60.00"));
+        assertThat((Long) result.get("totalRefundCount")).isGreaterThanOrEqualTo(1L);
+
+        java.util.List<?> rows = (java.util.List<?>) result.get("recentAbnormalOrders");
+        assertThat(rows.stream().map(row -> String.valueOf(((java.util.Map<?, ?>) row).get("orderNo"))))
+                .contains(suffix + "-LOSS", suffix + "-MANUAL");
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -230,5 +262,27 @@ class FinanceFeatureIntegrationTest {
         payment.setNetAmount(netAmount);
         payment.setCreateTime(LocalDateTime.now());
         orderPayMapper.insert(payment);
+    }
+
+    private void insertRiskOrder(String orderNo, String cashier, String status, BigDecimal payAmount,
+                                 BigDecimal finalSalesAmount, BigDecimal costAmount, BigDecimal manualDiscountAmount) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(false);
+        order.setTotalAmount(payAmount);
+        order.setPayAmount(payAmount);
+        order.setFinalSalesAmount(finalSalesAmount);
+        order.setCostAmount(costAmount);
+        order.setManualDiscountAmount(manualDiscountAmount);
+        order.setActualCouponDeduct(BigDecimal.ZERO);
+        order.setWaivedCouponAmount(BigDecimal.ZERO);
+        order.setUseVoucherAmount(BigDecimal.ZERO);
+        order.setCouponAmount(BigDecimal.ZERO);
+        order.setPaymentTime(LocalDateTime.now());
+        order.setTenantId(0L);
+        order.setCreateBy(cashier);
+        order.setCreateTime(LocalDateTime.now());
+        orderMapper.insert(order);
     }
 }
