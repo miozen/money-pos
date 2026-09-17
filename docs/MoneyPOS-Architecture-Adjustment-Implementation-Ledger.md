@@ -1020,3 +1020,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - `HomeServiceImpl` no longer imports `UmsMemberBrandLevelMapper`; it maps only the UMS snapshot to the existing `MemberBarVO`. The member-level chart remains a current-state view and deliberately ignores the selected order-chart range.
 - Added an integration regression with a unique GMS brand, one active member and one logically deleted member. It verifies the resolved brand name, level code, count excluding the deleted member, and the same bar output for `today` and `month`.
 - The next smallest task is P2.2.5: complete the HOME report-snapshot acceptance review with endpoint-output, full automated and architecture-gate verification.
+
+### Completed: P2.2.5 HOME Report Snapshot Acceptance
+
+- The HOME controller characterization suite now enters `GET /home/charts` through `HomeController`, covering `today`, `month`, `year` and `total`; the existing count-controller regression continues to verify the `/home/count` response shape, daily snapshot create/update behavior and inventory value.
+- The completed P2.2 boundary is: HOME only assembles its page data and owns `OmsDailySummary`; TRADE owns all HOME order/line read formulas through `HomeOrderReadQuery`; UMS owns active member-level distribution through `HomeMemberDistributionQuery`; GMS supplies only inventory valuation and requested brand names through narrow contracts.
+- No route, HTTP field, database object, Flyway history, page component, day-snapshot write timing or alert timing changed. Full Maven regression, packaging and the additions-only architecture gate passed. Prior manual front-end verification remains applicable because the routes and fields are unchanged.
+- The next smallest task is P2.3: inventory FIN financial-dashboard reads by their TRADE order/payment, GMS inventory-document and UMS member-asset owners before introducing any FIN snapshot contracts.

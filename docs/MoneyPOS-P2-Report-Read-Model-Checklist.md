@@ -15,6 +15,7 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 - [x] P2.2.2 已迁移 HOME 日快照和综合大盘订单读取：TRADE 提供日快照原子值与综合大盘区间快照；`DecisionEngineServiceImpl` 不再读取订单分析 Mapper 或内嵌订单 SQL，仍拥有 `OmsDailySummary` 写入、缺失日期补偿和告警时机。
 - [x] P2.2.3 已迁移 HOME 销售趋势与品牌营收图表：TRADE `HomeOrderReadQuery` 提供趋势点和品牌营收快照；`HomeServiceImpl` 不再依赖订单明细 Mapper，保留 `today` 最近七天特例和既有时间范围转换。
 - [x] P2.2.4 已迁移 HOME 会员等级图表：UMS `HomeMemberDistributionQuery` 返回有效会员的品牌名称、等级代码和人数；HOME 不再依赖 UMS Mapper，品牌名称经既有 GMS `BrandNameQuery` 窄查询转换。
+- [x] P2.2.5 已完成 HOME 报表快照验收：`/home/count` 与 `/home/charts` 控制器回归覆盖，HOME 集成回归、全量测试、打包和架构门禁均通过；路由、页面字段及 HOME 日快照写入/补偿时机未改变。
 - [ ] P2.3 迁移 FIN 财务大盘读模型：按“订单/支付”“库存单据”“会员资产”三组快照替换 `FinanceDashboardServiceImpl` 的跨域 Mapper、Entity 和 `UmsMemberService` 读取；保持资产、收入、渠道与七日趋势口径。
 - [ ] P2.4 迁移 FIN 专项报表：交接班、利润、营销复盘、风控、经营分析与瀑布流 SQL 分别收敛为 TRADE/GMS/UMS 所有者查询；不把不同财务口径强行合并。
 - [ ] P2.5 验收与复核：增加 FIN/HOME 集成回归，运行全量 Maven 测试、构建和架构门禁；复核剩余跨 Feature 实现导入与共享 Entity 归属。
@@ -30,4 +31,4 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2.2.5：完成 HOME 报表快照验收，复核 `/home/count`、`/home/charts` 输出、全量自动化验证和架构门禁。**
+**P2.3：盘点并迁移 FIN 财务大盘读模型，按订单/支付、库存单据、会员资产三组快照拆分。**

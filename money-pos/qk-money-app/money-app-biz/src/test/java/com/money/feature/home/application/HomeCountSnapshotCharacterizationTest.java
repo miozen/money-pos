@@ -219,7 +219,7 @@ class HomeCountSnapshotCharacterizationTest {
 
     private void assertChartsMatchTradeQuery(String timeRange, LocalDateTime trendStart, LocalDateTime trendEnd,
                                               LocalDateTime brandStart, LocalDateTime brandEnd) {
-        HomeChartsVO charts = homeService.getChartsData(timeRange);
+        HomeChartsVO charts = homeController.getChartsData(timeRange);
         List<HomeSalesTrendSnapshot> trendSnapshots = homeOrderReadQuery.listSalesTrend(trendStart, trendEnd);
         List<HomeBrandSalesSnapshot> brandSnapshots = homeOrderReadQuery.listBrandSales(brandStart, brandEnd);
         assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);

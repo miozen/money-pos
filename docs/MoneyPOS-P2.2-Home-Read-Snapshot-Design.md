@@ -55,7 +55,7 @@ TRADE 的实现可以继续在本域使用既有 `OmsOrderMapper`、`OmsOrderAna
 - [x] **P2.2.2 日快照与大盘区间汇总**：已实现 `summarizeDailySnapshot` 与 `summarizeDashboardRange`，并迁移 `DecisionEngineServiceImpl` 的 TRADE Mapper/JDBC 查询；HOME 写入、补偿和警报时机保持不变。特征测试覆盖日快照与综合大盘不同的状态口径、落库的销售/利润/订单数，以及月大盘输出。
 - [x] **P2.2.3 销售趋势与品牌营收图表**：已实现 `listSalesTrend`、`listBrandSales`，并迁移 HOME 的订单明细 Mapper 依赖；特征测试覆盖 `today` 最近 7 天特例、`month/year/total` 时间范围、订单趋势金额与退货数量扣减后的品牌营收。
 - [x] **P2.2.4 会员等级图表**：已实现 `HomeMemberDistributionQuery`，迁移 HOME 的 UMS Mapper 依赖，并用 `BrandNameQuery` 保持品牌名称；集成测试覆盖有效/逻辑删除会员、品牌名转换，以及不随 `today/month` 变化的输出。
-- [ ] **P2.2.5 验收**：执行 HOME 集成回归、全量 `mvn test`、`mvn package -DskipTests` 与架构门禁；人工确认 `/home/count` 和 `/home/charts` 的字段与页面可用。
+- [x] **P2.2.5 验收**：已通过 HOME 控制器回归复核 `/home/count` 的响应结构、当日日快照写入/覆盖和库存值，以及 `/home/charts` 在 `today/month/year/total` 下的趋势、品牌和会员等级字段；全量 `mvn test`、`mvn package -DskipTests` 与架构门禁通过。此前已确认前后端页面可用；本切片未改变路由或页面字段。
 
 ## 已识别风险
 
@@ -67,4 +67,4 @@ TRADE 的实现可以继续在本域使用既有 `OmsOrderMapper`、`OmsOrderAna
 
 ## 下一最小任务
 
-**P2.2.5：完成 HOME 报表快照验收，复核 `/home/count`、`/home/charts` 输出、全量自动化验证和架构门禁。**
+**P2.3：盘点并迁移 FIN 财务大盘读模型，按订单/支付、库存单据、会员资产三组快照拆分。**
