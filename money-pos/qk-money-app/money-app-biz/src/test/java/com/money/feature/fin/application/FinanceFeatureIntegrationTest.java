@@ -7,9 +7,13 @@ import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
 import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.entity.GmsInventoryDoc;
+import com.money.entity.OmsOrder;
+import com.money.entity.OmsOrderPay;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
 import com.money.mapper.GmsInventoryDocMapper;
+import com.money.mapper.OmsOrderMapper;
+import com.money.mapper.OmsOrderPayMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
 import com.money.support.TradeFixture;
@@ -51,6 +55,10 @@ class FinanceFeatureIntegrationTest {
 
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
+    @Autowired
+    private OmsOrderMapper orderMapper;
+    @Autowired
+    private OmsOrderPayMapper orderPayMapper;
     @Autowired
     private FinanceMemberAssetQuery financeMemberAssetQuery;
     @Autowired
@@ -136,6 +144,33 @@ class FinanceFeatureIntegrationTest {
                         .divide(totalAssets, 2, RoundingMode.HALF_UP));
     }
 
+    @Test
+    void dashboardUsesTradeOrderPaymentSnapshotsForMetricsChannelsAndRefundTrend() {
+        LocalDate today = LocalDate.now();
+        FinanceDashboardVO before = financeDashboardService.getDashboardData(today.toString());
+        String suffix = "F" + (System.nanoTime() % 1_000_000_000L);
+        insertOrder(suffix + "-PAID", "PAID", new BigDecimal("20.00"), new BigDecimal("18.00"),
+                new BigDecimal("2.00"), new BigDecimal("1.00"), new BigDecimal("3.00"), new BigDecimal("4.00"));
+        insertPayment(suffix + "-PAID", "CASH", null, new BigDecimal("18.00"));
+        insertOrder(suffix + "-REFUND", "REFUNDED", new BigDecimal("10.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        insertPayment(suffix + "-REFUND", "AGGREGATE", "WX", new BigDecimal("10.00"));
+
+        FinanceDashboardVO dashboard = financeDashboardService.getDashboardData(today.toString());
+        assertThat(dashboard.getTotalAmount()).isEqualByComparingTo(before.getTotalAmount().add(new BigDecimal("30.00")));
+        assertThat(dashboard.getPayAmount()).isEqualByComparingTo(before.getPayAmount().add(new BigDecimal("20.00")));
+        assertThat(dashboard.getRefundAmount()).isEqualByComparingTo(before.getRefundAmount().add(new BigDecimal("2.00")));
+        assertThat(dashboard.getTrendRefund().get(6)).isEqualByComparingTo(before.getTrendRefund().get(6).add(new BigDecimal("2.00")));
+        assertThat(dashboard.getTrendCash().get(6)).isEqualByComparingTo(before.getTrendCash().get(6).add(new BigDecimal("18.00")));
+
+        com.money.dto.Finance.FinanceDataVO.ChannelMixAnalysisVO channelMix =
+                financeDashboardService.getChannelMixAnalysis(today.toString(), today.toString());
+        assertThat(channelMix.getCashList().get(0)).isGreaterThanOrEqualTo(new BigDecimal("18.00"));
+        assertThat(channelMix.getCouponList().get(0)).isGreaterThanOrEqualTo(new BigDecimal("2.00"));
+        assertThat(channelMix.getVoucherList().get(0)).isGreaterThanOrEqualTo(new BigDecimal("3.00"));
+        assertThat(financeDashboardService.getAssetDashboard().getTodayRealCash()).isGreaterThanOrEqualTo(new BigDecimal("18.00"));
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -159,5 +194,41 @@ class FinanceFeatureIntegrationTest {
         log.setTenantId("0");
         log.setCreateTime(LocalDateTime.now());
         memberLogMapper.insert(log);
+    }
+
+    private void insertOrder(String orderNo, String status, BigDecimal totalAmount, BigDecimal finalSalesAmount,
+                             BigDecimal actualCouponDeduct, BigDecimal waivedCouponAmount,
+                             BigDecimal useVoucherAmount, BigDecimal manualDiscountAmount) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(false);
+        order.setTotalAmount(totalAmount);
+        order.setCouponAmount(actualCouponDeduct);
+        order.setActualCouponDeduct(actualCouponDeduct);
+        order.setWaivedCouponAmount(waivedCouponAmount);
+        order.setUseVoucherAmount(useVoucherAmount);
+        order.setManualDiscountAmount(manualDiscountAmount);
+        order.setPayAmount(totalAmount.subtract(actualCouponDeduct).subtract(waivedCouponAmount)
+                .subtract(useVoucherAmount).subtract(manualDiscountAmount));
+        order.setFinalSalesAmount(finalSalesAmount);
+        order.setCostAmount(BigDecimal.ZERO);
+        order.setPaymentTime(LocalDateTime.now());
+        order.setTenantId(0L);
+        order.setCreateTime(LocalDateTime.now());
+        orderMapper.insert(order);
+    }
+
+    private void insertPayment(String orderNo, String methodCode, String payTag, BigDecimal netAmount) {
+        OmsOrderPay payment = new OmsOrderPay();
+        payment.setOrderNo(orderNo);
+        payment.setPayMethodCode(methodCode);
+        payment.setPayMethodName(methodCode);
+        payment.setPayTag(payTag);
+        payment.setPayAmount(netAmount);
+        payment.setOriginalAmount(netAmount);
+        payment.setNetAmount(netAmount);
+        payment.setCreateTime(LocalDateTime.now());
+        orderPayMapper.insert(payment);
     }
 }

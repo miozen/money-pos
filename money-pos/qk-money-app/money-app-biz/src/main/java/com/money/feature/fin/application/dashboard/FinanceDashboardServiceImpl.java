@@ -1,53 +1,42 @@
 package com.money.feature.fin.application.dashboard;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.money.constant.OrderStatusEnum;
 import com.money.contract.goods.FinanceInventoryDocumentQuery;
 import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
 import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.member.FinanceMemberRechargeSnapshot;
 import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
+import com.money.contract.trade.FinanceChannelDiscountSnapshot;
+import com.money.contract.trade.FinanceDailyOrderMetricSnapshot;
+import com.money.contract.trade.FinanceOrderPaymentQuery;
+import com.money.contract.trade.FinancePaymentSummarySnapshot;
+import com.money.contract.trade.FinanceRefundBaseSnapshot;
+import com.money.contract.trade.FinanceTodayAssetOrderMetricsSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.entity.OmsOrder;
-import com.money.mapper.OmsOrderMapper;
-import com.money.mapper.OmsOrderPayMapper;
-import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
-import com.money.feature.fin.application.dashboard.FinanceDashboardService;
-import com.money.feature.fin.application.dashboard.FinanceDashboardAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FinanceDashboardServiceImpl implements FinanceDashboardService {
 
-    private final OmsOrderMapper omsOrderMapper;
-    private final OmsOrderPayMapper omsOrderPayMapper;
+    private final FinanceOrderPaymentQuery financeOrderPaymentQuery;
     private final FinanceMemberAssetQuery financeMemberAssetQuery;
     private final FinanceInventoryDocumentQuery financeInventoryDocumentQuery;
-    private final FinanceReportMapper financeReportMapper;
-
     private final FinanceDashboardAssembler assembler; // 🌟 专职组装工厂
 
     @Override
     public AssetDashboardVO getAssetDashboard() {
-        AssetDashboardVO dashboard = financeReportMapper.getTodayAssetSummary();
-        if (dashboard == null) {
-            dashboard = new AssetDashboardVO();
-            dashboard.setTodayRealCash(BigDecimal.ZERO);
-            dashboard.setTodayWaivedAmount(BigDecimal.ZERO);
-            dashboard.setTodayAssetDeduct(BigDecimal.ZERO);
-        }
+        FinanceTodayAssetOrderMetricsSnapshot metrics = financeOrderPaymentQuery.getTodayAssetOrderMetrics(LocalDate.now());
+        AssetDashboardVO dashboard = new AssetDashboardVO();
+        dashboard.setTodayRealCash(metrics.getFinalSalesAmount());
+        dashboard.setTodayWaivedAmount(metrics.getWaivedCouponAmount());
+        dashboard.setTodayAssetDeduct(metrics.getActualCouponDeduct());
 
         // 委托装配器计算比例
         assembler.assembleAssetDashboard(dashboard, financeMemberAssetQuery.getAssetComposition());
@@ -57,33 +46,27 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
     @Override
     public FinanceDashboardVO getDashboardData(String date) {
         LocalDate targetDate = (date != null && !date.isEmpty()) ? LocalDate.parse(date) : LocalDate.now();
-        LocalDateTime startOfDay = LocalDateTime.of(targetDate, LocalTime.MIN);
-        LocalDateTime endOfDay = LocalDateTime.of(targetDate, LocalTime.MAX);
-        LocalDateTime startOf7DaysAgo = LocalDateTime.of(targetDate.minusDays(6), LocalTime.MIN);
-
         FinanceDashboardVO vo = new FinanceDashboardVO();
 
         // 1. 抓取原始数据
-        List<OmsOrder> dailyOrders = omsOrderMapper.selectList(new LambdaQueryWrapper<OmsOrder>()
-                .ge(OmsOrder::getCreateTime, startOfDay).le(OmsOrder::getCreateTime, endOfDay)
-                .in(OmsOrder::getStatus, OrderStatusEnum.getValidFinancialStatus()));
+        List<FinanceDailyOrderMetricSnapshot> dailyOrders = financeOrderPaymentQuery.listDailyOrderMetrics(targetDate);
 
         List<FinanceInventoryDocumentSnapshot> inventoryDocs = financeInventoryDocumentQuery
                 .listDailyFinancialDocuments(targetDate);
 
-        List<Map<String, Object>> dailyNetPays = omsOrderPayMapper.getDailyPaySummary(startOfDay, endOfDay);
+        List<FinancePaymentSummarySnapshot> dailyNetPays = financeOrderPaymentQuery
+                .listDailyPaymentSummaries(targetDate, targetDate);
 
         List<FinanceMemberRechargeSnapshot> dailyRecharges = financeMemberAssetQuery.listDailyRecharges(targetDate);
         BigDecimal totalDebt = financeMemberAssetQuery.getPositiveBalanceTotal();
 
         // 获取趋势所需基础数据
-        List<Map<String, Object>> paySummary = omsOrderPayMapper.getDailyPaySummary(startOf7DaysAgo, endOfDay);
+        List<FinancePaymentSummarySnapshot> paySummary = financeOrderPaymentQuery
+                .listDailyPaymentSummaries(targetDate.minusDays(6), targetDate);
         List<FinanceMemberRechargeTotalSnapshot> rechargeSummary = financeMemberAssetQuery
                 .listDailyRechargeTotals(targetDate.minusDays(6), targetDate);
-        List<Map<String, Object>> dailyOrderStats = omsOrderMapper.selectMaps(new QueryWrapper<OmsOrder>()
-                .select("DATE_FORMAT(create_time, '%Y-%m-%d') AS dateStr", "SUM(pay_amount) AS dailyGrossPay", "SUM(final_sales_amount) AS dailyNetPay")
-                .ge("create_time", startOf7DaysAgo).le("create_time", endOfDay)
-                .in("status", OrderStatusEnum.getValidFinancialStatus()).groupBy("DATE(create_time)"));
+        List<FinanceRefundBaseSnapshot> dailyOrderStats = financeOrderPaymentQuery
+                .listDailyRefundBases(targetDate.minusDays(6), targetDate);
 
         // 2. 委托装配器组装结果
         assembler.assembleCoreMetrics(vo, dailyOrders, inventoryDocs);
@@ -97,18 +80,9 @@ public class FinanceDashboardServiceImpl implements FinanceDashboardService {
     public ChannelMixAnalysisVO getChannelMixAnalysis(String startDate, String endDate) {
         LocalDate start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : LocalDate.now().minusDays(6);
         LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : LocalDate.now();
-        LocalDateTime startTime = LocalDateTime.of(start, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
-
         // 1. 抓取原始数据
-        List<Map<String, Object>> paySummary = omsOrderPayMapper.getDailyPaySummary(startTime, endTime);
-        List<Map<String, Object>> orderStats = omsOrderMapper.selectMaps(new QueryWrapper<OmsOrder>()
-                .select("DATE_FORMAT(create_time, '%Y-%m-%d') AS dateStr",
-                        "SUM(IFNULL(actual_coupon_deduct, 0)) AS couponAmt",
-                        "SUM(IFNULL(use_voucher_amount, 0)) AS voucherAmt")
-                .ge("create_time", startTime).le("create_time", endTime)
-                .in("status", "PAID", "PARTIAL_REFUNDED", "REFUNDED")
-                .groupBy("DATE(create_time)"));
+        List<FinancePaymentSummarySnapshot> paySummary = financeOrderPaymentQuery.listDailyPaymentSummaries(start, end);
+        List<FinanceChannelDiscountSnapshot> orderStats = financeOrderPaymentQuery.listDailyChannelDiscounts(start, end);
 
         // 2. 委托装配器组装结果
         ChannelMixAnalysisVO vo = new ChannelMixAnalysisVO();

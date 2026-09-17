@@ -5,8 +5,11 @@ import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
 import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
 import com.money.contract.member.FinanceMemberRechargeSnapshot;
 import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
+import com.money.contract.trade.FinanceChannelDiscountSnapshot;
+import com.money.contract.trade.FinanceDailyOrderMetricSnapshot;
+import com.money.contract.trade.FinancePaymentSummarySnapshot;
+import com.money.contract.trade.FinanceRefundBaseSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.entity.OmsOrder;
 import com.money.web.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -66,7 +69,7 @@ public class FinanceDashboardAssembler {
     /**
      * 2. 组装核心交易指标 (应收/实收/退款/净收/毛利)
      */
-    public void assembleCoreMetrics(FinanceDashboardVO vo, List<OmsOrder> dailyOrders,
+    public void assembleCoreMetrics(FinanceDashboardVO vo, List<FinanceDailyOrderMetricSnapshot> dailyOrders,
                                     List<FinanceInventoryDocumentSnapshot> inventoryDocs) {
         BigDecimal totalAmount = BigDecimal.ZERO, totalDiscount = BigDecimal.ZERO;
         BigDecimal payAmount = BigDecimal.ZERO, refundAmount = BigDecimal.ZERO, costAmount = BigDecimal.ZERO;
@@ -74,7 +77,7 @@ public class FinanceDashboardAssembler {
         BigDecimal actualCouponDeduct = BigDecimal.ZERO, waivedCouponAmount = BigDecimal.ZERO;
         BigDecimal voucherAmount = BigDecimal.ZERO, manualDiscountAmount = BigDecimal.ZERO;
 
-        for (OmsOrder o : dailyOrders) {
+        for (FinanceDailyOrderMetricSnapshot o : dailyOrders) {
             totalAmount = totalAmount.add(null2Zero(o.getTotalAmount()));
 
             BigDecimal currentActualCoupon = o.getActualCouponDeduct() != null ? o.getActualCouponDeduct() : null2Zero(o.getCouponAmount());
@@ -120,23 +123,23 @@ public class FinanceDashboardAssembler {
     /**
      * 3. 组装资金流入分布与饼图
      */
-    public void assembleIncomeAndPie(FinanceDashboardVO vo, List<Map<String, Object>> dailyNetPays,
+    public void assembleIncomeAndPie(FinanceDashboardVO vo, List<FinancePaymentSummarySnapshot> dailyNetPays,
                                      List<FinanceMemberRechargeSnapshot> dailyRecharges, BigDecimal totalDebt) {
         BigDecimal scanIncomeTotal = BigDecimal.ZERO, cashIncome = BigDecimal.ZERO, balancePay = BigDecimal.ZERO;
         Map<String, BigDecimal> scanTagMap = new HashMap<>();
 
-        for (Map<String, Object> payMap : dailyNetPays) {
-            BigDecimal amt = parseAmt(payMap.get("netAmount"));
+        for (FinancePaymentSummarySnapshot payMap : dailyNetPays) {
+            BigDecimal amt = null2Zero(payMap.getNetAmount());
             if (amt.compareTo(BigDecimal.ZERO) <= 0) continue;
 
-            PayMethodEnum method = PayMethodEnum.fromCode((String) payMap.get("methodCode"));
+            PayMethodEnum method = PayMethodEnum.fromCode(payMap.getMethodCode());
             if (method == null) method = PayMethodEnum.AGGREGATE;
 
             if (method == PayMethodEnum.BALANCE) balancePay = balancePay.add(amt);
             else if (method == PayMethodEnum.CASH) cashIncome = cashIncome.add(amt);
             else {
                 scanIncomeTotal = scanIncomeTotal.add(amt);
-                String rawTag = (String) payMap.get("payTag");
+                String rawTag = payMap.getPayTag();
                 rawTag = (rawTag != null && !rawTag.trim().isEmpty()) ? rawTag : "UNKNOWN";
                 scanTagMap.put(rawTag, scanTagMap.getOrDefault(rawTag, BigDecimal.ZERO).add(amt));
             }
@@ -161,21 +164,21 @@ public class FinanceDashboardAssembler {
     /**
      * 4. 组装近7日财务趋势折线图
      */
-    public void assembleTrendLines(FinanceDashboardVO vo, LocalDate targetDate, List<Map<String, Object>> paySummary,
+    public void assembleTrendLines(FinanceDashboardVO vo, LocalDate targetDate, List<FinancePaymentSummarySnapshot> paySummary,
                                    List<FinanceMemberRechargeTotalSnapshot> rechargeSummary,
-                                   List<Map<String, Object>> dailyOrderStats) {
+                                   List<FinanceRefundBaseSnapshot> dailyOrderStats) {
         Map<String, BigDecimal> historyRefundMap = new HashMap<>();
-        for (Map<String, Object> stat : dailyOrderStats) {
-            String dStr = String.valueOf(stat.get("dateStr"));
-            BigDecimal dRefund = parseAmt(stat.get("dailyGrossPay")).subtract(parseAmt(stat.get("dailyNetPay")));
+        for (FinanceRefundBaseSnapshot stat : dailyOrderStats) {
+            String dStr = stat.getDate().format(FORMATTER_YYYY_MM_DD);
+            BigDecimal dRefund = null2Zero(stat.getPayAmount()).subtract(null2Zero(stat.getFinalSalesAmount()));
             historyRefundMap.put(dStr, dRefund.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : dRefund);
         }
 
         Set<String> allTags = paySummary.stream().filter(r -> {
-            PayMethodEnum m = PayMethodEnum.fromCode((String) r.get("methodCode"));
+            PayMethodEnum m = PayMethodEnum.fromCode(r.getMethodCode());
             return m != PayMethodEnum.CASH && m != PayMethodEnum.BALANCE;
         }).map(r -> {
-            String tag = (String) r.get("payTag");
+            String tag = r.getPayTag();
             return (tag != null && !tag.trim().isEmpty()) ? tag : "UNKNOWN";
         }).collect(Collectors.toSet());
 
@@ -194,14 +197,14 @@ public class FinanceDashboardAssembler {
             BigDecimal dailyScan = BigDecimal.ZERO, dailyCash = BigDecimal.ZERO;
             Map<String, BigDecimal> dailyTagAmt = new HashMap<>();
 
-            for(Map<String, Object> r : paySummary){
-                if(matchDateStr.equals(String.valueOf(r.get("dateStr")))){
-                    BigDecimal amt = parseAmt(r.get("netAmount"));
-                    PayMethodEnum method = PayMethodEnum.fromCode((String) r.get("methodCode"));
+            for(FinancePaymentSummarySnapshot r : paySummary){
+                if(matchDateStr.equals(r.getDate().format(FORMATTER_YYYY_MM_DD))){
+                    BigDecimal amt = null2Zero(r.getNetAmount());
+                    PayMethodEnum method = PayMethodEnum.fromCode(r.getMethodCode());
                     if (method == PayMethodEnum.CASH) dailyCash = dailyCash.add(amt);
                     else if (method != PayMethodEnum.BALANCE) {
                         dailyScan = dailyScan.add(amt);
-                        String tag = (String) r.get("payTag");
+                        String tag = r.getPayTag();
                         tag = (tag != null && !tag.trim().isEmpty()) ? tag : "UNKNOWN";
                         dailyTagAmt.put(tag, dailyTagAmt.getOrDefault(tag, BigDecimal.ZERO).add(amt));
                     }
@@ -227,7 +230,7 @@ public class FinanceDashboardAssembler {
     /**
      * 5. 组装渠道组合分析 (瀑布流视图)
      */
-    public void assembleChannelMix(ChannelMixAnalysisVO vo, LocalDate start, LocalDate end, List<Map<String, Object>> paySummary, List<Map<String, Object>> orderStats) {
+    public void assembleChannelMix(ChannelMixAnalysisVO vo, LocalDate start, LocalDate end, List<FinancePaymentSummarySnapshot> paySummary, List<FinanceChannelDiscountSnapshot> orderStats) {
         List<String> trendDates = new ArrayList<>();
         LocalDate temp = start;
         while (!temp.isAfter(end)) {
@@ -243,17 +246,17 @@ public class FinanceDashboardAssembler {
         for (String dateStr : trendDates) {
             BigDecimal dailyScan = BigDecimal.ZERO, dailyCash = BigDecimal.ZERO, dailyBalance = BigDecimal.ZERO;
 
-            for (Map<String, Object> pay : paySummary) {
-                if (dateStr.equals(String.valueOf(pay.get("dateStr")))) {
-                    BigDecimal amt = parseAmt(pay.get("netAmount"));
-                    PayMethodEnum method = PayMethodEnum.fromCode((String) pay.get("methodCode"));
+            for (FinancePaymentSummarySnapshot pay : paySummary) {
+                if (dateStr.equals(pay.getDate().format(FORMATTER_YYYY_MM_DD))) {
+                    BigDecimal amt = null2Zero(pay.getNetAmount());
+                    PayMethodEnum method = PayMethodEnum.fromCode(pay.getMethodCode());
                     if (method == PayMethodEnum.CASH) {
                         dailyCash = dailyCash.add(amt); totalCash = totalCash.add(amt);
                     } else if (method == PayMethodEnum.BALANCE) {
                         dailyBalance = dailyBalance.add(amt); totalBalance = totalBalance.add(amt);
                     } else {
                         dailyScan = dailyScan.add(amt);
-                        String tag = (String) pay.get("payTag");
+                        String tag = pay.getPayTag();
                         tag = (tag != null && !tag.trim().isEmpty()) ? "TAG:" + tag : "TAG:UNKNOWN";
                         scanTagMap.put(tag, scanTagMap.getOrDefault(tag, BigDecimal.ZERO).add(amt));
                     }
@@ -262,10 +265,10 @@ public class FinanceDashboardAssembler {
             scanList.add(dailyScan); cashList.add(dailyCash); balanceList.add(dailyBalance);
 
             BigDecimal dailyCoupon = BigDecimal.ZERO, dailyVoucher = BigDecimal.ZERO;
-            for (Map<String, Object> stat : orderStats) {
-                if (dateStr.equals(String.valueOf(stat.get("dateStr")))) {
-                    dailyCoupon = parseAmt(stat.get("couponAmt"));
-                    dailyVoucher = parseAmt(stat.get("voucherAmt"));
+            for (FinanceChannelDiscountSnapshot stat : orderStats) {
+                if (dateStr.equals(stat.getDate().format(FORMATTER_YYYY_MM_DD))) {
+                    dailyCoupon = null2Zero(stat.getActualCouponDeduct());
+                    dailyVoucher = null2Zero(stat.getUseVoucherAmount());
                 }
             }
             couponList.add(dailyCoupon); totalCoupon = totalCoupon.add(dailyCoupon);
