@@ -212,3 +212,38 @@ P2.4.4.3.1 已按此边界实施。TRADE `FinanceTrafficQuery` 返回小时及�
 ### 验收与回滚
 
 回归应写入同一小时内的已支付、部分退款和全额退款订单，并在不同星期/日号放置受控订单；断言 TRADE 三类快照的状态过滤、闭区间、分组、总值和均值。写入/更新全局策略后，断言 FIN 的小时 `OUT`/`STAY`、24 个时段、样本数，以及周/月除数和默认回退不变。测试必须在事务回滚后恢复策略。出现差异时只回滚 P2.4.4.3.1 的 TRADE/SYS 契约和 FIN 客流读取，不影响销售看板或其他分析入口。
+
+## P2.4.4.4：品类销售与单品趋势 TRADE/GMS 查询切片盘点
+
+`GET /oms/analysis/category-sales` 与 `GET /oms/analysis/top-goods-trend` 均读取订单明细，但它们并非同一公式：品类图以类目聚合交易事实并需要 GMS 当前显示名；单品图以用户指定商品 ID 的逐日净销量构造连续数组，名称来自订单明细历史快照。
+
+| FIN 入口 | TRADE 事实与公式 | GMS 显示档案 | FIN 保留行为 |
+| --- | --- | --- | --- |
+| `getCategorySales(startDate, endDate)` | 订单明细 join 订单；`PAID`、`PARTIAL_REFUNDED`，解析后的闭区间；按 `category_id` 聚合。销量为 `SUM(quantity - IFNULL(return_quantity, 0))`，金额为该净数量乘订单明细 `goods_price`；仅 `salesQty > 0`，金额降序 | `categoryId -> categoryName`；空 ID 或档案缺失显示 `未分类` | 日期字符串/默认近 30 日的解析、响应 `CategorySalesVO` 映射、排序保持 TRADE SQL 顺序 |
+| `getTopGoodsTrend(startDate, endDate, goodsIds)` | 订单明细 join 订单；同一状态和闭区间；仅请求的商品 ID。按日期、商品 ID、订单明细 `goods_name` 分组；销量为 `SUM(GREATEST(quantity - IFNULL(return_quantity, 0), 0))` | 不读取 GMS：`goodsName` 是交易时明细名称 | 输入 ID 的空集合返回空列表；为每个请求 ID 创建 `商品 ID:<id>` 回退名；逐日补零，出现明细时保留原名称和累加销量 |
+
+两条查询都不能推广销售看板排行的退货算法：品类聚合允许净数量参与 `HAVING`，单品趋势则对每条明细的净数量先用 `GREATEST(..., 0)` 钳制。两者也不复用当前 GMS 类目 Entity/Mapper；类目名称必须通过窄只读契约取得。
+
+### 拟定所有者查询契约与实施顺序
+
+在 `money-app-api` 定义 Java 8 兼容的两个所有者边界：
+
+```text
+FinanceProductAnalysisQuery                    // TRADE
+  listCategorySales(startInclusive, endInclusive)
+    -> [ { categoryId, salesQuantity, salesAmount } ]
+  listDailyGoodsMetrics(startInclusive, endInclusive, goodsIds)
+    -> [ { date, goodsId, goodsName, salesQuantity } ]
+
+GoodsCategoryNameQuery                         // GMS
+  findNamesByIds(categoryIds)
+    -> { categoryId: categoryName }
+```
+
+TRADE 快照使用 `Long` 标识、`long` 数量、`BigDecimal` 金额和订单 SQL 已格式化的 `yyyy-MM-dd` 日期键；它们不暴露可变 Mapper DTO、订单 Entity 或 SQL。GMS 名称查询接收批量 ID，且不以类目当前名称覆写单品交易历史名称。FIN 仍做日期解析、`未分类`/`商品 ID:<id>` 回退、单品连续日期补零和 DTO 装配。
+
+P2.4.4.4.1 将只实施这两个契约并迁移上述两个 FIN 方法。TRADE 保留 `OmsOrderAnalysisMapper` 的内部 SQL；该 Mapper 的品类 SQL 删除 `gms_goods_category` join 并返回 ID/数值。GMS 在其数据所有者内实现类目名称查询。不改路由、页面字段、数据库表、Flyway 或事务边界。
+
+### 验收与回滚
+
+回归应写入已支付、部分退款和全额退款订单明细，覆盖已知类目、空/缺失类目、正净销量、完全退货及同商品跨日明细。断言品类快照和 FIN 图表的状态/金额/名称回退，及单品快照和 FIN 连续数组的 `GREATEST` 钳制、日期补零、历史名称和空 ID 行为。若有差异，仅回滚 P2.4.4.4.1 的 TRADE/GMS 契约和这两个 FIN 入口；不影响销售看板、客流、利润审计或瀑布流。
