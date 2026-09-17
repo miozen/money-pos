@@ -1,11 +1,14 @@
 package com.money.feature.home.application;
 
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.trade.HomeBrandSalesSnapshot;
 import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
+import com.money.contract.trade.HomeSalesTrendSnapshot;
+import com.money.dto.Home.BrandPieVO;
 import com.money.dto.Home.HomeCountVO;
+import com.money.dto.Home.TrendChartVO;
 import com.money.dto.OmsOrder.OrderCountVO;
-import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +26,6 @@ public class HomeServiceImpl implements HomeService {
 
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
-    private final OmsOrderDetailMapper omsOrderDetailMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
 
     @Override
@@ -82,13 +86,31 @@ public class HomeServiceImpl implements HomeService {
             endTime = null; // 查到最新
         }
 
-        // 动态穿透 SQL
-        chartsVO.setTrendData(omsOrderDetailMapper.getTrendData(trendStartTime, endTime));
-        chartsVO.setPieData(omsOrderDetailMapper.getBrandPieData(startTime, endTime));
+        chartsVO.setTrendData(toTrendChartData(homeOrderReadQuery.listSalesTrend(trendStartTime, endTime)));
+        chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
 
         // 会员等级是即时状态（总资产），不跟时间联动
         chartsVO.setBarData(umsMemberBrandLevelMapper.getMemberBarData());
 
         return chartsVO;
+    }
+
+    private List<TrendChartVO> toTrendChartData(List<HomeSalesTrendSnapshot> snapshots) {
+        return snapshots.stream().map(snapshot -> {
+            TrendChartVO point = new TrendChartVO();
+            point.setDate(snapshot.getDate());
+            point.setSales(snapshot.getSales());
+            point.setProfit(snapshot.getProfit());
+            return point;
+        }).collect(Collectors.toList());
+    }
+
+    private List<BrandPieVO> toBrandPieData(List<HomeBrandSalesSnapshot> snapshots) {
+        return snapshots.stream().map(snapshot -> {
+            BrandPieVO point = new BrandPieVO();
+            point.setName(snapshot.getName());
+            point.setValue(snapshot.getValue());
+            return point;
+        }).collect(Collectors.toList());
     }
 }

@@ -4,11 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.constant.OrderStatusEnum;
 import com.money.contract.trade.HomeDailyOrderSnapshot;
 import com.money.contract.trade.HomeDashboardOrderSnapshot;
+import com.money.contract.trade.HomeBrandSalesSnapshot;
 import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
+import com.money.contract.trade.HomeSalesTrendSnapshot;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
+import com.money.dto.Home.BrandPieVO;
+import com.money.dto.Home.TrendChartVO;
 import com.money.entity.OmsOrder;
 import com.money.mapper.OmsOrderAnalysisMapper;
+import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +32,7 @@ class HomeOrderReadQueryService implements HomeOrderReadQuery {
 
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
+    private final OmsOrderDetailMapper omsOrderDetailMapper;
 
     @Override
     public HomeOrderReadSnapshot summarizeHomeCount(LocalDateTime startInclusive, LocalDateTime endExclusive) {
@@ -93,6 +99,20 @@ class HomeOrderReadQueryService implements HomeOrderReadQuery {
         Map<String, Object> map = maps.get(0);
         return new HomeDashboardOrderSnapshot(
                 toLong(map.get("orderCount")), toDecimal(map.get("saleCount")), toDecimal(map.get("profit")));
+    }
+
+    @Override
+    public List<HomeSalesTrendSnapshot> listSalesTrend(LocalDateTime startInclusive, LocalDateTime endExclusive) {
+        return omsOrderDetailMapper.getTrendData(startInclusive, endExclusive).stream()
+                .map(point -> new HomeSalesTrendSnapshot(point.getDate(), point.getSales(), point.getProfit()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public List<HomeBrandSalesSnapshot> listBrandSales(LocalDateTime startInclusive, LocalDateTime endExclusive) {
+        return omsOrderDetailMapper.getBrandPieData(startInclusive, endExclusive).stream()
+                .map(point -> new HomeBrandSalesSnapshot(point.getName(), point.getValue()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private long toLong(Object value) {

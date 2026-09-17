@@ -6,14 +6,21 @@ import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
 import com.money.contract.trade.HomeDailyOrderSnapshot;
 import com.money.contract.trade.HomeDashboardOrderSnapshot;
+import com.money.contract.trade.HomeSalesTrendSnapshot;
+import com.money.contract.trade.HomeBrandSalesSnapshot;
 import com.money.dto.Home.HomeCountVO;
+import com.money.dto.Home.HomeChartsVO;
+import com.money.dto.Home.TrendChartVO;
+import com.money.dto.Home.BrandPieVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.OmsOrder;
+import com.money.entity.OmsOrderDetail;
 import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
 import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderMapper;
+import com.money.mapper.OmsOrderDetailMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +37,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +67,8 @@ class HomeCountSnapshotCharacterizationTest {
     private OmsOrderMapper omsOrderMapper;
     @Autowired
     private DecisionEngineService decisionEngineService;
+    @Autowired
+    private OmsOrderDetailMapper omsOrderDetailMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -183,6 +195,61 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat((BigDecimal) month.get("profit")).isEqualByComparingTo(monthSnapshot.getProfit());
     }
 
+    @Test
+    void chartsKeepTradeTrendAndBrandRulesAcrossAllTimeRanges() {
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime sevenDayStart = LocalDateTime.now().minusDays(6).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        BigDecimal trendBefore = trendAmountForDate(homeOrderReadQuery.listSalesTrend(sevenDayStart, null), LocalDate.now());
+        BigDecimal brandBefore = brandAmount(homeOrderReadQuery.listBrandSales(todayStart, null), "无品牌/未知");
+        String orderNo = insertOrder("PAID", new BigDecimal("20.00"), new BigDecimal("8.00"), todayStart.plusHours(9));
+        insertOrderDetail(orderNo, "PAID", 2, 1, new BigDecimal("10.00"));
+
+        assertThat(trendAmountForDate(homeOrderReadQuery.listSalesTrend(sevenDayStart, null), LocalDate.now()).subtract(trendBefore))
+                .isEqualByComparingTo("20.00");
+        assertThat(brandAmount(homeOrderReadQuery.listBrandSales(todayStart, null), "无品牌/未知").subtract(brandBefore))
+                .isEqualByComparingTo("10.00");
+
+        assertChartsMatchTradeQuery("today", sevenDayStart, null, todayStart, null);
+        LocalDateTime monthStart = YearMonth.now().atDay(1).atStartOfDay();
+        assertChartsMatchTradeQuery("month", monthStart, monthStart.plusMonths(1), monthStart, monthStart.plusMonths(1));
+        LocalDateTime yearStart = Year.now().atDay(1).atStartOfDay();
+        assertChartsMatchTradeQuery("year", yearStart, yearStart.plusYears(1), yearStart, yearStart.plusYears(1));
+        assertChartsMatchTradeQuery("total", null, null, null, null);
+    }
+
+    private void assertChartsMatchTradeQuery(String timeRange, LocalDateTime trendStart, LocalDateTime trendEnd,
+                                              LocalDateTime brandStart, LocalDateTime brandEnd) {
+        HomeChartsVO charts = homeService.getChartsData(timeRange);
+        List<HomeSalesTrendSnapshot> trendSnapshots = homeOrderReadQuery.listSalesTrend(trendStart, trendEnd);
+        List<HomeBrandSalesSnapshot> brandSnapshots = homeOrderReadQuery.listBrandSales(brandStart, brandEnd);
+        assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);
+        assertThat(charts.getPieData()).hasSameSizeAs(brandSnapshots);
+        for (int i = 0; i < trendSnapshots.size(); i++) {
+            TrendChartVO actual = charts.getTrendData().get(i);
+            HomeSalesTrendSnapshot expected = trendSnapshots.get(i);
+            assertThat(actual.getDate()).isEqualTo(expected.getDate());
+            assertThat(actual.getSales()).isEqualByComparingTo(expected.getSales());
+            assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
+        }
+        for (int i = 0; i < brandSnapshots.size(); i++) {
+            BrandPieVO actual = charts.getPieData().get(i);
+            HomeBrandSalesSnapshot expected = brandSnapshots.get(i);
+            assertThat(actual.getName()).isEqualTo(expected.getName());
+            assertThat(actual.getValue()).isEqualByComparingTo(expected.getValue());
+        }
+    }
+
+    private BigDecimal trendAmountForDate(List<HomeSalesTrendSnapshot> snapshots, LocalDate date) {
+        String dateLabel = String.format("%02d-%02d", date.getMonthValue(), date.getDayOfMonth());
+        return snapshots.stream().filter(snapshot -> dateLabel.equals(snapshot.getDate()))
+                .map(HomeSalesTrendSnapshot::getSales).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal brandAmount(List<HomeBrandSalesSnapshot> snapshots, String brandName) {
+        return snapshots.stream().filter(snapshot -> brandName.equals(snapshot.getName()))
+                .map(HomeBrandSalesSnapshot::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private void assertOrderCount(OrderCountVO actual, HomeOrderReadSnapshot expected) {
         assertThat(actual.getOrderCount()).isEqualTo(expected.getOrderCount());
         assertThat(actual.getSaleCount()).isEqualByComparingTo(expected.getSaleCount());
@@ -190,9 +257,10 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
     }
 
-    private void insertOrder(String status, BigDecimal finalSalesAmount, BigDecimal costAmount, LocalDateTime createTime) {
+    private String insertOrder(String status, BigDecimal finalSalesAmount, BigDecimal costAmount, LocalDateTime createTime) {
         OmsOrder order = new OmsOrder();
-        order.setOrderNo("HOME-P2-" + System.nanoTime());
+        String orderNo = "HOME-P2-" + System.nanoTime();
+        order.setOrderNo(orderNo);
         order.setStatus(status);
         order.setVip(false);
         order.setFinalSalesAmount(finalSalesAmount);
@@ -204,6 +272,25 @@ class HomeCountSnapshotCharacterizationTest {
         order.setTenantId(0L);
         order.setCreateTime(createTime);
         omsOrderMapper.insert(order);
+        return orderNo;
+    }
+
+    private void insertOrderDetail(String orderNo, String status, int quantity, int returnQuantity, BigDecimal goodsPrice) {
+        OmsOrderDetail detail = new OmsOrderDetail();
+        detail.setOrderNo(orderNo);
+        detail.setStatus(status);
+        detail.setGoodsId(System.nanoTime());
+        detail.setGoodsBarcode("HOME-CHART-" + System.nanoTime());
+        detail.setGoodsName("HOME chart fixture");
+        detail.setGoodsPrice(goodsPrice);
+        detail.setQuantity(quantity);
+        detail.setSalePrice(goodsPrice);
+        detail.setPurchasePrice(new BigDecimal("4.00"));
+        detail.setVipPrice(goodsPrice);
+        detail.setCoupon(BigDecimal.ZERO);
+        detail.setReturnQuantity(returnQuantity);
+        detail.setTenantId(0L);
+        omsOrderDetailMapper.insert(detail);
     }
 
     private OmsDailySummary todaySnapshot(LocalDate date) {

@@ -1006,3 +1006,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - `DecisionEngineServiceImpl` no longer imports `OmsOrderAnalysisMapper` or embeds an `oms_order` JDBC query. It retains its own daily-summary writes, seven-day compensation, average/alert calculations, UMS new-member count query, inventory valuation query and response DTO assembly.
 - Extended the HOME characterization regression with real test orders to verify both state sets, the persisted snapshot's sales/profit/order count, and the comprehensive month output. The test remains transaction-rolled-back.
 - The next smallest task is P2.2.3: migrate the HOME sales-trend and brand-sales charts to TRADE-owned reads while retaining the `today` seven-day display behavior and all four selected time ranges.
+
+### Completed: P2.2.3 HOME Sales Trend and Brand Chart Reads
+
+- Extended TRADE `HomeOrderReadQuery` with trend-point and brand-sales snapshots. The TRADE implementation keeps the existing `OmsOrderDetailMapper` SQL inside its owned boundary, including its status sets, right-open time ranges, trend grouping and brand revenue's returned-quantity deduction.
+- `HomeServiceImpl` now maps only API snapshots to its existing `TrendChartVO` and `BrandPieVO`; it no longer imports the order-detail Mapper. The `today` seven-day trend rule and all `today`/`month`/`year`/`total` ranges are unchanged.
+- Extended HOME characterization coverage with real order and order-detail fixtures. It verifies the 20 sales trend increment, 10 net brand-revenue increment after one returned item, and exact HOME-to-TRADE output correspondence in every time range.
+- The next smallest task is P2.2.4: move the member-level chart to a UMS-owned query contract while retaining the brand-name, level-code and member-count response fields.

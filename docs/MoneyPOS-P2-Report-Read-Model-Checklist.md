@@ -13,6 +13,7 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 - [x] P2.2 已完成 HOME 销售/图表快照设计：TRADE 将提供按既有口径分开的首页区间订单汇总、日快照输入、综合大盘区间汇总、趋势和品牌营收只读模型；UMS 将提供会员等级分布快照；HOME 保留页面组装和 `OmsDailySummary` 写入。详见 `MoneyPOS-P2.2-Home-Read-Snapshot-Design.md`。
 - [x] P2.2.1 已迁移服务级首页区间订单汇总：TRADE `HomeOrderReadQuery` 返回订单数、销售额、成本和利润快照；`HomeService.homeCount()` 不再依赖 `OmsOrder`、`QueryWrapper` 或 `OmsOrderMapper`，今日、月、年、总计的右开时间范围和现有金融有效状态集保持不变。
 - [x] P2.2.2 已迁移 HOME 日快照和综合大盘订单读取：TRADE 提供日快照原子值与综合大盘区间快照；`DecisionEngineServiceImpl` 不再读取订单分析 Mapper 或内嵌订单 SQL，仍拥有 `OmsDailySummary` 写入、缺失日期补偿和告警时机。
+- [x] P2.2.3 已迁移 HOME 销售趋势与品牌营收图表：TRADE `HomeOrderReadQuery` 提供趋势点和品牌营收快照；`HomeServiceImpl` 不再依赖订单明细 Mapper，保留 `today` 最近七天特例和既有时间范围转换。
 - [ ] P2.3 迁移 FIN 财务大盘读模型：按“订单/支付”“库存单据”“会员资产”三组快照替换 `FinanceDashboardServiceImpl` 的跨域 Mapper、Entity 和 `UmsMemberService` 读取；保持资产、收入、渠道与七日趋势口径。
 - [ ] P2.4 迁移 FIN 专项报表：交接班、利润、营销复盘、风控、经营分析与瀑布流 SQL 分别收敛为 TRADE/GMS/UMS 所有者查询；不把不同财务口径强行合并。
 - [ ] P2.5 验收与复核：增加 FIN/HOME 集成回归，运行全量 Maven 测试、构建和架构门禁；复核剩余跨 Feature 实现导入与共享 Entity 归属。
@@ -28,4 +29,4 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2.2.3：迁移 HOME 销售趋势与品牌营收图表的 TRADE 读取，保持 `today` 最近七天特例及四个时间范围。**
+**P2.2.4：迁移 HOME 会员等级图表到 UMS `HomeMemberDistributionQuery`，并通过品牌名称窄查询保持输出兼容。**

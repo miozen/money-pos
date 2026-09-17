@@ -2,6 +2,7 @@ package com.money.contract.trade;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /** TRADE-owned order aggregate for the legacy HOME count service. */
 public interface HomeOrderReadQuery {
@@ -17,4 +18,8 @@ public interface HomeOrderReadQuery {
 
     /** Uses the established comprehensive-dashboard states and a right-open time range. */
     HomeDashboardOrderSnapshot summarizeDashboardRange(LocalDateTime startInclusive, LocalDateTime endExclusive);
+
+    List<HomeSalesTrendSnapshot> listSalesTrend(LocalDateTime startInclusive, LocalDateTime endExclusive);
+
+    List<HomeBrandSalesSnapshot> listBrandSales(LocalDateTime startInclusive, LocalDateTime endExclusive);
 }
