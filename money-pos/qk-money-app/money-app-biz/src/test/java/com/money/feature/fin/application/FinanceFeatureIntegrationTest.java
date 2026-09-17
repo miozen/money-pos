@@ -9,11 +9,15 @@ import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.trade.FinanceRiskQuery;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.entity.GmsInventoryDoc;
+import com.money.entity.GmsBrand;
 import com.money.entity.OmsOrder;
+import com.money.entity.OmsOrderDetail;
 import com.money.entity.OmsOrderPay;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
 import com.money.mapper.GmsInventoryDocMapper;
+import com.money.mapper.GmsBrandMapper;
+import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.mapper.UmsMemberLogMapper;
@@ -65,6 +69,10 @@ class FinanceFeatureIntegrationTest {
     private OmsOrderMapper orderMapper;
     @Autowired
     private OmsOrderPayMapper orderPayMapper;
+    @Autowired
+    private OmsOrderDetailMapper orderDetailMapper;
+    @Autowired
+    private GmsBrandMapper brandMapper;
     @Autowired
     private FinanceMemberAssetQuery financeMemberAssetQuery;
     @Autowired
@@ -203,6 +211,38 @@ class FinanceFeatureIntegrationTest {
                 .contains(suffix + "-LOSS", suffix + "-MANUAL");
     }
 
+    @Test
+    void shiftHandoverUsesTradeSnapshotsAndGmsBrandNames() {
+        String suffix = "S" + (System.nanoTime() % 1_000_000_000L);
+        String cashier = "shift-" + suffix;
+        GmsBrand brand = new GmsBrand();
+        brand.setName("B" + (System.nanoTime() % 1_000_000L));
+        brand.setLogo("");
+        brand.setDescription("finance shift test");
+        brand.setGoodsCount(0);
+        brand.setTenantId(0L);
+        brandMapper.insert(brand);
+
+        insertShiftOrder(suffix, cashier, new BigDecimal("20.00"), new BigDecimal("2.00"),
+                new BigDecimal("1.00"), new BigDecimal("3.00"), new BigDecimal("5.00"));
+        insertPayment(suffix, "CASH", null, new BigDecimal("20.00"));
+        insertShiftDetail(suffix, brand.getId(), new BigDecimal("20.00"), new BigDecimal("2.00"));
+
+        String start = LocalDateTime.now().minusMinutes(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        com.money.dto.Finance.FinanceDataVO.ShiftHandoverVO handover = financeShiftService.getShiftHandover(start, cashier);
+
+        assertThat(handover.getCashPay()).isEqualByComparingTo(new BigDecimal("20.00"));
+        assertThat(handover.getManualDiscount()).isEqualByComparingTo(new BigDecimal("5.00"));
+        assertThat(handover.getVoucherDiscount()).isEqualByComparingTo(new BigDecimal("3.00"));
+        assertThat(handover.getMemberCouponPay()).isEqualByComparingTo(new BigDecimal("2.00"));
+        assertThat(handover.getWaivedCouponAmount()).isEqualByComparingTo(new BigDecimal("1.00"));
+        assertThat(handover.getBrandMatrix()).anySatisfy(row -> {
+            assertThat(row.getBrandName()).isEqualTo(brand.getName());
+            assertThat(row.getRevenue()).isEqualByComparingTo(new BigDecimal("20.00"));
+            assertThat(row.getCouponConsumption()).isEqualByComparingTo(new BigDecimal("2.00"));
+        });
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -284,5 +324,46 @@ class FinanceFeatureIntegrationTest {
         order.setCreateBy(cashier);
         order.setCreateTime(LocalDateTime.now());
         orderMapper.insert(order);
+    }
+
+    private void insertShiftOrder(String orderNo, String cashier, BigDecimal payAmount, BigDecimal actualCouponDeduct,
+                                  BigDecimal waivedCouponAmount, BigDecimal voucherAmount, BigDecimal manualDiscount) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus("PAID");
+        order.setVip(false);
+        order.setTotalAmount(payAmount);
+        order.setPayAmount(payAmount);
+        order.setFinalSalesAmount(payAmount);
+        order.setCostAmount(BigDecimal.ZERO);
+        order.setActualCouponDeduct(actualCouponDeduct);
+        order.setCouponAmount(actualCouponDeduct);
+        order.setWaivedCouponAmount(waivedCouponAmount);
+        order.setUseVoucherAmount(voucherAmount);
+        order.setManualDiscountAmount(manualDiscount);
+        order.setPaymentTime(LocalDateTime.now());
+        order.setTenantId(0L);
+        order.setCreateBy(cashier);
+        order.setCreateTime(LocalDateTime.now());
+        orderMapper.insert(order);
+    }
+
+    private void insertShiftDetail(String orderNo, Long brandId, BigDecimal goodsPrice, BigDecimal coupon) {
+        OmsOrderDetail detail = new OmsOrderDetail();
+        detail.setOrderNo(orderNo);
+        detail.setStatus("PAID");
+        detail.setGoodsId(1L);
+        detail.setBrandId(brandId);
+        detail.setGoodsBarcode("SHIFT-TEST");
+        detail.setGoodsName("Shift test goods");
+        detail.setGoodsPrice(goodsPrice);
+        detail.setSalePrice(goodsPrice);
+        detail.setPurchasePrice(BigDecimal.ZERO);
+        detail.setVipPrice(goodsPrice);
+        detail.setQuantity(1);
+        detail.setReturnQuantity(0);
+        detail.setCoupon(coupon);
+        detail.setTenantId(0L);
+        orderDetailMapper.insert(detail);
     }
 }

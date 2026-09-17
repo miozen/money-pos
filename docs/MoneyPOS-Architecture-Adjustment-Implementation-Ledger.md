@@ -1072,3 +1072,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added API-neutral `FinanceRiskQuery`, `FinanceCashierRiskSnapshot` and `FinanceAbnormalOrderSnapshot`. TRADE owns the implementation and retains `OmsOrderAuditMapper`; FIN now consumes only the snapshots and maps them back to its unchanged `Map<String, Object>` response fields.
 - Preserved FIN-owned closed date parsing, the source SQL's intentionally unfiltered order-state behavior, all three abnormal-order predicates, ascending-profit 50-row cap, and the card calculations for abnormal count, negative-profit loss, manual discount and refund count.
 - Extended `FinanceFeatureIntegrationTest` with rolled-back negative-profit, large-manual-discount and refunded orders. It verifies TRADE snapshots, FIN cards and existing abnormal-row fields. The next smallest task is P2.4.2: design and migrate the shift-handover payment, discount and brand-contribution snapshots without changing their separate formulas.
+
+### Completed: P2.4.2 FIN Shift-Handover Snapshots
+
+- Added API-neutral TRADE `FinanceShiftHandoverQuery` with immutable payment, discount and brand-ID contribution snapshots. TRADE retains its order/payment/detail Mappers; `FinanceShiftServiceImpl` no longer directly imports any of them.
+- Explicitly separated ownership of the legacy brand join: TRADE aggregates only `brandId`, revenue and coupon consumption from order details; FIN asks the existing GMS `BrandNameQuery` for display names and retains the established `无品牌/未知` fallback. No FIN DTO crosses into TRADE.
+- Preserved all three independent formulas and filters: payment net amounts with full-refund zeroing, discount/refund aggregation and returned-quantity coupon allocation. A rolled-back FIN regression verifies cash, four discount fields and GMS brand-name resolution. The next smallest task is P2.4.3: migrate profit ranking and campaign review as separate TRADE query contracts.

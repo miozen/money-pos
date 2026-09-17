@@ -1,44 +1,30 @@
 package com.money.feature.fin.application.report;
 
-import com.money.constant.BizErrorStatus; // 🌟 引入全局标准错误码
+import com.money.contract.goods.BrandNameQuery;
+import com.money.contract.trade.FinanceShiftBrandContributionSnapshot;
+import com.money.contract.trade.FinanceShiftDiscountSnapshot;
+import com.money.contract.trade.FinanceShiftHandoverQuery;
+import com.money.contract.trade.FinanceShiftPaymentSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.mapper.OmsOrderDetailMapper;
-import com.money.mapper.OmsOrderMapper;
-import com.money.mapper.OmsOrderPayMapper;
-import com.money.feature.fin.application.report.FinanceShiftService;
 import com.money.util.MoneyUtil;
-import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FinanceShiftServiceImpl implements FinanceShiftService {
 
-    private final OmsOrderMapper omsOrderMapper;
-    private final OmsOrderPayMapper omsOrderPayMapper;
-    private final OmsOrderDetailMapper omsOrderDetailMapper;
-
-    private BigDecimal parseAmt(Object val) {
-        if (val == null) return BigDecimal.ZERO;
-        try {
-            return new BigDecimal(String.valueOf(val));
-        } catch (Exception e) {
-            log.error("💥 交接班金额解析异常! 出现疑似脏数据: [{}]", val, e);
-            // 🌟 核心规范化：消灭魔术字符串，采用全局统一的枚举进行熔断报警
-            throw new BaseException(BizErrorStatus.POS_PAYMENT_INVALID, "财务报表解析熔断：非法金额格式 [" + val + "]");
-        }
-    }
+    private final FinanceShiftHandoverQuery financeShiftHandoverQuery;
+    private final BrandNameQuery brandNameQuery;
 
     @Override
     public ShiftHandoverVO getShiftHandover(String startTime, String cashierName) {
@@ -52,8 +38,8 @@ public class FinanceShiftServiceImpl implements FinanceShiftService {
         vo.setShiftEndTime(now.format(dtf));
         vo.setCashierName(cashier);
 
-        // 🌟 这里的底层 SQL 请务必确认使用了 SUM(net_amount) AS netAmount
-        List<Map<String, Object>> payStats = omsOrderPayMapper.getShiftPayStats(shiftStart, now, cashier);
+        List<FinanceShiftPaymentSnapshot> payStats = financeShiftHandoverQuery
+                .listPaymentSummaries(shiftStart, now, cashier);
 
         BigDecimal cashPay = BigDecimal.ZERO;
         BigDecimal scanPay = BigDecimal.ZERO;
@@ -61,9 +47,9 @@ public class FinanceShiftServiceImpl implements FinanceShiftService {
 
         Map<String, BigDecimal> scanTagMap = new HashMap<>();
 
-        for (Map<String, Object> stat : payStats) {
-            String method = (String) stat.get("methodCode");
-            BigDecimal amt = parseAmt(stat.get("netAmount"));
+        for (FinanceShiftPaymentSnapshot stat : payStats) {
+            String method = stat.getMethodCode();
+            BigDecimal amt = zero(stat.getNetAmount());
 
             if ("CASH".equals(method)) {
                 cashPay = MoneyUtil.add(cashPay, amt);
@@ -72,8 +58,7 @@ public class FinanceShiftServiceImpl implements FinanceShiftService {
             } else {
                 scanPay = MoneyUtil.add(scanPay, amt);
 
-                String tag = (String) stat.get("payTag");
-                if (tag == null) tag = (String) stat.get("pay_tag");
+                String tag = stat.getPayTag();
 
                 tag = (tag != null && !tag.trim().isEmpty()) ? tag : "UNKNOWN";
                 scanTagMap.put(tag, scanTagMap.getOrDefault(tag, BigDecimal.ZERO).add(amt));
@@ -91,22 +76,14 @@ public class FinanceShiftServiceImpl implements FinanceShiftService {
         }
         vo.setScanPayBreakdown(scanBreakdownList);
 
-        Map<String, Object> discountStats = omsOrderMapper.getShiftDiscountStats(shiftStart, now, cashier);
-        BigDecimal refundAmount = BigDecimal.ZERO;
-        if (discountStats != null) {
-            vo.setManualDiscount(parseAmt(discountStats.get("manualDiscount")));
-            vo.setVoucherDiscount(parseAmt(discountStats.get("voucherDiscount")));
-            vo.setMemberCouponPay(parseAmt(discountStats.get("memberCouponPay")));
-            vo.setWaivedCouponAmount(parseAmt(discountStats.get("waivedCouponAmount")));
-            vo.setVoucherCount(parseAmt(discountStats.get("voucherCount")).intValue());
-            refundAmount = parseAmt(discountStats.get("refundAmount"));
-        } else {
-            vo.setManualDiscount(BigDecimal.ZERO);
-            vo.setVoucherDiscount(BigDecimal.ZERO);
-            vo.setMemberCouponPay(BigDecimal.ZERO);
-            vo.setWaivedCouponAmount(BigDecimal.ZERO);
-            vo.setVoucherCount(0);
-        }
+        FinanceShiftDiscountSnapshot discountStats = financeShiftHandoverQuery
+                .getDiscountSummary(shiftStart, now, cashier);
+        vo.setManualDiscount(zero(discountStats.getManualDiscount()));
+        vo.setVoucherDiscount(zero(discountStats.getVoucherDiscount()));
+        vo.setMemberCouponPay(zero(discountStats.getMemberCouponPay()));
+        vo.setWaivedCouponAmount(zero(discountStats.getWaivedCouponAmount()));
+        vo.setVoucherCount((int) discountStats.getVoucherCount());
+        BigDecimal refundAmount = zero(discountStats.getRefundAmount());
         vo.setRefundAmount(refundAmount);
 
         BigDecimal grossTotal = cashPay.add(scanPay).add(balancePay);
@@ -115,9 +92,23 @@ public class FinanceShiftServiceImpl implements FinanceShiftService {
         // 由于 cashPay 是通过 netAmount 计算的（已经扣除了找零），这里就是钱箱里应该有的真实进账！
         vo.setExpectedTotalIncome(MoneyUtil.add(cashPay, scanPay));
 
-        List<BrandContributionVO> brandMatrix = omsOrderDetailMapper.getShiftBrandContribution(shiftStart, now, cashier);
+        List<FinanceShiftBrandContributionSnapshot> contributions = financeShiftHandoverQuery
+                .listBrandContributions(shiftStart, now, cashier);
+        java.util.Set<String> brandIds = new HashSet<>();
+        for (FinanceShiftBrandContributionSnapshot contribution : contributions) {
+            if (contribution.getBrandId() != null) brandIds.add(contribution.getBrandId());
+        }
+        Map<String, String> brandNames = brandNameQuery.findNamesByIds(brandIds);
+        List<BrandContributionVO> brandMatrix = new ArrayList<>();
+        for (FinanceShiftBrandContributionSnapshot contribution : contributions) {
+            String brandName = contribution.getBrandId() == null ? null : brandNames.get(contribution.getBrandId());
+            brandMatrix.add(new BrandContributionVO(brandName == null ? "无品牌/未知" : brandName,
+                    zero(contribution.getRevenue()), zero(contribution.getCouponConsumption())));
+        }
         vo.setBrandMatrix(brandMatrix);
 
         return vo;
     }
+
+    private BigDecimal zero(BigDecimal value) { return value == null ? BigDecimal.ZERO : value; }
 }

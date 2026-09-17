@@ -55,3 +55,25 @@ FinanceRiskQuery
 3. P2.4.3 分别迁移利润排行与活动复盘，保持它们的时间范围和状态集不同。
 4. P2.4.4 按入口拆分经营分析/客流/审计查询，并将 SYS 策略读取与 TRADE 数据读取分开。
 5. P2.4.5 最后处理瀑布流的 TRADE/GMS 组合公式，不创建跨所有者 Mapper。
+
+## P2.4.2：交接班支付、优惠与品牌贡献快照
+
+交接班的三个读取公式均属于 TRADE 订单/支付/明细数据，但品牌名称是 GMS 归属的显示档案。因此契约不返回 FIN 的 `BrandContributionVO`，也不允许 TRADE 查询 join `gms_brand`：TRADE 返回品牌 ID 和订单明细金额，FIN 使用既有 GMS `BrandNameQuery` 翻译名称，再装配原有品牌矩阵。
+
+```text
+FinanceShiftHandoverQuery
+  listPaymentSummaries(startInclusive, endInclusive, cashierName)
+    -> [ { methodCode, payTag, netAmount } ]
+  getDiscountSummary(startInclusive, endInclusive, cashierName)
+    -> { manualDiscount, voucherDiscount, memberCouponPay, waivedCouponAmount,
+         voucherCount, refundAmount }
+  listBrandContributions(startInclusive, endInclusive, cashierName)
+    -> [ { brandId, revenue, couponConsumption } ]
+
+BrandNameQuery.findNamesByIds(brandIds)
+  -> { brandId: brandName }
+```
+
+FIN 保留班次起点字符串的解析、结束时间为调用时 `now`、空收银员到“全部收银员”的归一化、现金/余额/扫码分类、扫码标签聚合、净收入和应收现金计算。TRADE 保持以下互不合并的原 SQL 口径：支付按金融有效状态、闭区间和全额退款为零的 `net_amount` 回退公式；优惠/退款按订单闭区间和同一收银员过滤；品牌贡献按退货后的明细数量和单品券分摊聚合。品牌 ID 缺失或 GMS 无对应名称时保持原“无品牌/未知”回退。
+
+P2.4.2 的回归以滚回事务写入一个现金支付订单、实际会员券/免券/满减券/手工优惠、品牌明细与 GMS 品牌档案，验证交接班金额、优惠字段和品牌名称/金额矩阵。路由、打印入口、响应字段和查询的事务边界不变。

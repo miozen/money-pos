@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -71,20 +72,19 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
      * 🌟 交接班专属：品牌贡献度 (已剔除退款退货，包含真实核销券耗)
      */
     @Select("<script>" +
-            "SELECT IFNULL(gb.name, '无品牌/未知') AS brandName, " +
+            "SELECT ood.brand_id AS brandId, " +
             "SUM((ood.quantity - IFNULL(ood.return_quantity, 0)) * IFNULL(ood.goods_price, 0)) AS revenue, " +
             "IFNULL(SUM(CASE WHEN ood.quantity > 0 THEN (ood.coupon / ood.quantity) * (ood.quantity - IFNULL(ood.return_quantity, 0)) ELSE 0 END), 0) AS couponConsumption " +
             "FROM oms_order_detail ood " +
-            "LEFT JOIN gms_brand gb ON ood.brand_id = gb.id " +
             "JOIN oms_order o ON ood.order_no = o.order_no " +
             "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
             "  AND o.create_time &gt;= #{startTime} AND o.create_time &lt;= #{endTime} " +
             "<if test='cashierName != null and cashierName != \"全部收银员\"'> " +
             "  AND o.create_by = #{cashierName} " +
             "</if> " +
-            "GROUP BY gb.id, gb.name " +
+            "GROUP BY ood.brand_id " +
             "HAVING revenue > 0 " +
             "ORDER BY revenue DESC" +
             "</script>")
-    List<com.money.dto.Finance.FinanceDataVO.BrandContributionVO> getShiftBrandContribution(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("cashierName") String cashierName);
+    List<Map<String, Object>> getShiftBrandContribution(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("cashierName") String cashierName);
 }
