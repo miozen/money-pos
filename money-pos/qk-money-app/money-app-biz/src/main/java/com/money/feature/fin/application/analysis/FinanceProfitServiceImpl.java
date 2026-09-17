@@ -1,11 +1,8 @@
 package com.money.feature.fin.application.analysis;
 
-import com.money.constant.FinancialMetric;
+import com.money.contract.trade.FinanceCampaignReviewSnapshot;
+import com.money.contract.trade.FinanceProfitQuery;
 import com.money.dto.Finance.FinanceDataVO.*;
-import com.money.mapper.OmsOrderAnalysisMapper;
-import com.money.mapper.OmsOrderDetailMapper;
-import com.money.mapper.OmsOrderMapper;
-import com.money.feature.fin.application.analysis.FinanceProfitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,14 +21,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FinanceProfitServiceImpl implements FinanceProfitService {
 
-    private final OmsOrderDetailMapper omsOrderDetailMapper;
-    private final OmsOrderMapper omsOrderMapper;
-    private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
+    private final FinanceProfitQuery financeProfitQuery;
 
     @Override
     public List<ProfitRankVO> getProfitRanking() {
         LocalDateTime startTime = LocalDateTime.of(LocalDate.now().minusDays(30), LocalTime.MIN);
-        return omsOrderDetailMapper.getProfitRankingData(startTime);
+        return financeProfitQuery.listProfitRankings(startTime).stream()
+                .map(row -> new ProfitRankVO(row.getGoodsName(), row.getTotalQuantity(),
+                        row.getTotalSales(), row.getTotalProfit()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -41,12 +39,11 @@ public class FinanceProfitServiceImpl implements FinanceProfitService {
         LocalDateTime endTime = LocalDateTime.now().with(LocalTime.MAX);
 
         // 直接获取 SQL 聚合后的 ROI 数据
-        List<com.money.dto.OmsOrder.OmsSalesDataVO.MarketingRoiVO> roiData =
-                omsOrderAnalysisMapper.getMarketingRoiStats(startTime, endTime);
+        List<FinanceCampaignReviewSnapshot> roiData = financeProfitQuery.listCampaignReviews(startTime, endTime);
 
         return roiData.stream().map(roi -> {
-                    BigDecimal revenue = roi.getTotalRevenueBrought() != null ? roi.getTotalRevenueBrought() : BigDecimal.ZERO;
-                    BigDecimal discount = roi.getTotalDiscountGived() != null ? roi.getTotalDiscountGived() : BigDecimal.ZERO;
+                    BigDecimal revenue = roi.getTotalRevenue() != null ? roi.getTotalRevenue() : BigDecimal.ZERO;
+                    BigDecimal discount = roi.getTotalDiscount() != null ? roi.getTotalDiscount() : BigDecimal.ZERO;
                     BigDecimal roiMultiplier = BigDecimal.ZERO;
 
                     if (discount.compareTo(BigDecimal.ZERO) > 0) {

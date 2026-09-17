@@ -4,6 +4,7 @@ import com.money.feature.fin.application.dashboard.FinanceDashboardService;
 import com.money.feature.fin.application.report.FinanceReportService;
 import com.money.feature.fin.application.report.FinanceShiftService;
 import com.money.feature.fin.application.analysis.FinanceRiskService;
+import com.money.feature.fin.application.analysis.FinanceProfitService;
 import com.money.contract.member.FinanceMemberAssetCompositionSnapshot;
 import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.trade.FinanceRiskQuery;
@@ -60,6 +61,8 @@ class FinanceFeatureIntegrationTest {
     private FinanceShiftService financeShiftService;
     @Autowired
     private FinanceRiskService financeRiskService;
+    @Autowired
+    private FinanceProfitService financeProfitService;
     @Autowired
     private FinanceRiskQuery financeRiskQuery;
 
@@ -243,6 +246,27 @@ class FinanceFeatureIntegrationTest {
         });
     }
 
+    @Test
+    void profitRankingAndCampaignReviewUseSeparateTradeSnapshots() {
+        String suffix = "P" + (System.nanoTime() % 1_000_000_000L);
+        insertShiftOrder(suffix, "profit-" + suffix, new BigDecimal("20.00"), new BigDecimal("2.00"),
+                BigDecimal.ZERO, new BigDecimal("3.00"), BigDecimal.ZERO);
+        insertShiftDetail(suffix, null, new BigDecimal("20.00"), new BigDecimal("2.00"));
+
+        assertThat(financeProfitService.getProfitRanking()).anySatisfy(row -> {
+            assertThat(row.getGoodsName()).isEqualTo("Shift test goods");
+            assertThat(row.getTotalSales()).isGreaterThanOrEqualTo(new BigDecimal("20.00"));
+            assertThat(row.getTotalProfit()).isGreaterThanOrEqualTo(new BigDecimal("20.00"));
+        });
+        assertThat(financeProfitService.getCampaignReview()).anySatisfy(row -> {
+            assertThat(row.getRuleName()).isEqualTo("Campaign " + suffix);
+            assertThat(row.getUsedCount()).isEqualTo(1);
+            assertThat(row.getTotalDiscountGived()).isEqualByComparingTo(new BigDecimal("3.00"));
+            assertThat(row.getTotalRevenueBrought()).isEqualByComparingTo(new BigDecimal("20.00"));
+            assertThat(row.getRoiMultiplier()).isEqualByComparingTo(new BigDecimal("6.67"));
+        });
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -341,6 +365,7 @@ class FinanceFeatureIntegrationTest {
         order.setWaivedCouponAmount(waivedCouponAmount);
         order.setUseVoucherAmount(voucherAmount);
         order.setManualDiscountAmount(manualDiscount);
+        order.setRemark("Campaign " + orderNo);
         order.setPaymentTime(LocalDateTime.now());
         order.setTenantId(0L);
         order.setCreateBy(cashier);

@@ -1078,3 +1078,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added API-neutral TRADE `FinanceShiftHandoverQuery` with immutable payment, discount and brand-ID contribution snapshots. TRADE retains its order/payment/detail Mappers; `FinanceShiftServiceImpl` no longer directly imports any of them.
 - Explicitly separated ownership of the legacy brand join: TRADE aggregates only `brandId`, revenue and coupon consumption from order details; FIN asks the existing GMS `BrandNameQuery` for display names and retains the established `无品牌/未知` fallback. No FIN DTO crosses into TRADE.
 - Preserved all three independent formulas and filters: payment net amounts with full-refund zeroing, discount/refund aggregation and returned-quantity coupon allocation. A rolled-back FIN regression verifies cash, four discount fields and GMS brand-name resolution. The next smallest task is P2.4.3: migrate profit ranking and campaign review as separate TRADE query contracts.
+
+### Completed: P2.4.3 FIN Profit Ranking and Campaign Review Snapshots
+
+- Added API-neutral TRADE `FinanceProfitQuery` with separate immutable profit-ranking and campaign-review snapshots. FIN's profit service no longer imports order-detail or order-analysis Mappers, nor a TRADE marketing DTO.
+- Preserved the intentionally different source formulas: profit ranking starts 30 days ago and includes `REFUNDED` order details after return-quantity adjustment; campaign review uses a closed three-month range with only `PAID`/`PARTIAL_REFUNDED` orders and separate voucher/member-coupon aggregates. FIN retains ROI rounding and descending sort.
+- Extended the rolled-back FIN regression with a unique campaign order/detail, asserting ranking values, campaign discount/revenue/count and the rounded ROI. The next smallest task is P2.4.4: inventory and design the first operating-analysis, traffic or profit-audit owner query without mixing its SYS strategy reads or report formulas.

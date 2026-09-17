@@ -77,3 +77,19 @@ BrandNameQuery.findNamesByIds(brandIds)
 FIN 保留班次起点字符串的解析、结束时间为调用时 `now`、空收银员到“全部收银员”的归一化、现金/余额/扫码分类、扫码标签聚合、净收入和应收现金计算。TRADE 保持以下互不合并的原 SQL 口径：支付按金融有效状态、闭区间和全额退款为零的 `net_amount` 回退公式；优惠/退款按订单闭区间和同一收银员过滤；品牌贡献按退货后的明细数量和单品券分摊聚合。品牌 ID 缺失或 GMS 无对应名称时保持原“无品牌/未知”回退。
 
 P2.4.2 的回归以滚回事务写入一个现金支付订单、实际会员券/免券/满减券/手工优惠、品牌明细与 GMS 品牌档案，验证交接班金额、优惠字段和品牌名称/金额矩阵。路由、打印入口、响应字段和查询的事务边界不变。
+
+## P2.4.3：利润排行与活动复盘快照
+
+利润排行和活动复盘同属 TRADE 订单数据，但它们不能共用范围或状态过滤。为避免把 FIN DTO 暴露给 TRADE，新增独立查询契约：
+
+```text
+FinanceProfitQuery
+  listProfitRankings(startInclusive)
+    -> [ { goodsName, totalQuantity, totalSales, totalProfit } ]
+  listCampaignReviews(startInclusive, endInclusive)
+    -> [ { ruleName, usedCount, totalDiscount, totalRevenue } ]
+```
+
+利润排行保持近 30 天起点、无显式结束边界，以及 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED` 状态；数量、销售额和利润继续按退货后的订单明细数量计算。活动复盘保持近 3 个月起点至当前时刻闭区间，仅包含 `PAID`、`PARTIAL_REFUNDED`；满减券和会员券继续是两条独立 SQL 聚合。FIN 保留总优惠为零时 ROI 为零、否则按 `revenue / discount` 两位半舍五入，以及按 ROI 降序排序的展示规则。
+
+回归以一个带唯一活动备注、满减券和会员券的已支付订单及其明细验证排行金额、活动使用次数、优惠/营收与 `6.67` ROI。不得把该回归的日期范围或状态集推广给其他 FIN 专项报表。
