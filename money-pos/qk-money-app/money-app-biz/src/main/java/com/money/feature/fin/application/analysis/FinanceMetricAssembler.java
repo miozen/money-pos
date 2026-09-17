@@ -1,7 +1,7 @@
 package com.money.feature.fin.application.analysis;
 
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
-import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
+import com.money.contract.trade.FinanceDashboardMemberDailySnapshot;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.util.MoneyUtil;
@@ -27,9 +27,9 @@ public class FinanceMetricAssembler {
     /**
      * 组装销售大盘基础图表数据
      */
-    public void assembleBasicDashboard(SalesDashboardVO vo, List<AnalysisAtomicDataDTO> dailyStats, LocalDateTime startTime, LocalDateTime endTime) {
-        Map<String, AnalysisAtomicDataDTO> statsMap = dailyStats.stream()
-                .collect(Collectors.toMap(AnalysisAtomicDataDTO::getPeriod, stat -> stat, (existing, replacement) -> existing));
+    public void assembleBasicDashboard(SalesDashboardVO vo, List<FinanceOperatingMetricSnapshot> dailyStats, LocalDateTime startTime, LocalDateTime endTime) {
+        Map<String, FinanceOperatingMetricSnapshot> statsMap = dailyStats.stream()
+                .collect(Collectors.toMap(FinanceOperatingMetricSnapshot::getPeriod, stat -> stat, (existing, replacement) -> existing));
 
         BigDecimal totalSalesAmount = BigDecimal.ZERO;
         int totalOrderCount = 0;
@@ -45,19 +45,19 @@ public class FinanceMetricAssembler {
             String dbPeriodKey = date.toString(); // 格式 "yyyy-MM-dd"
             trendDates.add(date.format(DATE_FORMATTER));
 
-            AnalysisAtomicDataDTO dailyStat = statsMap.get(dbPeriodKey);
+            FinanceOperatingMetricSnapshot dailyStat = statsMap.get(dbPeriodKey);
             if (dailyStat != null) {
                 totalSalesAmount = totalSalesAmount.add(dailyStat.getNetSalesAmount());
                 if (dailyStat.getNetSalesAmount().compareTo(BigDecimal.ZERO) > 0) {
-                    totalOrderCount += dailyStat.getOrderCount();
+                totalOrderCount += (int) dailyStat.getOrderCount();
                 }
-                totalGoodsCount += dailyStat.getGoodsCount();
+                totalGoodsCount += (int) dailyStat.getGoodsCount();
 
                 trendSales.add(dailyStat.getNetSalesAmount());
-                trendOrders.add(dailyStat.getOrderCount());
+                trendOrders.add((int) dailyStat.getOrderCount());
 
                 BigDecimal asp = dailyStat.getOrderCount() > 0
-                        ? dailyStat.getNetSalesAmount().divide(new BigDecimal(dailyStat.getOrderCount()), 2, RoundingMode.HALF_UP)
+                        ? dailyStat.getNetSalesAmount().divide(BigDecimal.valueOf(dailyStat.getOrderCount()), 2, RoundingMode.HALF_UP)
                         : BigDecimal.ZERO;
                 trendAsp.add(asp);
             } else {
@@ -81,7 +81,7 @@ public class FinanceMetricAssembler {
     /**
      * 组装会员 vs 散客双线趋势图
      */
-    public MemberTrendVO assembleMemberTrend(List<DailyMemberStatDTO> memberStats, LocalDateTime startTime, LocalDateTime endTime) {
+    public MemberTrendVO assembleMemberTrend(List<FinanceDashboardMemberDailySnapshot> memberStats, LocalDateTime startTime, LocalDateTime endTime) {
         MemberTrendVO memberTrendVO = new MemberTrendVO();
         List<String> trendDates = new ArrayList<>();
         List<BigDecimal> memberSales = new ArrayList<>();
@@ -96,14 +96,14 @@ public class FinanceMetricAssembler {
             BigDecimal mSales = BigDecimal.ZERO, gSales = BigDecimal.ZERO;
             int mOrders = 0, gOrders = 0;
 
-            for (DailyMemberStatDTO stat : memberStats) {
-                if (matchDate.equals(stat.getDateStr())) {
-                    if (stat.getIsMember() == 1) {
+            for (FinanceDashboardMemberDailySnapshot stat : memberStats) {
+                if (matchDate.equals(stat.getDate())) {
+                    if (stat.isMember()) {
                         mSales = mSales.add(stat.getSalesAmount() != null ? stat.getSalesAmount() : BigDecimal.ZERO);
-                        mOrders += (stat.getOrderCount() != null ? stat.getOrderCount() : 0);
+                        mOrders += (int) stat.getOrderCount();
                     } else {
                         gSales = gSales.add(stat.getSalesAmount() != null ? stat.getSalesAmount() : BigDecimal.ZERO);
-                        gOrders += (stat.getOrderCount() != null ? stat.getOrderCount() : 0);
+                        gOrders += (int) stat.getOrderCount();
                     }
                 }
             }

@@ -2,9 +2,13 @@ package com.money.feature.fin.application.analysis;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.trade.FinanceOperatingAnalysisQuery;
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
-import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
+import com.money.contract.trade.FinanceDashboardBrandSalesSnapshot;
+import com.money.contract.trade.FinanceDashboardMemberDailySnapshot;
+import com.money.contract.trade.FinanceDashboardTopGoodsSnapshot;
+import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
@@ -34,6 +38,8 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
 
     private final SysStrategyMapper sysStrategyMapper;
     private final FinanceOperatingAnalysisQuery financeOperatingAnalysisQuery;
+    private final FinanceSalesDashboardQuery financeSalesDashboardQuery;
+    private final BrandNameQuery brandNameQuery;
     private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
     private final OmsOrderTrafficMapper omsOrderTrafficMapper;
     private final OmsOrderAuditMapper omsOrderAuditMapper;
@@ -60,15 +66,17 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         SalesDashboardVO vo = new SalesDashboardVO();
 
         // 1. 获取原子统计数据，并委托装配基础图表
-        List<AnalysisAtomicDataDTO> dailyStats = omsOrderAnalysisMapper.getPeriodAtomicStats(startTime, endTime, "DAILY");
+        List<FinanceOperatingMetricSnapshot> dailyStats = financeOperatingAnalysisQuery
+                .listPeriodMetrics(startTime, endTime, "DAILY");
         metricAssembler.assembleBasicDashboard(vo, dailyStats, startTime, endTime);
 
         // 2. 获取排行数据，直接装填
-        vo.setTopGoodsRanking(omsOrderAnalysisMapper.getTopGoodsRank(startTime, endTime));
-        vo.setBrandDistribution(omsOrderAnalysisMapper.getBrandSalesDistribution(startTime, endTime));
+        vo.setTopGoodsRanking(toTopGoodsRanking(financeSalesDashboardQuery.listTopGoods(startTime, endTime)));
+        vo.setBrandDistribution(toBrandDistribution(financeSalesDashboardQuery.listBrandSales(startTime, endTime)));
 
         // 3. 获取会员双线数据，并委托装配趋势图
-        List<DailyMemberStatDTO> memberStats = omsOrderAnalysisMapper.getDailyMemberStats(startTime, endTime);
+        List<FinanceDashboardMemberDailySnapshot> memberStats = financeSalesDashboardQuery
+                .listDailyMemberMetrics(startTime, endTime);
         vo.setMemberTrend(metricAssembler.assembleMemberTrend(memberStats, startTime, endTime));
 
         return vo;
@@ -114,6 +122,31 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         return orderCount == 0 ? BigDecimal.ZERO
                 : (netSalesAmount == null ? BigDecimal.ZERO : netSalesAmount)
                 .divide(BigDecimal.valueOf(orderCount), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private List<GoodsSalesRankVO> toTopGoodsRanking(List<FinanceDashboardTopGoodsSnapshot> snapshots) {
+        List<GoodsSalesRankVO> result = new ArrayList<>();
+        for (FinanceDashboardTopGoodsSnapshot snapshot : snapshots) {
+            result.add(new GoodsSalesRankVO(snapshot.getGoodsId(), snapshot.getGoodsName(),
+                    (int) snapshot.getSalesQuantity(), snapshot.getSalesAmount()));
+        }
+        return result;
+    }
+
+    private List<BrandSalesVO> toBrandDistribution(List<FinanceDashboardBrandSalesSnapshot> snapshots) {
+        Set<String> brandIds = new HashSet<>();
+        for (FinanceDashboardBrandSalesSnapshot snapshot : snapshots) {
+            if (snapshot.getBrandId() != null) brandIds.add(String.valueOf(snapshot.getBrandId()));
+        }
+        Map<String, String> namesById = brandNameQuery.findNamesByIds(brandIds);
+        List<BrandSalesVO> result = new ArrayList<>();
+        for (FinanceDashboardBrandSalesSnapshot snapshot : snapshots) {
+            String brandName = snapshot.getBrandId() == null ? null
+                    : namesById.get(String.valueOf(snapshot.getBrandId()));
+            result.add(new BrandSalesVO(brandName == null ? "无品牌/未知" : brandName,
+                    snapshot.getSalesAmount()));
+        }
+        return result;
     }
 
     @Override

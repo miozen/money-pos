@@ -1102,3 +1102,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Split the single dashboard into four non-interchangeable inputs: the existing TRADE daily period metrics, TRADE order-detail goods ranking, TRADE brand-ID revenue, and TRADE order-history member/guest daily metrics. FIN retains date defaults, closed-range parsing, zero filling, chart labels and all card/ASP presentation calculations.
 - Recorded that goods names are transaction-time TRADE facts, while brand display names belong to GMS. The implementation will return only brand IDs and amounts from TRADE, then use the existing GMS `BrandNameQuery` with the legacy `无品牌/未知` fallback; it will not read UMS current membership state because the historical member predicate is stored on orders.
 - No production source, SQL, route, database object, page field or test behavior changed. The next smallest task is P2.4.4.2.1: implement the separate dashboard snapshots and migrate only this FIN entry.
+
+### Completed: P2.4.4.2.1 FIN Sales-Dashboard Snapshots
+
+- Added API-neutral TRADE `FinanceSalesDashboardQuery` and immutable snapshots for top-goods, brand-ID sales and daily member/guest metrics. TRADE retains `OmsOrderAnalysisMapper`; its brand aggregation now returns only `brand_id` and amount, with no `gms_brand` join.
+- Migrated only `OmsSalesAnalysisServiceImpl.getSalesDashboard`. It reuses the existing TRADE daily-period query, maps top-goods facts to the unchanged response DTO, translates brand IDs through GMS `BrandNameQuery`, and retains the `无品牌/未知` fallback. FIN's assembler still owns date filling, card rules and ASP curves.
+- Extended the rolled-back FIN regression with paid, partial-refunded, refunded, returned-to-zero, known-brand, null-brand, member and guest fixtures. It verifies owner snapshots and the unchanged dashboard totals, ranks, names and trends. The next smallest task is P2.4.4.3: design the separate TRADE/SYS traffic query slices.

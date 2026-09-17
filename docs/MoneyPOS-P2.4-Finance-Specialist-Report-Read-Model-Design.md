@@ -165,6 +165,8 @@ FinanceSalesDashboardQuery
 
 P2.4.4.2.1 的实施将一次迁移该单一 `/dashboard` 入口的四段读取：基础 `DAILY` 复用已有契约，其余三段使用新 TRADE 快照，品牌名经 `BrandNameQuery` 翻译。FIN 的 `FinanceMetricAssembler` 继续掌握日期补零、订单数卡片判定、ASP 及成员/散客曲线；不改 HTTP 路由、响应字段、表、Flyway 或事务边界。
 
+P2.4.4.2.1 已按此边界实施。TRADE `FinanceSalesDashboardQuery` 提供商品排行、品牌 ID 营收和会员日趋势三个不可变快照；品牌聚合 SQL 已删除 `gms_brand` join。FIN 复用 `FinanceOperatingAnalysisQuery` 的日快照，且只在 FIN 侧通过 `BrandNameQuery` 批量翻译名称并保留回退值。
+
 ### 验收与回滚
 
 回归在同一滚回事务写入两个日期的已支付、部分退款、全额退款订单及明细：覆盖一个退货后仍为正销量商品、一个净销量为零商品、已知品牌、空品牌、会员和散客。断言 TRADE 快照中的过滤/排序/限额，GMS 名称和 `无品牌/未知` 回退，以及 FIN 的连续日期、卡片、商品排行、品牌分布与双线 ASP 字段。若存在口径差异，仅回滚 P2.4.4.2.1 的 dashboard 消费端和新增契约；不影响 P2.4.4.1 绩效/汇总、客流或其他专项报表。

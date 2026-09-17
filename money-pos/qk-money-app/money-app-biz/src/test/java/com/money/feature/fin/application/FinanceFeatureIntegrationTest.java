@@ -10,9 +10,11 @@ import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.trade.FinanceRiskQuery;
 import com.money.contract.trade.FinanceOperatingAnalysisQuery;
 import com.money.contract.trade.FinanceOperatingMetricSnapshot;
+import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.PerformanceReportVO;
+import com.money.dto.OmsOrder.OmsSalesDataVO.SalesDashboardVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.GmsInventoryDoc;
 import com.money.entity.GmsBrand;
@@ -73,6 +75,8 @@ class FinanceFeatureIntegrationTest {
     private FinanceRiskQuery financeRiskQuery;
     @Autowired
     private FinanceOperatingAnalysisQuery financeOperatingAnalysisQuery;
+    @Autowired
+    private FinanceSalesDashboardQuery financeSalesDashboardQuery;
     @Autowired
     private OmsSalesAnalysisService salesAnalysisService;
 
@@ -317,6 +321,66 @@ class FinanceFeatureIntegrationTest {
         assertThat(totals.getProfit()).isEqualByComparingTo(new BigDecimal("22.00"));
     }
 
+    @Test
+    void salesDashboardUsesTradeSnapshotsAndGmsBrandNames() {
+        String suffix = "D" + (System.nanoTime() % 1_000_000_000L);
+        GmsBrand brand = new GmsBrand();
+        brand.setName("D" + (System.nanoTime() % 1_000_000L));
+        brand.setLogo("");
+        brand.setDescription("dashboard snapshot test");
+        brand.setGoodsCount(0);
+        brand.setTenantId(0L);
+        brandMapper.insert(brand);
+
+        LocalDateTime start = LocalDateTime.now().minusMinutes(1).withNano(0);
+        LocalDateTime end = LocalDateTime.now().plusMinutes(1).withNano(0);
+        insertDashboardOrder(suffix + "-MEMBER", "PAID", start, new BigDecimal("20.00"),
+                new BigDecimal("2.00"), 2, 0, brand.getId(), true, "Dashboard member " + suffix);
+        insertDashboardOrder(suffix + "-GUEST", "PARTIAL_REFUNDED", end, new BigDecimal("10.00"),
+                new BigDecimal("1.00"), 1, 0, null, false, "Dashboard guest " + suffix);
+        insertDashboardOrder(suffix + "-ZERO", "PAID", start.plusSeconds(1), new BigDecimal("8.00"),
+                BigDecimal.ZERO, 1, 1, brand.getId(), false, "Dashboard zero " + suffix);
+        insertDashboardOrder(suffix + "-REFUND", "REFUNDED", start.plusSeconds(2), new BigDecimal("99.00"),
+                BigDecimal.ZERO, 9, 0, brand.getId(), true, "Dashboard refunded " + suffix);
+
+        assertThat(financeSalesDashboardQuery.listTopGoods(start, end)).anySatisfy(row -> {
+            assertThat(row.getGoodsName()).isEqualTo("Dashboard member " + suffix);
+            assertThat(row.getSalesQuantity()).isEqualTo(2L);
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("40.00"));
+        });
+        assertThat(financeSalesDashboardQuery.listTopGoods(start, end).stream().map(row -> row.getGoodsName()))
+                .doesNotContain("Dashboard zero " + suffix, "Dashboard refunded " + suffix);
+        assertThat(financeSalesDashboardQuery.listBrandSales(start, end)).anySatisfy(row -> {
+            assertThat(row.getBrandId()).isEqualTo(brand.getId());
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("40.00"));
+        });
+        assertThat(financeSalesDashboardQuery.listDailyMemberMetrics(start, end)).anySatisfy(row -> {
+            assertThat(row.isMember()).isTrue();
+            assertThat(row.getOrderCount()).isEqualTo(1L);
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("20.00"));
+        });
+
+        String startText = start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endText = end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        SalesDashboardVO dashboard = salesAnalysisService.getSalesDashboard(startText, endText);
+        assertThat(dashboard.getTotalSalesAmount()).isEqualByComparingTo(new BigDecimal("38.00"));
+        assertThat(dashboard.getTotalOrderCount()).isEqualTo(3);
+        assertThat(dashboard.getTotalGoodsCount()).isEqualTo(3);
+        assertThat(dashboard.getTopGoodsRanking().stream().map(row -> row.getGoodsName()))
+                .contains("Dashboard member " + suffix, "Dashboard guest " + suffix)
+                .doesNotContain("Dashboard zero " + suffix, "Dashboard refunded " + suffix);
+        assertThat(dashboard.getBrandDistribution()).anySatisfy(row -> {
+            assertThat(row.getBrandName()).isEqualTo(brand.getName());
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("40.00"));
+        });
+        assertThat(dashboard.getBrandDistribution()).anySatisfy(row -> {
+            assertThat(row.getBrandName()).isEqualTo("无品牌/未知");
+            assertThat(row.getSalesAmount()).isEqualByComparingTo(new BigDecimal("10.00"));
+        });
+        assertThat(dashboard.getMemberTrend().getMemberSales()).contains(new BigDecimal("20.00"));
+        assertThat(dashboard.getMemberTrend().getGuestSales()).contains(new BigDecimal("18.00"));
+    }
+
     private void insertInventoryDocument(String docNo, String docType, java.math.BigDecimal totalAmount) {
         GmsInventoryDoc doc = new GmsInventoryDoc();
         doc.setDocNo(docNo);
@@ -474,6 +538,45 @@ class FinanceFeatureIntegrationTest {
         detail.setVipPrice(salesAmount);
         detail.setQuantity(quantity);
         detail.setReturnQuantity(0);
+        detail.setCoupon(BigDecimal.ZERO);
+        detail.setTenantId(0L);
+        orderDetailMapper.insert(detail);
+    }
+
+    private void insertDashboardOrder(String orderNo, String status, LocalDateTime createTime,
+                                      BigDecimal salesAmount, BigDecimal costAmount, int quantity, int returnQuantity,
+                                      Long brandId, boolean member, String goodsName) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(member);
+        order.setTotalAmount(salesAmount);
+        order.setPayAmount(salesAmount);
+        order.setFinalSalesAmount(salesAmount);
+        order.setCostAmount(costAmount);
+        order.setCouponAmount(BigDecimal.ZERO);
+        order.setActualCouponDeduct(BigDecimal.ZERO);
+        order.setWaivedCouponAmount(BigDecimal.ZERO);
+        order.setUseVoucherAmount(BigDecimal.ZERO);
+        order.setManualDiscountAmount(BigDecimal.ZERO);
+        order.setTenantId(0L);
+        order.setPaymentTime(createTime);
+        order.setCreateTime(createTime);
+        orderMapper.insert(order);
+
+        OmsOrderDetail detail = new OmsOrderDetail();
+        detail.setOrderNo(orderNo);
+        detail.setStatus(status);
+        detail.setGoodsId(77L);
+        detail.setBrandId(brandId);
+        detail.setGoodsBarcode("DASHBOARD-TEST");
+        detail.setGoodsName(goodsName);
+        detail.setGoodsPrice(salesAmount);
+        detail.setSalePrice(salesAmount);
+        detail.setPurchasePrice(costAmount);
+        detail.setVipPrice(salesAmount);
+        detail.setQuantity(quantity);
+        detail.setReturnQuantity(returnQuantity);
         detail.setCoupon(BigDecimal.ZERO);
         detail.setTenantId(0L);
         orderDetailMapper.insert(detail);

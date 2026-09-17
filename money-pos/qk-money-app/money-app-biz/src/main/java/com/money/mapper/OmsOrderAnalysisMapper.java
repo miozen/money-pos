@@ -1,7 +1,6 @@
 package com.money.mapper;
 
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
-import com.money.dto.OmsOrder.OmsSalesDataVO.BrandSalesVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.GoodsSalesRankVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.MarketingRoiVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.CategorySalesVO;
@@ -50,17 +49,16 @@ public interface OmsOrderAnalysisMapper {
     List<GoodsSalesRankVO> getTopGoodsRank(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     @Select("SELECT " +
-            "  IFNULL(b.name, '无品牌/未知') AS brandName, " +
+            "  d.brand_id AS brandId, " +
             "  SUM((d.quantity - IFNULL(d.return_quantity, 0)) * IFNULL(d.goods_price, 0)) AS salesAmount " +
             "FROM oms_order_detail d " +
             "INNER JOIN oms_order o ON d.order_no = o.order_no " +
-            "LEFT JOIN gms_brand b ON d.brand_id = b.id " +
             "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED') " +
             "  AND o.create_time >= #{startTime} AND o.create_time <= #{endTime} " +
-            "GROUP BY d.brand_id, brandName " +
+            "GROUP BY d.brand_id " +
             "HAVING salesAmount > 0 " +
             "ORDER BY salesAmount DESC")
-    List<BrandSalesVO> getBrandSalesDistribution(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+    List<java.util.Map<String, Object>> getBrandSalesAmounts(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     @Select("SELECT '满减券' AS ruleType, IFNULL(remark, '通用满减活动') AS ruleName, COUNT(id) AS usedCount, SUM(IFNULL(use_voucher_amount, 0)) AS totalDiscountGived, SUM(IFNULL(final_sales_amount, 0)) AS totalRevenueBrought " +
             "FROM oms_order WHERE status IN ('PAID', 'PARTIAL_REFUNDED') AND create_time >= #{startTime} AND create_time <= #{endTime} AND IFNULL(use_voucher_amount, 0) > 0 GROUP BY ruleName " +
