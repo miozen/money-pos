@@ -1301,3 +1301,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Source/resource verification found no API-module copy, old FQCN or resource dependency. The ownership registry fell from 26 to 25 and the Feature shared-Entity importer count from 73 to 72; the six cross-owner compatibility bridges and three wildcard paths did not change.
 - The targeted CRUD test passed; the isolated full Maven suite passed with 26 current test classes and 69 tests (0 failures / 0 errors). Package build, script fixtures, report/additions-only architecture scans and whitespace check passed.
 - The next smallest task is AD-2.10: re-inventory candidates and select exactly one fifth shared-Entity physical-ownership migration slice before moving it.
+
+### Completed: AD-2.10 Fifth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.10-Fifth-Entity-Slice-Selection.md`. It selects GMS `GmsInventoryDocItem` as the sole AD-2.11 target after re-auditing the remaining lowest-surface persistence records.
+- The selected Entity is created only by GMS's inventory-document and stock-command services, then persisted through the scanned legacy `GmsInventoryDocItemMapper`. No Controller, DTO, JSON/Excel boundary, XML FQCN, other Maven module or cross-Feature contract directly consumes it.
+- AD-2.11 will preserve the explicit `gms_inventory_doc_item` table mapping, BaseEntity `ASSIGN_ID`/audit fields, snapshot fields, legacy mapper scan root and existing inventory semantics. It will extend the existing inbound inventory regression to observe the persisted item snapshot and add direct Mapper CRUD coverage. Feature importer count is expected to fall from 72 to 70 and the ownership registry from 25 to 24.
+- `GmsInventoryDoc` remains deferred because FIN's query implementations depend on it; `GmsInventoryOrder` retains its `IService<Entity>` compatibility surface; `GmsMemberTransaction` still needs isolated scan/derivation characterization. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- The next smallest task is AD-2.11: move only `GmsInventoryDocItem` into GMS persistence and add the required snapshot and Mapper CRUD regressions.

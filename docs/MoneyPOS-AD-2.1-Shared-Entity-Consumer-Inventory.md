@@ -43,7 +43,7 @@ import 判断：
 | `GmsGoodsCategory` | GMS | 本域目录、商品查询/Excel、Mapper | 报表名称使用分类名称契约；无首切片候选。 |
 | `GmsGoodsCombo` | GMS | 本域商品和库存命令、Mapper | TRADE 仅通过库存命令处理套餐。 |
 | `GmsInventoryDoc` | GMS | 本域库存单据、库存命令、FIN 瀑布查询实现 | FIN 使用 API 快照；Mapper 仍是兼容桥。 |
-| `GmsInventoryDocItem` | GMS | 本域单据/库存命令、Mapper | 无跨域 Entity 契约。 |
+| `GmsInventoryDocItem` | GMS | 两个 GMS 库存命令服务、遗留 Mapper | **AD-2.10 已选为 AD-2.11**；无跨域 Entity 契约，须补明细快照与 CRUD 回归。 |
 | `GmsInventoryOrder` | GMS | 本域库存订单、Mapper | 无跨域 Entity 契约。 |
 | `GmsInventoryOrderDetail` | GMS | GMS 库存单服务、GMS 专用 Mapper（均已使用 GMS 本地 Entity） | **AD-2.9 已迁移**；无跨域 Entity 契约，CRUD 回归已锁定隐式表名与字段映射。 |
 | `GmsMemberTransaction` | UMS | 仅遗留共享 Mapper，未发现 Feature 应用层实际消费者 | 候选很小但没有行为回归覆盖，暂不作为首切片。 |
