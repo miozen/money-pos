@@ -305,6 +305,17 @@ class FinanceFeatureIntegrationTest {
             assertThat(row.getTotalRevenueBrought()).isEqualByComparingTo(new BigDecimal("20.00"));
             assertThat(row.getRoiMultiplier()).isEqualByComparingTo(new BigDecimal("6.67"));
         });
+        String start = LocalDateTime.now().minusMinutes(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String end = LocalDateTime.now().plusMinutes(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        assertThat(salesAnalysisService.getMarketingRoiAnalysis(start, end)).anySatisfy(row -> {
+            assertThat(row.getRuleName()).isEqualTo("Campaign " + suffix);
+            assertThat(row.getRuleType()).isEqualTo("满减券");
+            assertThat(row.getUsedCount()).isEqualTo(1);
+            assertThat(row.getTotalDiscountGived()).isEqualByComparingTo(new BigDecimal("3.00"));
+            assertThat(row.getTotalRevenueBrought()).isEqualByComparingTo(new BigDecimal("20.00"));
+            assertThat(row.getRoiMultiplier()).isEqualByComparingTo(new BigDecimal("6.67"));
+            assertThat(row.getAvgOrderValue()).isEqualByComparingTo(new BigDecimal("20.00"));
+        });
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.member.HomeDailyMemberQuery;
 import com.money.contract.trade.HomeOrderReadQuery;
 import com.money.contract.trade.HomeOrderReadSnapshot;
 import com.money.contract.trade.HomeDailyOrderSnapshot;
@@ -21,6 +22,8 @@ import com.money.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
+import com.money.mapper.UmsMemberMapper;
+import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,6 +72,12 @@ class HomeCountSnapshotCharacterizationTest {
     private DecisionEngineService decisionEngineService;
     @Autowired
     private OmsOrderDetailMapper omsOrderDetailMapper;
+    @Autowired
+    private HomeDailyMemberQuery homeDailyMemberQuery;
+    @Autowired
+    private UmsMemberMapper umsMemberMapper;
+    @Autowired
+    private TradeFixture tradeFixture;
 
     @BeforeEach
     void authenticateTenant() {
@@ -193,6 +202,20 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(month.get("orderCount")).isEqualTo(monthSnapshot.getOrderCount());
         assertThat((BigDecimal) month.get("saleCount")).isEqualByComparingTo(monthSnapshot.getSaleCount());
         assertThat((BigDecimal) month.get("profit")).isEqualByComparingTo(monthSnapshot.getProfit());
+    }
+
+    @Test
+    void dailySnapshotUsesUmsOwnedNewMemberCount() {
+        LocalDate today = LocalDate.now();
+        int before = homeDailyMemberQuery.countNewMembers(today);
+        com.money.entity.UmsMember member = tradeFixture.createMember("home" + (System.nanoTime() % 1_000_000),
+                BigDecimal.ZERO);
+        member.setCreateTime(today.atTime(12, 0));
+        umsMemberMapper.updateById(member);
+
+        assertThat(homeDailyMemberQuery.countNewMembers(today)).isEqualTo(before + 1);
+        decisionEngineService.generateDailySnapshot(today);
+        assertThat(todaySnapshot(today).getNewMemberCount()).isEqualTo(before + 1);
     }
 
     @Test

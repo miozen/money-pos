@@ -40,6 +40,12 @@
 - FIN/HOME 的完整调用面、Entity/Mapper 归属及迁移顺序已记录于 `MoneyPOS-P2.0-Report-Read-Model-Inventory.md`。首个安全切片是 HOME 的库存估值单值查询；订单、支付、库存单据、会员资产和瀑布流仍按各自口径分组迁移。
 - P2.1 已完成：`InventoryValuationQuery` 保留 GMS 的“正库存 × 采购价”计算与异常语义，HOME 的统计服务和决策快照均只消费该单值。剩余 HOME 订单/图表读取进入 P2.2。
 
+## P2.5 最终复核（2026-09-18）
+
+- P2 定义的 FIN/HOME 报表读侧已完成：FIN 不再直接导入 Mapper 或共享 Entity；HOME 仅保留其逻辑归属为 HOME 的 `OmsDailySummary` Entity/Mapper。HOME 的新会员日计数现通过 UMS `HomeDailyMemberQuery` 读取，不再直接查询 `ums_member`。
+- 架构扫描当前记录 73 个 Feature 文件导入共享 Entity。该数量不能直接等同于跨域耦合：数据所有者在自己的持久化实现中使用其归属 Entity 是允许的；新跨域调用仍须先增加 `money-app-api` 场景契约。
+- 剩余一项 TRADE → FIN 控制器实现 import 和共享 Entity 的物理包归属均为 P2 范围外的兼容债务，后续必须作为独立任务处理。最终证据见 `MoneyPOS-P2-Final-Acceptance-Review.md`。
+
 ## 执行约束
 
 1. 不移动共享 Entity 的物理包，不改表、Mapper、Flyway 或 API 路由。

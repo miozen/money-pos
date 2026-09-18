@@ -35,7 +35,7 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 - [x] P2.4.4.4.1 已迁移 FIN 品类销售与单品趋势的 TRADE/GMS 快照：保持各自退货公式、显示档案和时间范围。
 - [x] P2.4.4.5 已迁移 FIN 利润审计：保持订单号/`ANOMALY` 筛选、状态集、分页和排序口径。
 - [x] P2.4.5 已迁移瀑布流：分别收敛 TRADE/GMS 输入，FIN 仅组装既有公式；不把不同财务口径强行合并。
-- [ ] P2.5 验收与复核：增加 FIN/HOME 集成回归，运行全量 Maven 测试、构建和架构门禁；复核剩余跨 Feature 实现导入与共享 Entity 归属。
+- [x] P2.5 已完成验收与复核：FIN/HOME 集成回归、全量 Maven 测试、构建和架构门禁均通过；剩余跨 Feature 实现导入与共享 Entity 归属已记录。详见 `MoneyPOS-P2-Final-Acceptance-Review.md`。
 
 ## 完成定义
 
@@ -48,4 +48,4 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2.5：验收与复核——增加 FIN/HOME 集成回归，运行全量 Maven 测试、构建和架构门禁；复核剩余跨 Feature 实现导入与共享 Entity 归属。**
+**P2 已完成。后续工作应作为独立架构债务任务处理：共享 Entity 物理归属、既有 TRADE → FIN 兼容调用，以及新跨域场景的窄契约。**

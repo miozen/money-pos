@@ -34,7 +34,7 @@ class FinanceProfitQueryService implements FinanceProfitQuery {
     public List<FinanceCampaignReviewSnapshot> listCampaignReviews(LocalDateTime startInclusive,
                                                                      LocalDateTime endInclusive) {
         return orderAnalysisMapper.getMarketingRoiStats(startInclusive, endInclusive).stream()
-                .map(row -> new FinanceCampaignReviewSnapshot(row.getRuleName(), intValue(row.getUsedCount()),
+                .map(row -> new FinanceCampaignReviewSnapshot(row.getRuleName(), row.getRuleType(), intValue(row.getUsedCount()),
                         zero(row.getTotalDiscountGived()), zero(row.getTotalRevenueBrought())))
                 .collect(Collectors.toList());
     }

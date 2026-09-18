@@ -2,6 +2,7 @@ package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
+import com.money.contract.member.HomeDailyMemberQuery;
 import com.money.contract.trade.HomeDailyOrderSnapshot;
 import com.money.contract.trade.HomeDashboardOrderSnapshot;
 import com.money.contract.trade.HomeOrderReadQuery;
@@ -32,6 +33,7 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
     private final JdbcTemplate jdbcTemplate;
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
+    private final HomeDailyMemberQuery homeDailyMemberQuery;
 
     @Override
     public void compensateSnapshots(int daysToCheck) {
@@ -65,10 +67,7 @@ public class DecisionEngineServiceImpl implements DecisionEngineService {
         summary.setOrderCount(orderCount);
         summary.setAsp(orderCount > 0 ? salesAmount.divide(new BigDecimal(orderCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
 
-        Integer newMemberCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(1) FROM ums_member WHERE create_time >= ? AND create_time <= ?",
-                Integer.class, startTime, endTime);
-        summary.setNewMemberCount(newMemberCount != null ? newMemberCount : 0);
+        summary.setNewMemberCount(homeDailyMemberQuery.countNewMembers(date));
 
         BigDecimal inventoryValue = inventoryValuationQuery.getCurrentStockValue();
         summary.setInventoryValue(inventoryValue != null ? inventoryValue : BigDecimal.ZERO);

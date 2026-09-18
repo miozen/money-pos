@@ -20,11 +20,12 @@ import com.money.contract.trade.FinanceProductAnalysisQuery;
 import com.money.contract.trade.FinanceProfitAuditPageSnapshot;
 import com.money.contract.trade.FinanceProfitAuditQuery;
 import com.money.contract.trade.FinanceProfitAuditSnapshot;
+import com.money.contract.trade.FinanceCampaignReviewSnapshot;
+import com.money.contract.trade.FinanceProfitQuery;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.*;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.dto.OmsOrder.ProfitAuditVO;
-import com.money.mapper.OmsOrderAnalysisMapper;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.feature.fin.application.analysis.FinanceMetricAssembler;
 import com.money.web.vo.PageVO;
@@ -52,7 +53,7 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
     private final BrandNameQuery brandNameQuery;
     private final GoodsCategoryNameQuery goodsCategoryNameQuery;
     private final FinanceProductAnalysisQuery financeProductAnalysisQuery;
-    private final OmsOrderAnalysisMapper omsOrderAnalysisMapper;
+    private final FinanceProfitQuery financeProfitQuery;
     private final FinanceProfitAuditQuery financeProfitAuditQuery;
 
     private final FinanceMetricAssembler metricAssembler; // 🌟 专职处理复杂的拼装与计算
@@ -116,7 +117,16 @@ public class OmsSalesAnalysisServiceImpl implements OmsSalesAnalysisService {
         LocalDateTime startTime = parseStartTime(startDate);
         LocalDateTime endTime = parseEndTime(endDate);
 
-        List<MarketingRoiVO> results = omsOrderAnalysisMapper.getMarketingRoiStats(startTime, endTime);
+        List<MarketingRoiVO> results = new ArrayList<>();
+        for (FinanceCampaignReviewSnapshot snapshot : financeProfitQuery.listCampaignReviews(startTime, endTime)) {
+            MarketingRoiVO vo = new MarketingRoiVO();
+            vo.setRuleName(snapshot.getRuleName());
+            vo.setRuleType(snapshot.getRuleType());
+            vo.setUsedCount(snapshot.getUsedCount());
+            vo.setTotalDiscountGived(snapshot.getTotalDiscount());
+            vo.setTotalRevenueBrought(snapshot.getTotalRevenue());
+            results.add(vo);
+        }
         // 委托装配器计算 ROI 乘数与客单价
         return metricAssembler.calculateMarketingRoi(results);
     }
