@@ -1,13 +1,10 @@
 package com.money.service;
 
-import cn.hutool.core.bean.BeanUtil;
-import com.money.feature.gms.application.product.GmsGoodsService;
+import com.money.contract.goods.LegacyPosGoodsSearchQuery;
+import com.money.contract.goods.LegacyPosGoodsSearchSnapshot;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.GmsGoodsVO;
-import com.money.entity.GmsGoods;
-import com.money.entity.PosSkuLevelPrice;
 import com.money.entity.SysBrandConfig;
-import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.SysBrandConfigMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,30 +23,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GoodsPosFacade {
 
-    private final GmsGoodsService gmsGoodsService;
-    private final PosSkuLevelPriceMapper posSkuLevelPriceMapper;
+    private final LegacyPosGoodsSearchQuery legacyPosGoodsSearchQuery;
     private final SysBrandConfigMapper sysBrandConfigMapper;
 
     /**
      * 核心：POS 收银台全能搜索与策略清洗
      */
     public List<GmsGoodsVO> posSearchGoods(String keyword) {
-        // 1. 查出基础商品信息
-        List<GmsGoods> goodsList = gmsGoodsService.lambdaQuery()
-                .like(GmsGoods::getBarcode, keyword)
-                .or().like(GmsGoods::getName, keyword)
-                .or().like(GmsGoods::getMnemonicCode, keyword)
-                .eq(GmsGoods::getStatus, "SALE")
-                .list();
+        List<LegacyPosGoodsSearchSnapshot> goodsList = legacyPosGoodsSearchQuery.searchForLegacyPos(keyword);
 
         if (goodsList == null || goodsList.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<Long> goodsIds = goodsList.stream().map(GmsGoods::getId).collect(Collectors.toList());
-
-        // 2. 提取品牌ID，批量拉取品牌定价策略网
-        List<Long> brandIds = goodsList.stream().map(GmsGoods::getBrandId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        // 1. 提取品牌ID，批量拉取品牌定价策略网
+        List<Long> brandIds = goodsList.stream().map(LegacyPosGoodsSearchSnapshot::getBrandId)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
         Map<String, Boolean> brandCouponStrategyMap = new HashMap<>();
 
         if (!brandIds.isEmpty()) {
@@ -62,17 +51,9 @@ public class GoodsPosFacade {
             }
         }
 
-        // 3. 查出底层会员价格矩阵（可能包含历史脏数据）
-        List<PosSkuLevelPrice> allLevelPrices = posSkuLevelPriceMapper.selectList(
-                new LambdaQueryWrapper<PosSkuLevelPrice>().in(PosSkuLevelPrice::getSkuId, goodsIds)
-        );
-        Map<Long, List<PosSkuLevelPrice>> priceMap = allLevelPrices.stream()
-                .collect(Collectors.groupingBy(PosSkuLevelPrice::getSkuId));
-
-        // 4. 组装吐给收银台的视图 (VO)，并执行绝对严格的清洗
+        // 2. 组装吐给收银台的视图 (VO)，并执行绝对严格的清洗
         return goodsList.stream().map(goods -> {
-            GmsGoodsVO vo = new GmsGoodsVO();
-            BeanUtil.copyProperties(goods, vo);
+            GmsGoodsVO vo = toGoodsVO(goods);
 
             // 判别该商品品牌是否开启了“会员券双轨模式”
             boolean isDualTrack = false;
@@ -83,17 +64,14 @@ public class GoodsPosFacade {
             Map<String, BigDecimal> lpMap = new HashMap<>();
             Map<String, BigDecimal> lcMap = new HashMap<>();
 
-            List<PosSkuLevelPrice> prices = priceMap.get(goods.getId());
-            if (prices != null) {
-                for (PosSkuLevelPrice p : prices) {
-                    lpMap.put(p.getLevelId(), p.getMemberPrice());
+            for (Map.Entry<String, BigDecimal> price : goods.getLevelPrices().entrySet()) {
+                lpMap.put(price.getKey(), price.getValue());
 
-                    // 🌟 核心拦截关卡：策略未开启时，强制抹零非法券额！
-                    if (isDualTrack) {
-                        lcMap.put(p.getLevelId(), p.getMemberCoupon() != null ? p.getMemberCoupon() : BigDecimal.ZERO);
-                    } else {
-                        lcMap.put(p.getLevelId(), BigDecimal.ZERO);
-                    }
+                // 🌟 核心拦截关卡：策略未开启时，强制抹零非法券额！
+                if (isDualTrack) {
+                    lcMap.put(price.getKey(), goods.getLevelCoupons().getOrDefault(price.getKey(), BigDecimal.ZERO));
+                } else {
+                    lcMap.put(price.getKey(), BigDecimal.ZERO);
                 }
             }
             vo.setLevelPrices(lpMap);
@@ -101,5 +79,30 @@ public class GoodsPosFacade {
 
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    private GmsGoodsVO toGoodsVO(LegacyPosGoodsSearchSnapshot goods) {
+        GmsGoodsVO vo = new GmsGoodsVO();
+        vo.setId(goods.getId());
+        vo.setBrandId(goods.getBrandId());
+        vo.setCategoryId(goods.getCategoryId());
+        vo.setBarcode(goods.getBarcode());
+        vo.setName(goods.getName());
+        vo.setPinyin(goods.getPinyin());
+        vo.setPic(goods.getPic());
+        vo.setUnit(goods.getUnit());
+        vo.setSize(goods.getSize());
+        vo.setDescription(goods.getDescription());
+        vo.setPurchasePrice(goods.getPurchasePrice());
+        vo.setSalePrice(goods.getSalePrice());
+        vo.setVipPrice(goods.getVipPrice());
+        vo.setCoupon(goods.getCoupon());
+        vo.setStock(goods.getStock());
+        vo.setSales(goods.getSales());
+        vo.setStatus(goods.getStatus());
+        vo.setCreateTime(goods.getCreateTime());
+        vo.setUpdateTime(goods.getUpdateTime());
+        vo.setIsDiscountParticipable(goods.getIsDiscountParticipable());
+        return vo;
     }
 }

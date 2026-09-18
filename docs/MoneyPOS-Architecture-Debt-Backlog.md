@@ -43,7 +43,7 @@
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
 | AD-3.3 | SYS 字典实体读取收敛 | **已关闭** | TRADE/GMS/UMS 已改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail` 或直接使用其 Mapper。见 `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
 | AD-3.4 | GMS→POS 商品搜索快照设计 | **已关闭** | 已确认既有 `PosGoodsCatalogQuery` 与兼容路由口径不同，并设计独立的 GMS 所有者快照。见 `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`。 | 固定旧路由字段、未分组 SQL 的实际状态口径、原样助记码匹配及 SYS 策略边界。 |
-| AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 待实施 | 实施新 GMS 查询契约并令 `GoodsPosFacade` 只组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；对非 `SALE` 的条码/名称和助记码命中分别回归。 |
+| AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 已关闭 | GMS 通过独立 Entity-free 快照提供遗留 POS 搜索；`GoodsPosFacade` 仅组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；已回归非 `SALE` 的条码/名称、助记码、原样小写关键字、空关键字、价格矩阵及策略关券。 |
 | **AD-4** | Maven 物理模块化重新评估 | **受前置条件约束** | 未来再评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前结论仍为“暂不拆分”。 | 必须先满足 Entity-free 契约、无 UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证；见阶段 5 决策。 |
 | **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
 | **AD-6** | Java 17 源码基线升级评估 | **待设计** | 评估从 Maven Java 8 编译目标升级的收益、依赖兼容和发布风险。 | 独立于 P2/Entity 迁移；未完成前，主模块继续保持 Java 8 源码语法。 |
@@ -57,11 +57,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-3.4.1**：实施 GMS→POS 商品搜索快照，收敛 `GoodsPosFacade` 的通用商品实体查询。
-2. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
-3. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
-4. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
+1. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
+2. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
+3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-3.4.1：实施 GMS→POS 商品搜索快照，收敛 `GoodsPosFacade` 的通用商品实体查询。**
+**AD-2.1：共享 Entity 消费者再盘点与首切片选择。**

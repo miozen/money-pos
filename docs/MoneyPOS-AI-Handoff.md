@@ -34,8 +34,8 @@
 
 ## 当前基线与已完成架构工作
 
-最新架构提交是 **`37eaba1 docs(ad-3.4): design gms pos goods snapshot`**；它只包含 AD-3.4
-设计文档和清单/台账更新。此前的相邻提交为：
+接力前的最新文档基线是 **`f7dc5c4 docs: refresh architecture handoff`**；它记录 AD-3.4.1 的
+实施起点。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -54,43 +54,29 @@
 - AD-1 已关闭：HOME `DecisionEngine` 的写入边界已治理；采用启动即刷新 + 每 5 分钟刷新，
   单 JVM `AtomicBoolean` 防重入，失败保留上一份有效快照并记录日志。多实例部署尚无分布式锁，
   这是已记录的运行风险。
-- AD-3 正在实施：AD-3.1、AD-3.2、AD-3.3、AD-3.4 已关闭；AD-3.4.1 是当前唯一下一最小任务。
+- AD-3 已关闭：AD-3.1 至 AD-3.4.1 均已闭环；遗留实现类型与跨域通用实体查询风险已按当前盘点收敛。
 - AD-2（共享 Entity 物理归属）、AD-4（物理 Maven 拆分）、AD-5（CI 门禁）、AD-6（Java 17
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
 均为 0；共享 `com.money.entity` import 约 74 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
 
-## 当前任务：AD-3.4.1
+## 当前任务：AD-2.1
 
-**实施 GMS→POS 商品搜索快照，收敛 `GoodsPosFacade` 的通用商品实体查询。**
+**共享 Entity 消费者再盘点与首切片选择。**
 
-先完整阅读 `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`。已固定的实施边界：
+先重新执行共享 Entity import 扫描，并以当前代码逐项建立归属表。已固定的实施边界：
 
-- 对外路由保持 `GET /gms/goods/pos-search?keyword=...`，响应继续为 `List<GmsGoodsVO>`；不改页面字段、
-  数据库表、Flyway 或事务边界。
-- 在 `money-app-api` 新增独立、Java 8 普通不可变 DTO + 查询端口；GMS 在自身内部以 mapper /
-  价格服务实现。不得复用或污染现有 `PosGoodsCatalogQuery`：后者服务 TRADE `PosService`，字段和
-  搜索口径不同。
-- `GoodsPosFacade` 改为只依赖新端口并把快照映射回旧 `GmsGoodsVO`，删除它对
-  `GmsGoodsService.lambdaQuery()` 和 `GmsGoods` 的依赖。
-- **兼容关键点**：旧 MyBatis-Plus 链未分组，实际 SQL 语义是
-  `barcode LIKE keyword OR name LIKE keyword OR (mnemonic_code LIKE keyword AND status = 'SALE')`。
-  条码/名称命中非 `SALE` 商品仍可能返回；本次边界迁移必须用回归锁定此行为，不能擅自修成全部
-  商品必须 `SALE`。助记码使用传入原样关键字，不能沿用既有契约的 `toUpperCase()`；空字符串保持
-  旧 `LIKE '%%'` 语义。
-- GMS 输出主档和等级价格/券原值；Facade 保留 SYS 品牌券策略：品牌策略关闭时将等级券额强制置零。
-  `SysBrandConfigMapper` / `SysBrandConfig` 的边界不属于 AD-3.4.1，后续单列任务。
-- 需要覆盖：条码/名称命中非 `SALE`、助记码命中非 `SALE`、原样小写助记码、空关键字、价格矩阵，
-  以及策略关闭时券额为零。
-
-建议的验收搜索：`GoodsPosFacade` 不再 import `GmsGoodsService` 或 `GmsGoods`，也不调用
-`lambdaQuery()`。
+- 先完成设计/盘点，不移动任何 Entity、Mapper 或 DTO；AD-2.2 必须以单独提交实施。
+- 对每个 Feature 的 `com.money.entity` import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并记录
+  所有者、调用目的、Mapper XML、序列化和事务影响。
+- 从已分类对象选择一个低风险、单一所有者切片；不得以 import 数量或包名整洁为由批量移动。
+- 不改 HTTP 路由、页面字段、表/Flyway、既有事务边界或对外 DTO。
 
 ## 后续编号顺序
 
-AD-3.4.1 完成后，按债务清单执行唯一下一最小任务：**AD-2.1——共享 Entity 消费者再盘点与首切片选择**。
-不能直接移动一批 Entity；先逐项标记本域持久化、跨域泄露和兼容桥，并选一个低风险单一所有者切片。
+AD-2.1 完成后，按债务清单执行唯一下一最小任务：**AD-2.2——首个 Entity 物理归属迁移**。不能直接
+移动一批 Entity；只迁移 AD-2.1 已明确所有者和消费者面都可控的单一切片。
 
 ## Java 与设计约束
 
