@@ -2,9 +2,9 @@
 
 ## 结论
 
-当前 `money-app-biz` 的 Feature 源码中有 **75 个文件**直接导入共享
-`com.money.entity`。这个数是审计起点，不是违规数：所有者在自己的应用、领域和持久化层使用 ORM
-Entity 是合法的；本次没有把它机械地升级成失败门禁。
+AD-2.1 盘点时，`money-app-biz` 的 Feature 源码有 **75 个文件**直接导入共享
+`com.money.entity`；AD-2.2 移除退款幂等 Entity 后，当前为 **74 个文件**。这个数是审计起点，不是
+违规数：所有者在自己的应用、领域和持久化层使用 ORM Entity 是合法的；本次没有把它机械地升级成失败门禁。
 
 首个物理归属切片 **TRADE 的 `OmsRefundIdempotent` 已由 AD-2.2 完成迁移**。它现在位于
 TRADE 持久化 entity 包，仅由退款幂等防线和 TRADE Mapper 实际使用；HTTP、API DTO、跨 Feature
@@ -18,7 +18,8 @@ TRADE 持久化 entity 包，仅由退款幂等防线和 TRADE Mapper 实际使�
 rg -l '^import com\.money\.entity\.' money-pos/qk-money-app/money-app-biz/src/main/java/com/money/feature | wc -l
 ```
 
-结果为 75。随后对每个 Entity 以实际符号引用复核，而不是只按类名前缀或通配符 import 判断：
+AD-2.1 的结果为 75，当前结果为 74。随后对每个 Entity 以实际符号引用复核，而不是只按类名前缀或通配符
+import 判断：
 
 | 分类 | 含义 | 本轮处理 |
 | --- | --- | --- |
@@ -31,8 +32,8 @@ rg -l '^import com\.money\.entity\.' money-pos/qk-money-app/money-app-biz/src/ma
 
 ## 当前消费者归属矩阵
 
-下表覆盖当前业务模块实际被导入的全部 29 个共享 Entity。`本域`包括相应 Feature 的应用/领域/
-持久化实现；`桥/泄露`只列需要后续单独处理的实际消费面。
+下表保留 AD-2.1 时实际被导入的全部 29 个共享 Entity，包含后续已迁移的 `OmsRefundIdempotent`；当前剩余
+28 个。`本域`包括相应 Feature 的应用/领域/持久化实现；`桥/泄露`只列需要后续单独处理的实际消费面。
 
 | Entity | 逻辑所有者 | 当前消费者分类 | 桥/泄露与后续方向 |
 | --- | --- | --- | --- |

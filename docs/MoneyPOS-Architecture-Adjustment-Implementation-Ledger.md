@@ -1253,3 +1253,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added `scripts/test-architecture-scan.sh` temporary-source fixtures. They verify owner-local and exact-bridge acceptance plus rejection of a new cross-owner import, a new wildcard, a newly used cross-owner type in the GMS Excel wildcard, and an unregistered Entity.
 - `bash -n scripts/architecture-scan.sh scripts/test-architecture-scan.sh`, the fixture suite, report scan, additions-only scan, `mvn -q package -DskipTests`, and `git diff --check` passed. No production source, route, DTO, table, Flyway, Mapper or transaction behavior changed.
 - The next smallest task is AD-2.4: re-inventory candidates and select exactly one second shared-Entity physical-ownership migration slice before moving it.
+
+### Completed: AD-2.4 Second Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.4-Second-Entity-Slice-Selection.md`. It re-audits the lowest-surface remaining candidates and selects GMS `GmsTurnoverWarningSnapshot` as the sole AD-2.5 migration target.
+- The selected Entity has only two production consumers: `GmsTurnoverServiceImpl` and the already-GMS `GmsTurnoverWarningSnapshotMapper`. The controller exposes only DTO/map responses, MyBatis already scans the mapper package, and no Java test, resource, XML or public contract references the Entity directly.
+- The selection preserves the `gms_turnover_warning_snapshot` Flyway table and daily unique key, the Jackson JSON mapping, tenant-interceptor exemption, query-triggered upsert timing, swallowed persistence failure, 30-day ordering and Top20 semantics. AD-2.5 must add the currently missing snapshot/trend regression before moving the class.
+- `GmsMemberTransaction` and `PosMemberLevel` remain deferred because their sole legacy Mapper surfaces lack application behavior and regression evidence; `OmsDailySummary` remains deferred because its HOME read/write/compensation surface is wider despite strong tests. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- The next smallest task is AD-2.5: move only `GmsTurnoverWarningSnapshot` into GMS persistence and add the required behavior regression.
