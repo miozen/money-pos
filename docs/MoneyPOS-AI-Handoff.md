@@ -59,24 +59,24 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 约 74 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
+均为 0；共享 `com.money.entity` import 当前为 75 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
 
-## 当前任务：AD-2.1
+## 当前任务：AD-2.2
 
-**共享 Entity 消费者再盘点与首切片选择。**
+**迁移 TRADE `OmsRefundIdempotent` 到所有者持久化边界。**
 
-先重新执行共享 Entity import 扫描，并以当前代码逐项建立归属表。已固定的实施边界：
+先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`。已固定的实施边界：
 
-- 先完成设计/盘点，不移动任何 Entity、Mapper 或 DTO；AD-2.2 必须以单独提交实施。
-- 对每个 Feature 的 `com.money.entity` import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并记录
-  所有者、调用目的、Mapper XML、序列化和事务影响。
-- 从已分类对象选择一个低风险、单一所有者切片；不得以 import 数量或包名整洁为由批量移动。
-- 不改 HTTP 路由、页面字段、表/Flyway、既有事务边界或对外 DTO。
+- 只将 `OmsRefundIdempotent` 从 `money-app-api` 迁到 TRADE 的持久化 entity 包，并更新
+  `OmsRefundIdempotentMapper`、`RefundStateGuard` 的导入；不移动任何订单、支付或退款 API 类型。
+- 不改表、Flyway、Mapper 包/扫描、HTTP 路由、DTO、序列化字段、事务注解或退款调用顺序。
+- 必须回归重复退款、完整退款与部分退款；确认 Java/XML/测试中无旧 FQCN，并跑全量隔离库验证。
+- 共享 Entity 数量继续是报告指标，不能因本切片直接升级为失败门禁。
 
 ## 后续编号顺序
 
-AD-2.1 完成后，按债务清单执行唯一下一最小任务：**AD-2.2——首个 Entity 物理归属迁移**。不能直接
-移动一批 Entity；只迁移 AD-2.1 已明确所有者和消费者面都可控的单一切片。
+AD-2.2 完成后，按债务清单执行唯一下一最小任务：**AD-2.3——Entity 跨域门禁升级设计**。仅在本域/
+跨域分类可信后，才设计如何阻止新增跨域 Entity 契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

@@ -34,11 +34,11 @@
 | AD-1.1 | `DecisionEngine` 写入行为盘点与特征化 | **已关闭** | 已盘点 `compensateSnapshots(7)`、`generateDailySnapshot(today)`、查询后 update/insert、告警均值读取的调用时序及竞争窗口。见 `MoneyPOS-AD-1.1-DecisionEngine-Write-Characterization.md`。 | 已增加顺序重复读取及七日补偿边界特征测试；唯一索引、无锁/版本的并发窗口已记录，未改变数据库或 HTTP 路由。 |
 | AD-1.2 | HOME 快照命令模型设计 | **已关闭** | 已确定 HOME 内部 assembler/command/writer/query 分离、已有唯一键上的原子 insert-if-absent/upsert，以及分阶段 GET 去写迁移。见 `MoneyPOS-AD-1.2-Home-Snapshot-Command-Design.md`。 | 不新增 Flyway；最终刷新策略会改变数据新鲜度，保留为用户授权点。 |
 | AD-1.3 | HOME 写入边界实施与验收 | **已关闭** | AD-1.3a 已实施命令提取与原子写入；AD-1.3b 已采用启动即刷新、每五分钟定时刷新和并发闸门，GET 已纯读。见 `MoneyPOS-AD-1.3a-Home-Snapshot-Command-Implementation.md`、`MoneyPOS-AD-1.3b-Home-Scheduled-Snapshot-Refresh.md`。 | HOME 控制器、快照补偿、并发/重复请求、全量测试与架构门禁。 |
-| **AD-2** | 共享 Entity 物理归属收敛 | **待设计** | 将目前逻辑归属已明确、但仍放在共享 `com.money.entity` 的类型逐个迁到所有者持久化边界或以所有者 DTO 替代跨域暴露。 | 当前 73 个 Feature 文件 import 共享 Entity 只是报告指标，不可按数量机械迁移。 |
-| AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 待实施 | 对每个 import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并选择一个低风险、单一所有者的实体切片。 | 更新归属表，证明没有 Mapper XML、序列化、事务或跨域调用遗漏。 |
-| AD-2.2 | 首个 Entity 物理归属迁移 | 受 AD-2.1 约束 | 只迁移一个已确认所有者和消费者面都可控的 Entity/Mapper/DTO 组合。 | 不改表/Flyway/外部 API；其余消费者通过窄契约；全量回归。 |
-| AD-2.3 | Entity 跨域门禁升级 | 受 AD-2.2 约束 | 仅在本域/跨域分类可信后，让扫描器阻止**新增跨域** Entity 契约，同时继续允许所有者内部持久化使用。 | 不能把全部 73 项直接设为失败规则。 |
-| **AD-3** | API/实现类型泄露复核 | **实施中** | 清除跨 Feature 服务签名、Controller 或 DTO 中暴露的实现类嵌套类型及可能遗留的 `IService<Entity>` 兼容面。 | AD-3.1～AD-3.4 已完成设计；待实施 GMS→POS 商品实体查询迁移。 |
+| **AD-2** | 共享 Entity 物理归属收敛 | **实施中** | 将目前逻辑归属已明确、但仍放在共享 `com.money.entity` 的类型逐个迁到所有者持久化边界或以所有者 DTO 替代跨域暴露。 | 当前 75 个 Feature 文件 import 共享 Entity 只是报告指标，不可按数量机械迁移。 |
+| AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 已关闭 | 已按当前源码区分本域持久化、跨域泄露和兼容桥，并选定 TRADE `OmsRefundIdempotent`。见 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`。 | 已复核 Mapper XML、序列化、事务和跨域调用面；扫描继续报告，不机械阻断。 |
+| AD-2.2 | 首个 Entity 物理归属迁移 | 待实施 | 只迁移已确认所有者和消费者面都可控的 TRADE `OmsRefundIdempotent` 及其 Mapper/调用导入。 | 不改表/Flyway/外部 API；验证重复/完整/部分退款与全量回归。 |
+| AD-2.3 | Entity 跨域门禁升级 | 受 AD-2.2 约束 | 仅在本域/跨域分类可信后，让扫描器阻止**新增跨域** Entity 契约，同时继续允许所有者内部持久化使用。 | 不能把全部 75 项直接设为失败规则。 |
+| **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
 | AD-3.3 | SYS 字典实体读取收敛 | **已关闭** | TRADE/GMS/UMS 已改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail` 或直接使用其 Mapper。见 `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
@@ -57,10 +57,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
-2. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
+1. **AD-2.2**：迁移 TRADE `OmsRefundIdempotent` 到所有者持久化边界。
+2. 依赖 AD-2 结果实施 AD-2.3；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.1：共享 Entity 消费者再盘点与首切片选择。**
+**AD-2.2：首个 Entity 物理归属迁移（TRADE `OmsRefundIdempotent`）。**
