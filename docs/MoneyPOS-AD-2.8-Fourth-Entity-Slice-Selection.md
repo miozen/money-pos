@@ -2,12 +2,12 @@
 
 ## 结论
 
-第四个物理归属切片选择 **GMS 的 `GmsInventoryOrderDetail`**。后续实施任务编号为
-**AD-2.9**：仅将它从 `money-app-api: com.money.entity` 移至
+第四个物理归属切片选择 **GMS 的 `GmsInventoryOrderDetail`**，并已由
+**AD-2.9** 完成：仅将它从 `money-app-api: com.money.entity` 移至
 `money-app-biz: com.money.feature.gms.infrastructure.persistence.entity`，并更新 GMS 库存单服务和
 GMS 专用 Mapper 的导入，同时新增 Mapper CRUD 装配回归。
 
-该 Entity 是库存单明细的 GMS 本域持久化记录，不是 HTTP、DTO、Excel 或跨 Feature 契约。AD-2.9 不移动
+该 Entity 是库存单明细的 GMS 本域持久化记录，不是 HTTP、DTO、Excel 或跨 Feature 契约。AD-2.9 未移动
 同一聚合的 `GmsInventoryOrder`：后者仍通过 `GmsInventoryOrderService extends IService<GmsInventoryOrder>`
 构成兼容服务面，连带移动会超出一个 Entity 的物理归属切片。
 
@@ -24,16 +24,16 @@ GMS 专用 Mapper 的导入，同时新增 Mapper CRUD 装配回归。
 | 表/Flyway | `V1.0.0__init_database.sql` 的 `gms_inventory_order_detail`：分配式主键，`order_id`、`goods_id`、`qty` 非空，`price`、`create_time`、`tenant_id` 保留既有默认/索引语义 | 不改表、索引或 Flyway。 |
 
 实体没有显式 `@TableName`，当前依赖 MyBatis-Plus 的驼峰命名推导到
-`gms_inventory_order_detail`。这不是迁移时补注解的授权：AD-2.9 必须保持该注解缺席，直接 Mapper 回归用于
+`gms_inventory_order_detail`。这不是迁移时补注解的授权：AD-2.9 已保持该注解缺席，直接 Mapper 回归用于
 锁定现有表名推导、字段映射、分配式主键与租户字段行为。
 
-当前仅有 API Entity 定义、GMS Mapper 和 GMS 服务三个生产源码命中；没有跨 Feature Entity 消费。迁移后
-`GmsInventoryOrderServiceImpl` 不再导入共享 Entity，Feature 共享 Entity 文件数预计由 **73** 降至 **72**，
-所有权登记由 26 降至 25；精确跨域桥与通配符基线均不应变化。
+此前仅有 API Entity 定义、GMS Mapper 和 GMS 服务三个生产源码命中；没有跨 Feature Entity 消费。迁移后
+`GmsInventoryOrderServiceImpl` 不再导入共享 Entity，Feature 共享 Entity 文件数已由 **73** 降至 **72**，
+所有权登记已由 26 降至 25；精确跨域桥与通配符基线均未变化。
 
 ## 必须补充的回归
 
-当前没有库存单明细的专项测试。AD-2.9 必须新增隔离 `money_pos_test` 的 Mapper 集成回归，直接经
+此前没有库存单明细的专项测试。AD-2.9 已新增隔离 `money_pos_test` 的 Mapper 集成回归，直接经
 `GmsInventoryOrderDetailMapper` 验证：
 
 1. 插入 GMS 本地 Entity 后取得 `ASSIGN_ID` 主键，并能按主键读回 `orderId`、`goodsId`、`qty`、`price`、
@@ -53,15 +53,15 @@ GMS 专用 Mapper 的导入，同时新增 Mapper CRUD 装配回归。
 | `OmsDailySummary` | HOME；HOME 写入/查询/补偿与 Mapper | 已有行为保护但读模型写入面宽，不能与简单持久化迁移混合 | 延后。 |
 | SYS / UMS 配置、资产 Entity | SYS / UMS；存在跨域桥、硬件或公开兼容面 | 需先做窄契约或模块边界设计 | 延后。 |
 
-## AD-2.9 实施与验收边界
+## AD-2.9 实施与验收结果
 
-1. 只移动 `GmsInventoryOrderDetail`，并更新 `GmsInventoryOrderDetailMapper` 与
-   `GmsInventoryOrderServiceImpl` 导入；不得移动 `GmsInventoryOrder`、其他 Entity、Mapper、Controller 或服务。
-2. 保留无 `@TableName` 的现状、`IdType.ASSIGN_ID`、字段 Java 类型、GMS Mapper 包及 `MybatisConfig` 扫描根；
-   不改表/Flyway、HTTP、DTO、事务、租户拦截器、库存/均价/日志算法。
-3. `rg` 确认 API 模块无旧 Entity，业务 Java/测试/资源无旧 FQCN；所有权登记减少一项，Feature 文件扫描预期减少一项。
-4. 运行新增 Mapper 专项、隔离 `money_pos_test` 全量测试、打包、脚本夹具、架构门禁和 `git diff --check`。
+1. 仅移动 `GmsInventoryOrderDetail`，并更新 `GmsInventoryOrderDetailMapper` 与
+   `GmsInventoryOrderServiceImpl` 导入；`GmsInventoryOrder`、其他 Entity、Mapper、Controller 与服务均未移动。
+2. 无 `@TableName` 的现状、`IdType.ASSIGN_ID`、字段 Java 类型、GMS Mapper 包及 `MybatisConfig` 扫描根均保持不变；
+   表/Flyway、HTTP、DTO、事务、租户拦截器、库存/均价/日志算法未改。
+3. `rg` 已确认 API 模块无旧 Entity，业务 Java/测试/资源无旧 FQCN；所有权登记减少一项，Feature 文件扫描减少一项。
+4. `GmsInventoryOrderDetailMapperIntegrationTest` 已覆盖插入生成主键、读回、更新和删除；专项、隔离 `money_pos_test` 全量测试、打包、脚本夹具、架构门禁和 `git diff --check` 均通过。
 
 ## 下一步
 
-唯一下一最小任务为 **AD-2.9：迁移 `GmsInventoryOrderDetail` 到 GMS 持久化实体包，并增加 Mapper CRUD 回归**。
+唯一下一最小任务为 **AD-2.10：选择第五个共享 Entity 物理归属迁移切片**。

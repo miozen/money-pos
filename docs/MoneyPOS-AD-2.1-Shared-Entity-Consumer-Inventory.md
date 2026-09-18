@@ -3,7 +3,7 @@
 ## 结论
 
 AD-2.1 盘点时，`money-app-biz` 的 Feature 源码有 **75 个文件**直接导入共享
-`com.money.entity`；AD-2.2、AD-2.5 与 AD-2.7 分别移除退款幂等、周转预警快照和会员等级 Entity 后，当前为 **73 个文件**。这个数是审计起点，不是
+`com.money.entity`；AD-2.2、AD-2.5、AD-2.7 与 AD-2.9 分别移除退款幂等、周转预警快照、会员等级和库存单明细 Entity 后，当前为 **72 个文件**。这个数是审计起点，不是
 违规数：所有者在自己的应用、领域和持久化层使用 ORM Entity 是合法的；本次没有把它机械地升级成失败门禁。
 
 首个物理归属切片 **TRADE 的 `OmsRefundIdempotent` 已由 AD-2.2 完成迁移**。它现在位于
@@ -18,7 +18,7 @@ TRADE 持久化 entity 包，仅由退款幂等防线和 TRADE Mapper 实际使�
 rg -l '^import com\.money\.entity\.' money-pos/qk-money-app/money-app-biz/src/main/java/com/money/feature | wc -l
 ```
 
-AD-2.1 的结果为 75，当前结果为 73。随后对每个 Entity 以实际符号引用复核，而不是只按类名前缀或通配符
+AD-2.1 的结果为 75，当前结果为 72。随后对每个 Entity 以实际符号引用复核，而不是只按类名前缀或通配符
 import 判断：
 
 | 分类 | 含义 | 本轮处理 |
@@ -33,7 +33,7 @@ import 判断：
 ## 当前消费者归属矩阵
 
 下表保留 AD-2.1 时实际被导入的全部 29 个共享 Entity，包含后续已迁移的 `OmsRefundIdempotent` 与
-`GmsTurnoverWarningSnapshot` 与 `PosMemberLevel`；当前剩余 26 个。`本域`包括相应 Feature 的应用/领域/持久化实现；`桥/泄露`
+`GmsTurnoverWarningSnapshot`、`PosMemberLevel` 与 `GmsInventoryOrderDetail`；当前剩余 25 个。`本域`包括相应 Feature 的应用/领域/持久化实现；`桥/泄露`
 只列需要后续单独处理的实际消费面。
 
 | Entity | 逻辑所有者 | 当前消费者分类 | 桥/泄露与后续方向 |
@@ -45,7 +45,7 @@ import 判断：
 | `GmsInventoryDoc` | GMS | 本域库存单据、库存命令、FIN 瀑布查询实现 | FIN 使用 API 快照；Mapper 仍是兼容桥。 |
 | `GmsInventoryDocItem` | GMS | 本域单据/库存命令、Mapper | 无跨域 Entity 契约。 |
 | `GmsInventoryOrder` | GMS | 本域库存订单、Mapper | 无跨域 Entity 契约。 |
-| `GmsInventoryOrderDetail` | GMS | GMS 库存单服务、GMS 专用 Mapper | **AD-2.8 已选为 AD-2.9**；无跨域 Entity 契约，须以 CRUD 回归锁定隐式表名与字段映射。 |
+| `GmsInventoryOrderDetail` | GMS | GMS 库存单服务、GMS 专用 Mapper（均已使用 GMS 本地 Entity） | **AD-2.9 已迁移**；无跨域 Entity 契约，CRUD 回归已锁定隐式表名与字段映射。 |
 | `GmsMemberTransaction` | UMS | 仅遗留共享 Mapper，未发现 Feature 应用层实际消费者 | 候选很小但没有行为回归覆盖，暂不作为首切片。 |
 | `GmsStockLog` | GMS | 本域库存、分析、查询服务和 Mapper | TRADE 库存写入已收敛为命令；遗留批量日志服务仍为兼容桥。 |
 | `GmsTurnoverWarningSnapshot` | GMS | GMS 周转服务与专用 Mapper，均已使用所有者本地 Entity | **已由 AD-2.5 迁移；新增创建/更新、趋势读取和异常吞没回归。** |

@@ -9,7 +9,7 @@ import com.money.dto.inventory.GmsInventoryOrderDTO;
 import com.money.dto.inventory.GmsInventoryOrderDetailDTO;
 import com.money.entity.GmsGoods;
 import com.money.entity.GmsInventoryOrder;
-import com.money.entity.GmsInventoryOrderDetail;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrderDetail;
 import com.money.entity.GmsStockLog;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsInventoryOrderDetailMapper;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsInventoryOrderMapper;

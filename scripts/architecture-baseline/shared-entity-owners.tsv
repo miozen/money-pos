@@ -6,7 +6,6 @@ GmsGoodsCombo	gms
 GmsInventoryDoc	gms
 GmsInventoryDocItem	gms
 GmsInventoryOrder	gms
-GmsInventoryOrderDetail	gms
 GmsMemberTransaction	ums
 GmsStockLog	gms
 OmsDailySummary	home

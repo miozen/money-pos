@@ -1293,3 +1293,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.9 will preserve the implicit MyBatis-Plus `gms_inventory_order_detail` table-name derivation, `ASSIGN_ID`, field types, GMS mapper scan root and all existing inventory business semantics. A direct Mapper CRUD integration test will establish the missing persistence evidence. Feature importer count is expected to fall from 73 to 72 and the ownership registry from 26 to 25.
 - `GmsInventoryOrder` remains deferred because its `IService<Entity>` generic is a wider compatibility surface; `GmsMemberTransaction` remains deferred because its only legacy Mapper lacks an application consumer and requires separate scan/derivation characterization. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - The next smallest task is AD-2.9: move only `GmsInventoryOrderDetail` into GMS persistence and add the required Mapper CRUD regression.
+
+### Completed: AD-2.9 GMS Inventory-Order-Detail Entity Physical-Ownership Migration
+
+- Moved `GmsInventoryOrderDetail` from the shared API entity package to `feature.gms.infrastructure.persistence.entity`. Only `GmsInventoryOrderServiceImpl` and the already-GMS `GmsInventoryOrderDetailMapper` imports changed; the implicit `gms_inventory_order_detail` mapping, `IdType.ASSIGN_ID`, field types and GMS mapper scan root remain intact.
+- Added `GmsInventoryOrderDetailMapperIntegrationTest` against `money_pos_test`, proving generated-id insert, readback of order, goods, quantity, price, create-time and tenant fields, update, and deletion through the existing Mapper.
+- Source/resource verification found no API-module copy, old FQCN or resource dependency. The ownership registry fell from 26 to 25 and the Feature shared-Entity importer count from 73 to 72; the six cross-owner compatibility bridges and three wildcard paths did not change.
+- The targeted CRUD test passed; the isolated full Maven suite passed with 26 current test classes and 69 tests (0 failures / 0 errors). Package build, script fixtures, report/additions-only architecture scans and whitespace check passed.
+- The next smallest task is AD-2.10: re-inventory candidates and select exactly one fifth shared-Entity physical-ownership migration slice before moving it.
