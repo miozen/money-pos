@@ -59,27 +59,23 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 74 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
+均为 0；共享 `com.money.entity` import 当前为 74 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
+现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.3.1
+## 当前任务：AD-2.4
 
-**实施 Entity 跨域 additions-only 门禁。**
+**选择第二个共享 Entity 物理归属切片。**
 
-开始前必须完整阅读 `MoneyPOS-AD-2.3-Shared-Entity-Additions-Only-Gate-Design.md`，并重跑当前扫描。
-已固定的实施边界：
+先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`、AD-2.3 的设计及最新扫描。已固定的实施边界：
 
-- 只改扫描脚本、受版本控制的所有权/基线数据及架构文档；不改业务源码、HTTP 路由、表/Flyway、事务、DTO
-  或实体包。
-- `--check-new` 只阻止新增的非所有者或未登记 Entity import，允许所有者内部 ORM 使用，并只允许精确登记
-  的既有兼容桥。
-- 新共享 Entity 通配符必须失败；三个既有通配符按实际类型使用和精确路径基线审计，不能成为新增跨域类型的
-  绕过通道。
-- 不得把当前 74 个共享 Entity 导入文件按数量直接设为失败规则；默认 report 模式继续只报告分类。
+- 只重新确认候选的所有生产/测试/Mapper XML/序列化/事务消费面与回归保护；不在选择任务中移动 Entity。
+- 优先单一所有者、少消费者、无公开 API/DTO/跨 Feature 契约且可行为回归的候选；不因门禁已上线而批量迁移。
+- 如候选涉及既有跨域桥，必须先以所有者 DTO/命令/查询契约设计替换方向，不能通过扩展门禁基线放行新使用。
 
 ## 后续编号顺序
 
-AD-2.3.1 完成后，按债务清单再选择下一任务。该实施仅阻止新引入的、已分类非所有者 Entity 契约；不能
-把当前报告数量直接设为失败规则。
+AD-2.4 完成后，按债务清单执行唯一选择出的物理迁移子项。门禁仅阻止新引入的、已分类非所有者 Entity
+契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

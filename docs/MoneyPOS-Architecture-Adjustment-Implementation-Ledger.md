@@ -1245,3 +1245,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Audited the three existing wildcard imports by actual type use. GMS Excel has one existing GMS → SYS `SysBrandConfig` bridge; the two TRADE wildcard users currently use only TRADE order Entities. The design therefore prevents a wildcard from silently adding a new cross-owner Entity type.
 - No scanner, production source, route, DTO, table, Flyway, Mapper or transaction behavior changed in this design-only task. The existing report and additions-only scan gates, `mvn -q package -DskipTests`, and whitespace verification passed.
 - The next smallest task is AD-2.3.1: implement the data files and script behavior exactly as designed, with script-level positive and negative fixtures.
+
+### Completed: AD-2.3.1 Shared-Entity Cross-Domain Additions-Only Gate Implementation
+
+- Added versioned shared-Entity ownership, exact cross-owner bridge and wildcard-path baselines under `scripts/architecture-baseline/`. The registry covers the 28 remaining API shared Entities; it records HOME as the owner of `OmsDailySummary` rather than inferring ownership from the `Oms` prefix.
+- Extended `architecture-scan.sh --check-new` to allow owner-local explicit imports and only exact bridge tuples, while rejecting newly introduced non-owner imports, unregistered Entities, new wildcard imports, and a new cross-owner Entity type used through an existing wildcard. Default scan mode reports the classification without failing on the 74-file total.
+- Added `scripts/test-architecture-scan.sh` temporary-source fixtures. They verify owner-local and exact-bridge acceptance plus rejection of a new cross-owner import, a new wildcard, a newly used cross-owner type in the GMS Excel wildcard, and an unregistered Entity.
+- `bash -n scripts/architecture-scan.sh scripts/test-architecture-scan.sh`, the fixture suite, report scan, additions-only scan, `mvn -q package -DskipTests`, and `git diff --check` passed. No production source, route, DTO, table, Flyway, Mapper or transaction behavior changed.
+- The next smallest task is AD-2.4: re-inventory candidates and select exactly one second shared-Entity physical-ownership migration slice before moving it.

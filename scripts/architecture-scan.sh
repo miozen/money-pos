@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Stage 4 architecture scan. The default mode is report-only; --check-new rejects
-# only findings not present in the checked-in v1 baseline.
+# structural findings outside the v1 baseline and shared-Entity findings outside
+# the checked-in ownership/compatibility baselines.
 set -u -o pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source_root="$repo_root/money-pos/qk-money-app/money-app-biz/src/main/java"
+source_root="${MONEY_ARCHITECTURE_SOURCE_ROOT:-$repo_root/money-pos/qk-money-app/money-app-biz/src/main/java}"
+entity_owner_file="${MONEY_ARCHITECTURE_ENTITY_OWNERSHIP_FILE:-$repo_root/scripts/architecture-baseline/shared-entity-owners.tsv}"
+entity_bridge_file="${MONEY_ARCHITECTURE_ENTITY_BRIDGE_FILE:-$repo_root/scripts/architecture-baseline/shared-entity-cross-domain-baseline.tsv}"
+entity_wildcard_file="${MONEY_ARCHITECTURE_ENTITY_WILDCARD_FILE:-$repo_root/scripts/architecture-baseline/shared-entity-wildcard-baseline.tsv}"
 mode="report"
 
 case "${1:-}" in
@@ -12,7 +16,7 @@ case "${1:-}" in
   --check-new) mode="check-new" ;;
   --help|-h)
     echo "Usage: bash scripts/architecture-scan.sh [--check-new]"
-    echo "Default mode reports findings; --check-new fails only on findings new to v1."
+    echo "Default mode reports findings; --check-new fails on new structural or shared-Entity findings."
     exit 0
     ;;
   *)
@@ -31,6 +35,13 @@ if [[ ! -d "$source_root" ]]; then
   exit 2
 fi
 
+for baseline_file in "$entity_owner_file" "$entity_bridge_file" "$entity_wildcard_file"; do
+  if [[ ! -r "$baseline_file" ]]; then
+    echo "architecture shared-entity baseline is not readable: $baseline_file" >&2
+    exit 2
+  fi
+done
+
 relative_path() {
   printf '%s\n' "${1#"$source_root"/}"
 }
@@ -46,6 +57,28 @@ new_findings() {
     <(printf '%s' "$current" | sed '/^$/d' | sort -u) \
     <(printf '%s' "$baseline" | sed '/^$/d' | sort -u)
 }
+
+baseline_rows() {
+  sed -E '/^[[:space:]]*($|#)/d; s/\r$//' "$1"
+}
+
+declare -A entity_owners
+while IFS=$'\t' read -r entity_name entity_owner; do
+  [[ -z "$entity_name" || -z "$entity_owner" ]] && continue
+  entity_owners["$entity_name"]="$entity_owner"
+done < <(baseline_rows "$entity_owner_file")
+
+declare -A entity_bridge_baseline
+while IFS=$'\t' read -r source_feature entity_owner entity_path entity_name import_form; do
+  [[ -z "$source_feature" || -z "$entity_owner" || -z "$entity_path" || -z "$entity_name" || -z "$import_form" ]] && continue
+  entity_bridge_baseline["$source_feature|$entity_owner|$entity_path|$entity_name|$import_form"]=1
+done < <(baseline_rows "$entity_bridge_file")
+
+declare -A entity_wildcard_baseline
+while IFS= read -r entity_path; do
+  [[ -z "$entity_path" ]] && continue
+  entity_wildcard_baseline["$entity_path"]=1
+done < <(baseline_rows "$entity_wildcard_file")
 
 echo "# MoneyPOS Architecture Scan Report (v1)"
 echo
@@ -153,14 +186,82 @@ legacy_entity_count=$(printf '%s\n' "$legacy_entity_files" | count_lines)
 echo "## Legacy Shared Entity Imports"
 echo
 echo "- Feature files importing \`com.money.entity\`: $legacy_entity_count"
-echo "- Classification: tracked compatibility debt; not a blocking rule until ownership and DTO slices are migrated."
+echo "- Classification: ownership and compatibility-bridge audit; default mode remains report-only."
 echo
 echo "Reference baseline: docs/MoneyPOS-Architecture-Scan-Baseline-v1.md"
 
-if [[ "$mode" == "report" ]]; then
-  echo "Result: report generated; exit status remains 0 by design."
-  exit 0
+entity_owner_local_findings=""
+entity_bridge_findings=""
+entity_gate_findings=""
+entity_wildcard_findings=""
+entity_import_files=$(rg -l '^[[:space:]]*import com\.money\.entity\.' "$source_root/com/money/feature" --glob '*.java' || true)
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  entity_path=$(relative_path "$file")
+  source_feature=$(printf '%s\n' "$entity_path" | sed -E 's#^com/money/feature/([^/]+)/.*#\1#')
+
+  while IFS= read -r entity_name; do
+    [[ -z "$entity_name" ]] && continue
+    entity_owner="${entity_owners[$entity_name]:-}"
+    if [[ -z "$entity_owner" ]]; then
+      entity_gate_findings+="unregistered Entity: $source_feature → unknown: $entity_path [$entity_name; single]"$'\n'
+    elif [[ "$source_feature" == "$entity_owner" ]]; then
+      entity_owner_local_findings+="$source_feature: $entity_path [$entity_name]"$'\n'
+    else
+      entity_key="$source_feature|$entity_owner|$entity_path|$entity_name|single"
+      if [[ -n "${entity_bridge_baseline[$entity_key]:-}" ]]; then
+        entity_bridge_findings+="$source_feature → $entity_owner: $entity_path [$entity_name; single]"$'\n'
+      else
+        entity_gate_findings+="new cross-owner Entity: $source_feature → $entity_owner: $entity_path [$entity_name; single]"$'\n'
+      fi
+    fi
+  done < <(sed -nE 's/^[[:space:]]*import com\.money\.entity\.([A-Za-z0-9_]+);/\1/p' "$file")
+
+  if rg -q '^[[:space:]]*import com\.money\.entity\.\*;' "$file"; then
+    if [[ -z "${entity_wildcard_baseline[$entity_path]:-}" ]]; then
+      entity_gate_findings+="new wildcard Entity import: $source_feature → unknown: $entity_path [*; wildcard]"$'\n'
+    else
+      entity_wildcard_findings+="$source_feature: $entity_path [wildcard baseline]"$'\n'
+      for entity_name in "${!entity_owners[@]}"; do
+        if ! rg -q -w "$entity_name" "$file"; then
+          continue
+        fi
+        entity_owner="${entity_owners[$entity_name]}"
+        if [[ "$source_feature" == "$entity_owner" ]]; then
+          entity_owner_local_findings+="$source_feature: $entity_path [$entity_name; wildcard]"$'\n'
+          continue
+        fi
+        entity_key="$source_feature|$entity_owner|$entity_path|$entity_name|wildcard"
+        if [[ -n "${entity_bridge_baseline[$entity_key]:-}" ]]; then
+          entity_bridge_findings+="$source_feature → $entity_owner: $entity_path [$entity_name; wildcard]"$'\n'
+        else
+          entity_gate_findings+="new cross-owner Entity: $source_feature → $entity_owner: $entity_path [$entity_name; wildcard]"$'\n'
+        fi
+      done
+    fi
+  fi
+done <<< "$entity_import_files"
+
+entity_owner_local_count=$(printf '%s' "$entity_owner_local_findings" | count_lines)
+entity_bridge_count=$(printf '%s' "$entity_bridge_findings" | count_lines)
+entity_wildcard_count=$(printf '%s' "$entity_wildcard_findings" | count_lines)
+entity_gate_count=$(printf '%s' "$entity_gate_findings" | count_lines)
+
+echo "## Shared Entity Ownership"
+echo
+echo "- Owner-local Entity uses: $entity_owner_local_count"
+echo "- Documented cross-owner compatibility bridges: $entity_bridge_count"
+echo "- Existing wildcard import files: $entity_wildcard_count"
+echo "- New or unregistered Entity findings: $entity_gate_count"
+if [[ -n "$entity_bridge_findings" ]]; then
+  echo "- Existing cross-owner bridges:"
+  printf '%s' "$entity_bridge_findings" | sort -u | sed 's#^#  - #'
 fi
+if [[ -n "$entity_gate_findings" ]]; then
+  echo "- New or unregistered Entity findings:"
+  printf '%s' "$entity_gate_findings" | sort -u | sed 's#^#  - #'
+fi
+echo
 
 # v1 baseline: later migrations may remove these entries, but only these original
 # Controller-to-Mapper findings remain allowed. The other two structural rules
@@ -177,6 +278,12 @@ echo "## Additions-only gate"
 echo
 
 gate_failed=0
+if [[ "$mode" == "report" ]]; then
+  echo "- Shared Entity ownership findings are report-only in this mode."
+  echo "Result: report generated; exit status remains 0 by design."
+  exit 0
+fi
+
 if [[ -n "$new_controller_mapper" ]]; then
   gate_failed=1
   echo "- New Controller → Mapper findings:"
@@ -197,12 +304,19 @@ if [[ -n "$new_platform" ]]; then
   echo "- New platform → feature findings:"
   printf '%s\n' "$new_platform" | sed 's#^#  - #'
 fi
+if [[ -n "$entity_gate_findings" ]]; then
+  gate_failed=1
+  echo "- New or unregistered shared Entity findings:"
+  printf '%s' "$entity_gate_findings" | sort -u | sed 's#^#  - #'
+  echo "  Use an Entity-free owner contract; only a separately reviewed baseline update may retain a compatibility bridge."
+fi
 
 if [[ "$gate_failed" -eq 1 ]]; then
-  echo "Result: gate failed because new structural findings were detected." >&2
+  echo "Result: gate failed because new architecture findings were detected." >&2
   exit 1
 fi
 
 echo "- No new structural findings relative to v1."
-echo "- Shared Entity imports remain report-only."
+echo "- No new or unregistered shared Entity imports relative to the ownership baseline."
+echo "- Shared Entity additions-only gate passed."
 echo "Result: additions-only gate passed."
