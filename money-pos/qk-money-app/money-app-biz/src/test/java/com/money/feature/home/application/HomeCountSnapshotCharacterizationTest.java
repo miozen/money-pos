@@ -132,6 +132,35 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     @Test
+    void homeCountCompensatesOnlyThePreviousSevenMissingDatesAndAlwaysRegeneratesToday() {
+        LocalDate today = LocalDate.now();
+        LocalDate oldestCompensatedDate = today.minusDays(7);
+        LocalDate outsideCompensationWindow = today.minusDays(8);
+        dailySummaryMapper.delete(new LambdaQueryWrapper<OmsDailySummary>()
+                .in(OmsDailySummary::getRecordDate, today, oldestCompensatedDate, outsideCompensationWindow));
+
+        OmsDailySummary outsideSnapshot = new OmsDailySummary();
+        outsideSnapshot.setRecordDate(outsideCompensationWindow);
+        outsideSnapshot.setSalesAmount(new BigDecimal("123.45"));
+        outsideSnapshot.setOrderCount(12);
+        outsideSnapshot.setProfitAmount(new BigDecimal("23.45"));
+        outsideSnapshot.setAsp(new BigDecimal("10.29"));
+        outsideSnapshot.setInventoryValue(BigDecimal.ZERO);
+        outsideSnapshot.setMemberRecharge(BigDecimal.ZERO);
+        outsideSnapshot.setNewMemberCount(0);
+        dailySummaryMapper.insert(outsideSnapshot);
+        Long outsideSnapshotId = outsideSnapshot.getId();
+
+        homeController.homeCountVO();
+
+        assertThat(snapshotCount(oldestCompensatedDate)).isEqualTo(1);
+        assertThat(snapshotCount(today)).isEqualTo(1);
+        OmsDailySummary preservedOutsideSnapshot = todaySnapshot(outsideCompensationWindow);
+        assertThat(preservedOutsideSnapshot.getId()).isEqualTo(outsideSnapshotId);
+        assertThat(preservedOutsideSnapshot.getSalesAmount()).isEqualByComparingTo("123.45");
+    }
+
+    @Test
     void homeCountContractKeepsFinancialStatusesAmountsAndRightOpenTimeRange() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime tomorrowStart = todayStart.plusDays(1);
@@ -320,5 +349,10 @@ class HomeCountSnapshotCharacterizationTest {
         return dailySummaryMapper.selectOne(new LambdaQueryWrapper<OmsDailySummary>()
                 .eq(OmsDailySummary::getRecordDate, date)
                 .last("LIMIT 1"));
+    }
+
+    private long snapshotCount(LocalDate date) {
+        return dailySummaryMapper.selectCount(new LambdaQueryWrapper<OmsDailySummary>()
+                .eq(OmsDailySummary::getRecordDate, date));
     }
 }
