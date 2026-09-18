@@ -40,7 +40,8 @@
 | AD-2.3 | Entity 跨域门禁升级 | 已关闭 | 已设计以 Entity 所有权、精确兼容桥基线及通配符实际类型审计阻止**新增跨域** Entity 契约。见 `MoneyPOS-AD-2.3-Shared-Entity-Additions-Only-Gate-Design.md`。 | 不把全部剩余共享 Entity import 直接设为失败规则；实施须独立切片。 |
 | AD-2.3.1 | Entity 跨域 additions-only 门禁实施 | 已关闭 | 已将 Entity 所有权、精确跨域桥与通配符路径数据化，并接入 `architecture-scan.sh --check-new`；脚本夹具覆盖合法本域、既有桥、新跨域、新通配符、通配符新增跨域和未登记 Entity。 | 默认报告仍不按 74 个文件总数失败；新非所有者/未登记 Entity、以及新通配符失败。 |
 | AD-2.4 | 第二个共享 Entity 物理归属切片选择 | 已关闭 | 已选择 GMS `GmsTurnoverWarningSnapshot`，并确认其 GMS 服务/Mapper、无 Entity 外泄、Flyway 唯一键与必补回归。见 `MoneyPOS-AD-2.4-Second-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 AD-2.3.1 基线代替契约治理。 |
-| AD-2.5 | GMS 周转预警快照 Entity 物理归属迁移 | 待实施 | 将 `GmsTurnoverWarningSnapshot` 移到 GMS 持久化 entity 包，更新 GMS 服务/Mapper 导入并增加周转快照回归。 | 不改周转算法、路由、Excel、SYS 策略读取、表/Flyway、唯一键或吞没异常语义。 |
+| AD-2.5 | GMS 周转预警快照 Entity 物理归属迁移 | 已关闭 | 已将 `GmsTurnoverWarningSnapshot` 移到 GMS 持久化 entity 包，更新 GMS 服务/Mapper 导入并增加周转快照回归。 | 未改周转算法、路由、Excel、SYS 策略读取、表/Flyway、唯一键或吞没异常语义。 |
+| AD-2.6 | 第三个共享 Entity 物理归属切片选择 | 待设计 | 重新确认剩余单一所有者候选的完整消费面、可回归行为与跨域契约风险，并只选择一个最小迁移切片。 | 不在选择任务中移动 Entity；不能以扩展 AD-2.3.1 基线代替契约治理。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -60,10 +61,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.5**：迁移 GMS 周转预警快照 Entity 并增加回归。
+1. **AD-2.6**：选择第三个共享 Entity 物理归属切片。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.5：迁移 GMS 周转预警快照 Entity 并增加回归。**
+**AD-2.6：选择第三个共享 Entity 物理归属切片。**

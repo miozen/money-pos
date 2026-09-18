@@ -9,7 +9,6 @@ GmsInventoryOrder	gms
 GmsInventoryOrderDetail	gms
 GmsMemberTransaction	ums
 GmsStockLog	gms
-GmsTurnoverWarningSnapshot	gms
 OmsDailySummary	home
 OmsOrder	trade
 OmsOrderDetail	trade

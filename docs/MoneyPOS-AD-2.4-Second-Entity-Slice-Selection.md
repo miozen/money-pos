@@ -2,10 +2,10 @@
 
 ## 结论
 
-第二个物理归属切片选择 **GMS 的 `GmsTurnoverWarningSnapshot`**。后续实施任务编号为
-**AD-2.5**：仅将它从 `money-app-api: com.money.entity` 移至
-`money-app-biz: com.money.feature.gms.infrastructure.persistence.entity`，更新 GMS 服务和现有 GMS Mapper
-导入，并增加周转快照行为回归。
+第二个物理归属切片选择 **GMS 的 `GmsTurnoverWarningSnapshot`**，并已由 AD-2.5 实施：它已从
+`money-app-api: com.money.entity` 移至
+`money-app-biz: com.money.feature.gms.infrastructure.persistence.entity`，GMS 服务和现有 GMS Mapper 已更新导入，
+并新增周转快照行为回归。
 
 该选择不把 Entity 迁移本身与 SYS 策略契约、周转算法、Controller 路由、Excel 导出、表结构或快照写入
 时机混在一起。AD-2.5 也不得扩展 AD-2.3.1 的跨域兼容基线。
@@ -58,6 +58,11 @@ Entity 消费，因此删除共享 Entity import 后，AD-2.3.1 的精确跨域�
 3. `rg` 确认 API 模块不再有旧 Entity、业务 Java/测试/资源无旧 FQCN，且共享 Entity 扫描按实际减少。
 4. 运行新增周转专项回归、隔离 `money_pos_test` 全量测试、打包、脚本夹具、架构门禁和 `git diff --check`。
 
-## 下一步
+## AD-2.5 完成证据
 
-唯一下一最小任务为 **AD-2.5：迁移 `GmsTurnoverWarningSnapshot` 到 GMS 持久化实体包，并增加周转快照回归**。
+- `GmsTurnoverWarningSnapshot` 的表映射、字段、`JacksonTypeHandler` 和 Mapper 的
+  `@InterceptorIgnore(tenantLine = "true")` 保持不变；旧 API Entity 和旧 FQCN/资源引用均不存在。
+- `GmsTurnoverSnapshotIntegrationTest` 验证当天创建/重复更新仅保留一条快照、计数与 JSON 更新、近 30 天
+  趋势按日期升序以及 JSON 黑榜频次读取；`GmsTurnoverServiceImplTest` 验证快照 Mapper 失败不阻断预警返回。
+- 隔离 `money_pos_test` 全量 Maven 回归、打包、脚本夹具、架构门禁和空白检查均通过；共享 Entity 原始扫描从
+  74 降至 73 个 Feature 文件。

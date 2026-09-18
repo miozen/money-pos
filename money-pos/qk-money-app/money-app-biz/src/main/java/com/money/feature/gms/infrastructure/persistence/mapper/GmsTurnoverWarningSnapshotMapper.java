@@ -2,7 +2,7 @@ package com.money.feature.gms.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.GmsTurnoverWarningSnapshot;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsTurnoverWarningSnapshot;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

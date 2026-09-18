@@ -7,7 +7,7 @@
 | Controller 直接导入 Mapper | 7 个文件 | `SysStrategyController`、`GmsBrandConfigController`、`GmsGoodsExcelController`、`GmsStockLogController`、`PosCouponRuleController`、`UmsMemberController`、`UmsMemberImportController`。仅可通过独立迁移切片减少，不得扩展。 |
 | 跨 Feature 导入 `ServiceImpl` 或 Mapper | 0 | 当前无例外；任何新发现都应在代码审查中解释并优先改为接口/facade。 |
 | `platform` 导入 `feature` | 0 | 当前无例外；这是未来最先可升级为新增违规门禁的规则。 |
-| Feature 导入共享 `com.money.entity` | 74 个文件 | 默认仍只报告总量；`scripts/architecture-baseline/shared-entity-owners.tsv` 记录 28 个 Entity 所有者，`shared-entity-cross-domain-baseline.tsv` 精确登记 6 条既有跨域桥，`shared-entity-wildcard-baseline.tsv` 记录 3 个既有通配符路径。 |
+| Feature 导入共享 `com.money.entity` | 73 个文件 | 默认仍只报告总量；`scripts/architecture-baseline/shared-entity-owners.tsv` 记录 27 个 Entity 所有者，`shared-entity-cross-domain-baseline.tsv` 精确登记 6 条既有跨域桥，`shared-entity-wildcard-baseline.tsv` 记录 3 个既有通配符路径。 |
 
 ## 使用方式
 

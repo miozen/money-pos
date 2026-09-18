@@ -59,24 +59,22 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 74 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
+均为 0；共享 `com.money.entity` import 当前为 73 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.5
+## 当前任务：AD-2.6
 
-**迁移 GMS 周转预警快照 Entity，并增加周转快照回归。**
+**选择第三个共享 Entity 物理归属切片。**
 
-先完整阅读 `MoneyPOS-AD-2.4-Second-Entity-Slice-Selection.md`，并重跑当前扫描。已固定的实施边界：
+先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`、AD-2.3 的设计及最新扫描。已固定的实施边界：
 
-- 只移动 `GmsTurnoverWarningSnapshot` 到 `feature.gms.infrastructure.persistence.entity`，更新
-  `GmsTurnoverServiceImpl` 和现有 GMS Mapper 导入；不得连带移动其他 Entity、Mapper 或 Controller。
-- 保留 `@TableName`、JSON type handler、`@InterceptorIgnore`、每日唯一键、快照写入时机、异常吞没、周转
-  算法、趋势排序、Top20 截断、HTTP 路由与 Excel 行为。
-- 先补周转快照的创建/更新、趋势读取和持久化失败不阻断回归；随后使用隔离 `money_pos_test` 全量验证。
+- 只重新确认候选的所有生产/测试/Mapper XML/序列化/事务消费面与回归保护；不在选择任务中移动 Entity。
+- 优先单一所有者、少消费者、无公开 API/DTO/跨 Feature 契约且可行为回归的候选；不因门禁已上线而批量迁移。
+- 如候选涉及既有跨域桥，必须先以所有者 DTO/命令/查询契约设计替换方向，不能通过扩展门禁基线放行新使用。
 
 ## 后续编号顺序
 
-AD-2.5 完成后，按债务清单重新选择下一最小任务。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
+AD-2.6 完成后，按债务清单执行唯一选择出的物理迁移子项。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
 把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
