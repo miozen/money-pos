@@ -5,7 +5,6 @@ import com.money.entity.GmsBrand;
 import com.money.entity.GmsGoods;
 import com.money.entity.GmsGoodsCategory;
 import com.money.entity.PosSkuLevelPrice;
-import com.money.entity.SysDictDetail;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.service.SysDictDetailService;
@@ -66,7 +65,7 @@ public class GmsGoodsExcelReadService {
         List<GmsBrand> brands = gmsBrandService.list();
         Map<Long, String> brandNames = brands.stream()
                 .collect(Collectors.toMap(GmsBrand::getId, GmsBrand::getName));
-        List<SysDictDetail> memberTypes = getVipDictList();
+        Map<String, String> memberTypes = getVipDictMap();
 
         List<GmsGoods> goodsList = gmsGoodsService.list();
         List<Long> goodsIds = goodsList.stream().map(GmsGoods::getId).collect(Collectors.toList());
@@ -87,7 +86,7 @@ public class GmsGoodsExcelReadService {
     }
 
     private List<Object> buildExportRow(GmsGoods goods, Map<Long, String> categoryNames,
-                                        Map<Long, String> brandNames, List<SysDictDetail> memberTypes,
+                                        Map<Long, String> brandNames, Map<String, String> memberTypes,
                                         Map<Long, List<PosSkuLevelPrice>> priceMatrix) {
         List<Object> row = new ArrayList<>();
         row.add(goods.getBarcode());
@@ -104,8 +103,8 @@ public class GmsGoodsExcelReadService {
 
         Map<String, BigDecimal> prices = priceMatrix.getOrDefault(goods.getId(), List.of()).stream()
                 .collect(Collectors.toMap(PosSkuLevelPrice::getLevelId, PosSkuLevelPrice::getMemberPrice, (first, ignored) -> first));
-        for (SysDictDetail memberType : memberTypes) {
-            BigDecimal price = prices.get(memberType.getValue());
+        for (String memberType : memberTypes.keySet()) {
+            BigDecimal price = prices.get(memberType);
             row.add(price == null ? "" : price.toString());
         }
         return row;
@@ -124,8 +123,8 @@ public class GmsGoodsExcelReadService {
         heads.add(List.of("建议零售价"));
         heads.add(List.of("加权平均成本价"));
         heads.add(List.of("初始库存"));
-        for (SysDictDetail dict : getVipDictList()) {
-            heads.add(List.of("[会员特价] " + dict.getCnDesc()));
+        for (String memberTypeName : getVipDictMap().values()) {
+            heads.add(List.of("[会员特价] " + memberTypeName));
         }
         return heads;
     }
@@ -145,10 +144,11 @@ public class GmsGoodsExcelReadService {
         return result;
     }
 
-    private List<SysDictDetail> getVipDictList() {
-        return sysDictDetailService.listByDict("memberType").stream()
-                .filter(dict -> !"MEMBER".equals(dict.getValue()))
-                .collect(Collectors.toList());
+    private Map<String, String> getVipDictMap() {
+        Map<String, String> memberTypes = new java.util.LinkedHashMap<>(
+                sysDictDetailService.getValueToCnDescMap("memberType"));
+        memberTypes.remove("MEMBER");
+        return memberTypes;
     }
 
     private void configureDownload(HttpServletResponse response, String filename) throws IOException {

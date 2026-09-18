@@ -9,7 +9,6 @@ import com.money.contract.member.PosMemberBenefitSnapshot;
 import com.money.contract.goods.PosGoodsCatalogQuery;
 import com.money.contract.goods.PosGoodsCatalogSnapshot;
 import com.money.dto.pos.*;
-import com.money.entity.SysDictDetail;
 import com.money.service.SysDictDetailService;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
 import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
@@ -52,11 +51,11 @@ public class PosServiceImpl implements PosService {
     private Map<String, String> getMemberLevelDictMap() {
         Map<String, String> map = new HashMap<>();
         try {
-            List<SysDictDetail> details = sysDictDetailService.listByDict("memberType");
+            Map<String, String> details = sysDictDetailService.getValueToCnDescMap("memberType");
             if (details != null) {
-                for (SysDictDetail d : details) {
-                    if (StrUtil.isNotBlank(d.getValue())) {
-                        map.put(d.getValue().trim().toUpperCase(), d.getCnDesc());
+                for (Map.Entry<String, String> detail : details.entrySet()) {
+                    if (StrUtil.isNotBlank(detail.getKey())) {
+                        map.put(detail.getKey().trim().toUpperCase(), detail.getValue());
                     }
                 }
             }

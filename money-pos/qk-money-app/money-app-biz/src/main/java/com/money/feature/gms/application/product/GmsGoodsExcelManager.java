@@ -8,9 +8,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.*;
 import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.SysBrandConfigMapper;
-import com.money.mapper.SysDictDetailMapper;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
+import com.money.service.SysDictDetailService;
 import com.money.utils.PinyinUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -31,7 +31,7 @@ public class GmsGoodsExcelManager {
     private final GmsGoodsService gmsGoodsService;
     private final GmsGoodsCategoryService gmsGoodsCategoryService;
     private final GmsBrandService gmsBrandService;
-    private final SysDictDetailMapper sysDictDetailMapper;
+    private final SysDictDetailService sysDictDetailService;
     private final SysBrandConfigMapper sysBrandConfigMapper;
     private final PosSkuLevelPriceMapper posSkuLevelPriceMapper;
 
@@ -46,8 +46,8 @@ public class GmsGoodsExcelManager {
         List<GmsBrand> brandList = gmsBrandService.list();
         Map<String, Long> brandName2IdMap = brandList.stream().collect(Collectors.toMap(GmsBrand::getName, GmsBrand::getId, (k1, k2) -> k1));
 
-        List<SysDictDetail> dictList = sysDictDetailMapper.selectList(new LambdaQueryWrapper<SysDictDetail>().eq(SysDictDetail::getDict, "memberType"));
-        Map<String, String> dictReverseMap = dictList.stream().collect(Collectors.toMap(SysDictDetail::getCnDesc, SysDictDetail::getValue, (k1, k2) -> k1));
+        Map<String, String> dictReverseMap = sysDictDetailService.getValueToCnDescMap("memberType").entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (k1, k2) -> k1));
 
         List<SysBrandConfig> brandConfigs = sysBrandConfigMapper.selectList(new LambdaQueryWrapper<>());
         Map<String, Boolean> brandDualTrackRadar = new HashMap<>();

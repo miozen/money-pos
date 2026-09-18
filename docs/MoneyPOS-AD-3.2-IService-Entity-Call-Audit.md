@@ -31,11 +31,12 @@
 
 ### SYS 字典到业务 Feature
 
-以下生产调用从 `SysDictDetailService.listByDict()` 接收 `SysDictDetail`：
+以下生产调用从 `SysDictDetailService.listByDict()` 接收 `SysDictDetail`，另有 UMS 导入通过
+`SysDictDetailMapper` 直接读取同一实体：
 
 - TRADE：支付渠道名称解析、订单状态显示、POS 会员类型显示；
-- GMS：商品 Excel 中会员类型显示；
-- UMS：会员档案类型显示、Excel 模板类型显示。
+- GMS：商品 Excel 中会员类型显示、导入时的会员类型反向映射；
+- UMS：会员档案类型显示、导入时的会员类型反向映射（模板已经使用映射契约，不属于实体泄露）。
 
 这些调用只消费 `value -> cnDesc` 映射。`SysDictDetailService` 已提供
 `getValueToCnDescMap(String)`，因此无需新增 Entity 契约或更改数据表。该切片优先级高于 POS

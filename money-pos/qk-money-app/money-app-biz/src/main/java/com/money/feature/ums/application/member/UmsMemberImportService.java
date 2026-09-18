@@ -9,15 +9,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.entity.PosMemberCoupon;
-import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
 import com.money.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;
-import com.money.mapper.SysDictDetailMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.service.SysDictDetailService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -45,7 +44,7 @@ public class UmsMemberImportService {
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
     private final BrandSelectionQuery brandSelectionQuery;
-    private final SysDictDetailMapper sysDictDetailMapper;
+    private final SysDictDetailService sysDictDetailService;
     private final UmsMemberLogMapper umsMemberLogMapper;
 
     private static final String STATUS_UNUSED = "UNUSED";
@@ -77,12 +76,9 @@ public class UmsMemberImportService {
     public String importMembers(MultipartFile file) {
         log.info("开始执行动态智能 Excel 老会员导入引擎...");
 
-        List<SysDictDetail> dictList = sysDictDetailMapper.selectList(
-                new LambdaQueryWrapper<SysDictDetail>().eq(SysDictDetail::getDict, "memberType")
-        );
         Map<String, String> dictReverseMap = new HashMap<>();
-        for (SysDictDetail dict : dictList) {
-            dictReverseMap.put(dict.getCnDesc(), dict.getValue());
+        for (Map.Entry<String, String> dict : sysDictDetailService.getValueToCnDescMap("memberType").entrySet()) {
+            dictReverseMap.put(dict.getValue(), dict.getKey());
         }
 
         Map<String, String> brandName2IdMap = new HashMap<>();

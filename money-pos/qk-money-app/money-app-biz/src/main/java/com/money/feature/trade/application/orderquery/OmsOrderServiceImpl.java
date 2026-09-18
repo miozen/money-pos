@@ -54,20 +54,20 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
         try {
             log.info("====== 🕵️ 开始查杀字典问题 ======");
             // 1. 尝试查询驼峰命名
-            List<SysDictDetail> details = sysDictDetailService.listByDict("orderStatus");
+            Map<String, String> details = sysDictDetailService.getValueToCnDescMap("orderStatus");
 
             // 2. 如果查不到，尝试查询下划线命名 (数据库常见命名规范)
-            if (details == null || details.isEmpty()) {
+            if (details.isEmpty()) {
                 log.warn("未查到名为 [orderStatus] 的字典，尝试查询 [order_status]...");
-                details = sysDictDetailService.listByDict("order_status");
+                details = sysDictDetailService.getValueToCnDescMap("order_status");
             }
 
-            if (details != null && !details.isEmpty()) {
-                for (SysDictDetail detail : details) {
-                    if (StrUtil.isNotBlank(detail.getValue()) && StrUtil.isNotBlank(detail.getCnDesc())) {
+            if (!details.isEmpty()) {
+                for (Map.Entry<String, String> detail : details.entrySet()) {
+                    if (StrUtil.isNotBlank(detail.getKey()) && StrUtil.isNotBlank(detail.getValue())) {
                         // 🌟 核心防坑：将 key 强制转为大写并去掉前后空格
-                        String safeKey = detail.getValue().trim().toUpperCase();
-                        dictMap.put(safeKey, detail.getCnDesc());
+                        String safeKey = detail.getKey().trim().toUpperCase();
+                        dictMap.put(safeKey, detail.getValue());
                     }
                 }
                 log.info("✅ 成功加载字典映射表 (已统一转大写): {}", dictMap);

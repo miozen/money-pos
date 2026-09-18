@@ -38,10 +38,10 @@
 | AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 待实施 | 对每个 import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并选择一个低风险、单一所有者的实体切片。 | 更新归属表，证明没有 Mapper XML、序列化、事务或跨域调用遗漏。 |
 | AD-2.2 | 首个 Entity 物理归属迁移 | 受 AD-2.1 约束 | 只迁移一个已确认所有者和消费者面都可控的 Entity/Mapper/DTO 组合。 | 不改表/Flyway/外部 API；其余消费者通过窄契约；全量回归。 |
 | AD-2.3 | Entity 跨域门禁升级 | 受 AD-2.2 约束 | 仅在本域/跨域分类可信后，让扫描器阻止**新增跨域** Entity 契约，同时继续允许所有者内部持久化使用。 | 不能把全部 73 项直接设为失败规则。 |
-| **AD-3** | API/实现类型泄露复核 | **实施中** | 清除跨 Feature 服务签名、Controller 或 DTO 中暴露的实现类嵌套类型及可能遗留的 `IService<Entity>` 兼容面。 | AD-3.1、AD-3.2 已关闭；仍有 SYS 字典实体读取与 GMS→POS 商品实体查询切片。 |
+| **AD-3** | API/实现类型泄露复核 | **实施中** | 清除跨 Feature 服务签名、Controller 或 DTO 中暴露的实现类嵌套类型及可能遗留的 `IService<Entity>` 兼容面。 | AD-3.1～AD-3.3 已关闭；仅剩 GMS→POS 商品实体查询切片。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
-| AD-3.3 | SYS 字典实体读取收敛 | 待实施 | 业务 Feature 改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
+| AD-3.3 | SYS 字典实体读取收敛 | **已关闭** | TRADE/GMS/UMS 已改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail` 或直接使用其 Mapper。见 `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
 | AD-3.4 | GMS→POS 商品搜索快照设计 | 待设计 | 为 `GoodsPosFacade` 的 POS 商品搜索设计 GMS 所有者查询契约，去除 `GmsGoodsService.lambdaQuery()`。 | 不合并 SYS 价格策略与 GMS 商品快照；先固定 `/gms/goods/pos-search` 字段和搜索口径。 |
 | **AD-4** | Maven 物理模块化重新评估 | **受前置条件约束** | 未来再评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前结论仍为“暂不拆分”。 | 必须先满足 Entity-free 契约、无 UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证；见阶段 5 决策。 |
 | **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
@@ -56,12 +56,11 @@
 
 ## 推荐执行顺序
 
-1. **AD-3.3**：将业务 Feature 的 SYS 字典实体读取迁移到既有值/描述查询契约。
-2. **AD-3.4**：设计 GMS→POS 商品搜索快照，收敛通用商品实体查询。
-3. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
-4. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
-5. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
+1. **AD-3.4**：设计 GMS→POS 商品搜索快照，收敛通用商品实体查询。
+2. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
+3. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
+4. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-3.3：迁移业务 Feature 的 SYS 字典实体读取到既有值/描述查询契约。**
+**AD-3.4：盘点并设计 GMS→POS 商品搜索快照，收敛通用商品实体查询。**

@@ -156,7 +156,7 @@ class GmsGoodsExcelReadServiceIntegrationTest {
         GmsGoodsPriceService priceService = mock(GmsGoodsPriceService.class);
         when(categoryService.list()).thenReturn(List.of());
         when(brandService.list()).thenReturn(List.of());
-        when(dictDetailService.listByDict("memberType")).thenReturn(List.of());
+        when(dictDetailService.getValueToCnDescMap("memberType")).thenReturn(Map.of());
         when(emptyGoodsService.list()).thenReturn(List.of());
 
         GmsGoodsExcelReadService emptyExportService = new GmsGoodsExcelReadService(

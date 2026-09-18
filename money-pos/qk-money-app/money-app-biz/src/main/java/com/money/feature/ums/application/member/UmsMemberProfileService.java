@@ -12,7 +12,6 @@ import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.contract.goods.BrandNameQuery;
 import com.money.entity.PosMemberCoupon;
-import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosMemberCouponMapper;
@@ -69,11 +68,11 @@ public class UmsMemberProfileService {
     private Map<String, String> getMemberLevelDictMap() {
         Map<String, String> map = new HashMap<>();
         try {
-            List<SysDictDetail> details = sysDictDetailService.listByDict("memberType");
+            Map<String, String> details = sysDictDetailService.getValueToCnDescMap("memberType");
             if (details != null) {
-                for (SysDictDetail d : details) {
-                    if (StrUtil.isNotBlank(d.getValue())) {
-                        map.put(d.getValue().trim().toUpperCase(), d.getCnDesc());
+                for (Map.Entry<String, String> detail : details.entrySet()) {
+                    if (StrUtil.isNotBlank(detail.getKey())) {
+                        map.put(detail.getKey().trim().toUpperCase(), detail.getValue());
                     }
                 }
             }

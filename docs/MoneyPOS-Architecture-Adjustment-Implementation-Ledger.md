@@ -1204,3 +1204,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Audited 20 current `IService<Entity>` interfaces and their production consumers. No UMS or TRADE service exposes an actual cross-Feature entity-service call after P1/P2; same-Feature use remains legitimate persistence implementation.
 - Found two remaining risks: business Features receive `SysDictDetail` from the SYS dictionary service, and the legacy POS goods facade calls `GmsGoodsService.lambdaQuery()` and reads `GmsGoods`. The complete ownership and caller matrix is recorded in `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`.
 - Chose the smallest next implementation slice: AD-3.3 replaces the SYS dictionary entity reads with the already available value-to-description map contract. The GMS→POS search contract remains a separate AD-3.4 design task, preventing product-search and dictionary semantics from being mixed.
+
+### Completed: AD-3.3 SYS Dictionary Read-Contract Migration
+
+- Replaced TRADE, GMS and UMS consumption of `SysDictDetail` and its mapper with the existing SYS value-to-description map contract. This includes both display translation and the Excel import name-to-code reverse maps.
+- Preserved payment lookup case-insensitivity, order-status fallback, member-type filtering and GMS Excel price-column ordering. SYS management-side Entity access remains inside SYS.
+- Feature-source verification confirms no remaining `listByDict()`, `SysDictDetail` or `SysDictDetailMapper` use. GMS/UMS import and template tests plus TRADE checkout regression cover the migrated semantics. The next smallest task is AD-3.4: design the GMS-owned POS product-search snapshot.

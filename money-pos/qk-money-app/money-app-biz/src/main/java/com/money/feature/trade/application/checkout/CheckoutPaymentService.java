@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.SettleAccountsDTO; // 🌟 引入 DTO
 import com.money.entity.OmsOrderPay;
-import com.money.entity.SysDictDetail;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.service.SysDictDetailService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 🌟 结算流水线第六关：出纳员
@@ -140,25 +140,24 @@ public class CheckoutPaymentService {
     private String getSafeMethodName(String methodCode, String payTag) {
         try {
             if (StringUtils.hasText(payTag)) {
-                List<SysDictDetail> subList = sysDictDetailService.listByDict("paySubTag");
-                if (subList != null) {
-                    for (SysDictDetail detail : subList) {
-                        if (payTag.equalsIgnoreCase(detail.getValue())) return detail.getCnDesc();
-                    }
-                }
+                String subMethodName = findDictionaryName("paySubTag", payTag);
+                if (subMethodName != null) return subMethodName;
             }
             if (StringUtils.hasText(methodCode)) {
-                List<SysDictDetail> mainList = sysDictDetailService.listByDict("pos_payment_method");
-                if (mainList != null) {
-                    for (SysDictDetail detail : mainList) {
-                        if (methodCode.equalsIgnoreCase(detail.getValue())) return detail.getCnDesc();
-                    }
-                }
+                String mainMethodName = findDictionaryName("pos_payment_method", methodCode);
+                if (mainMethodName != null) return mainMethodName;
             }
         } catch (Exception e) {
             log.error("💥 动态匹配支付方式字典失败，降级到安全兜底模式。Code:{}, Tag:{}", methodCode, payTag, e);
         }
         String code = StringUtils.hasText(payTag) ? payTag : methodCode;
         return "其他渠道(" + code + ")";
+    }
+
+    private String findDictionaryName(String dict, String value) {
+        for (Map.Entry<String, String> entry : sysDictDetailService.getValueToCnDescMap(dict).entrySet()) {
+            if (value.equalsIgnoreCase(entry.getKey())) return entry.getValue();
+        }
+        return null;
     }
 }
