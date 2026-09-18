@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -25,6 +26,23 @@ public class HomeDailySummaryQueryService {
     public OmsDailySummary getByDate(LocalDate date) {
         return dailySummaryMapper.selectOne(new LambdaQueryWrapper<OmsDailySummary>()
                 .eq(OmsDailySummary::getRecordDate, date).last("LIMIT 1"));
+    }
+
+    /** Keeps the read-only dashboard available if startup or a scheduled refresh has failed. */
+    public OmsDailySummary getByDateOrEmpty(LocalDate date) {
+        OmsDailySummary summary = getByDate(date);
+        if (summary != null) {
+            return summary;
+        }
+        OmsDailySummary empty = new OmsDailySummary();
+        empty.setRecordDate(date);
+        empty.setSalesAmount(BigDecimal.ZERO);
+        empty.setOrderCount(0);
+        empty.setProfitAmount(BigDecimal.ZERO);
+        empty.setAsp(BigDecimal.ZERO);
+        empty.setInventoryValue(BigDecimal.ZERO);
+        empty.setNewMemberCount(0);
+        return empty;
     }
 
     public Map<String, Object> getPriorSevenDayAverages(LocalDate today) {

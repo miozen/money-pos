@@ -1186,3 +1186,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Implemented HOME-local immutable snapshot assembly, command service, atomic writer and dashboard query service. The `DecisionEngine` now only preserves the existing GET compatibility sequence while command and query responsibilities are isolated.
 - Historical compensation uses an atomic insert-if-absent on the existing `uk_record_date`; today's refresh uses an atomic upsert. The refresh updates only snapshot-owned metrics and preserves `member_recharge`.
 - Extended HOME characterization coverage for that preservation and ran it against `money_pos_test`. No route, response field, database table, Flyway, transaction boundary of unrelated flows or GET trigger timing changed. `AD-1.3b` remains intentionally open pending a user-selected scheduler or transaction-event freshness strategy.
+
+### Completed: AD-1.3b HOME Scheduled Snapshot Refresh and Read-Only GET
+
+- Selected and implemented the bounded-staleness scheduler strategy: refresh once after application readiness and every five minutes thereafter, including the existing seven-day missing-snapshot compensation. `GET /home/count` now performs no snapshot command.
+- Added an overlap guard and failure handling: concurrent triggers are skipped, a failing assembly/write logs the failure and releases the next run, while the existing atomic writer leaves the prior valid row intact. Read-only dashboard fallback supplies zero values if no row is available yet.
+- Fixed the tenant interceptor's background-thread behavior to use the configured default tenant when no HTTP request exists, which allows startup and scheduled work to operate correctly. HOME integration and task-level concurrency/recovery coverage verify the new boundary.

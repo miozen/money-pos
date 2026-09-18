@@ -28,7 +28,7 @@ public class HomeDashboardQueryService {
 
     public Map<String, Object> getTodayDashboardWithAlerts() {
         LocalDate today = LocalDate.now();
-        OmsDailySummary todayStat = dailySummaryQueryService.getByDate(today);
+        OmsDailySummary todayStat = dailySummaryQueryService.getByDateOrEmpty(today);
         Map<String, Object> avgMap = dailySummaryQueryService.getPriorSevenDayAverages(today);
         BigDecimal avgSales = new BigDecimal(avgMap.get("avgSales").toString());
         BigDecimal avgOrders = new BigDecimal(avgMap.get("avgOrders").toString());

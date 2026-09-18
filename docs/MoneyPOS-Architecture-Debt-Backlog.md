@@ -30,10 +30,10 @@
 
 | 编号 | 事项 | 状态 | 目标与边界 | 前置/验收 |
 | --- | --- | --- | --- | --- |
-| **AD-1** | HOME `DecisionEngine` 写入边界治理 | **实施中** | `OmsDailySummary` 的补偿、当日重算、幂等和告警读取已分为 HOME 命令/读模型责任；不把 HOME 快照写入交给 TRADE。 | AD-1.3a 已保持 GET 兼容时序完成；AD-1.3b 需先选择刷新策略才能去写。 |
+| **AD-1** | HOME `DecisionEngine` 写入边界治理 | **已关闭** | `OmsDailySummary` 的补偿、当日重算、幂等和告警读取已分为 HOME 命令/读模型责任；不把 HOME 快照写入交给 TRADE。 | 定时刷新已接管写入，GET 已为纯读。 |
 | AD-1.1 | `DecisionEngine` 写入行为盘点与特征化 | **已关闭** | 已盘点 `compensateSnapshots(7)`、`generateDailySnapshot(today)`、查询后 update/insert、告警均值读取的调用时序及竞争窗口。见 `MoneyPOS-AD-1.1-DecisionEngine-Write-Characterization.md`。 | 已增加顺序重复读取及七日补偿边界特征测试；唯一索引、无锁/版本的并发窗口已记录，未改变数据库或 HTTP 路由。 |
 | AD-1.2 | HOME 快照命令模型设计 | **已关闭** | 已确定 HOME 内部 assembler/command/writer/query 分离、已有唯一键上的原子 insert-if-absent/upsert，以及分阶段 GET 去写迁移。见 `MoneyPOS-AD-1.2-Home-Snapshot-Command-Design.md`。 | 不新增 Flyway；最终刷新策略会改变数据新鲜度，保留为用户授权点。 |
-| AD-1.3 | HOME 写入边界实施与验收 | **实施中（1.3a 已关闭）** | AD-1.3a 已实施命令提取、原子 insert-if-absent/upsert 与纯读仪表盘查询，仍保持 GET 时机；AD-1.3b 仅在用户选择定时或事件刷新策略后去除 GET 写。见 `MoneyPOS-AD-1.3a-Home-Snapshot-Command-Implementation.md`。 | HOME 控制器、快照补偿、并发/重复请求、全量测试与架构门禁。 |
+| AD-1.3 | HOME 写入边界实施与验收 | **已关闭** | AD-1.3a 已实施命令提取与原子写入；AD-1.3b 已采用启动即刷新、每五分钟定时刷新和并发闸门，GET 已纯读。见 `MoneyPOS-AD-1.3a-Home-Snapshot-Command-Implementation.md`、`MoneyPOS-AD-1.3b-Home-Scheduled-Snapshot-Refresh.md`。 | HOME 控制器、快照补偿、并发/重复请求、全量测试与架构门禁。 |
 | **AD-2** | 共享 Entity 物理归属收敛 | **待设计** | 将目前逻辑归属已明确、但仍放在共享 `com.money.entity` 的类型逐个迁到所有者持久化边界或以所有者 DTO 替代跨域暴露。 | 当前 73 个 Feature 文件 import 共享 Entity 只是报告指标，不可按数量机械迁移。 |
 | AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 待实施 | 对每个 import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并选择一个低风险、单一所有者的实体切片。 | 更新归属表，证明没有 Mapper XML、序列化、事务或跨域调用遗漏。 |
 | AD-2.2 | 首个 Entity 物理归属迁移 | 受 AD-2.1 约束 | 只迁移一个已确认所有者和消费者面都可控的 Entity/Mapper/DTO 组合。 | 不改表/Flyway/外部 API；其余消费者通过窄契约；全量回归。 |
@@ -54,12 +54,11 @@
 
 ## 推荐执行顺序
 
-1. **AD-1.3b**：由用户选择定时或事务事件刷新策略后，将 GET 变为纯读。
-2. **AD-3.1**：会员画像 DTO 泄露是边界清晰、低风险的独立契约切片。
-3. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
-4. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
-5. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
+1. **AD-3.1**：会员画像 DTO 泄露是边界清晰、低风险的独立契约切片。
+2. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
+3. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
+4. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-1.3b：确定 HOME 日快照刷新策略（定时或订单事务事件），并据此将 GET 变为纯读。**
+**AD-3.1：盘点并收敛会员画像 DTO 的实现类型泄露。**

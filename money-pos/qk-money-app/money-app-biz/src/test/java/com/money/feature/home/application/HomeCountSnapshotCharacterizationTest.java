@@ -71,6 +71,8 @@ class HomeCountSnapshotCharacterizationTest {
     @Autowired
     private DecisionEngineService decisionEngineService;
     @Autowired
+    private HomeDailySnapshotRefreshTask dailySnapshotRefreshTask;
+    @Autowired
     private OmsOrderDetailMapper omsOrderDetailMapper;
     @Autowired
     private HomeDailyMemberQuery homeDailyMemberQuery;
@@ -95,7 +97,7 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     @Test
-    void homeCountCreatesThenUpdatesTodaySnapshotAndKeepsDashboardShape() {
+    void scheduledRefreshCreatesAndUpdatesTodaySnapshotWhileHomeCountStaysReadOnly() {
         LocalDate today = LocalDate.now();
         dailySummaryMapper.delete(new LambdaQueryWrapper<OmsDailySummary>()
                 .eq(OmsDailySummary::getRecordDate, today));
@@ -110,9 +112,13 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(firstResponse.get("total")).isInstanceOf(Map.class);
         assertThat(firstResponse.get("alerts")).isInstanceOf(java.util.List.class);
 
+        assertThat(todaySnapshot(today)).isNull();
+        assertThat((BigDecimal) firstResponse.get("inventoryValue")).isEqualByComparingTo(expectedInventoryValue);
+        RequestContextHolder.resetRequestAttributes();
+        dailySnapshotRefreshTask.refreshSnapshots("test initial refresh");
+        authenticateTenant();
         OmsDailySummary firstSnapshot = todaySnapshot(today);
         assertThat(firstSnapshot).isNotNull();
-        assertThat((BigDecimal) firstResponse.get("inventoryValue")).isEqualByComparingTo(expectedInventoryValue);
         assertThat(firstSnapshot.getInventoryValue()).isEqualByComparingTo(expectedInventoryValue);
         HomeCountVO homeCount = homeService.homeCount();
         assertThat(homeCount.getInventoryValue()).isEqualByComparingTo(expectedInventoryValue);
@@ -123,6 +129,8 @@ class HomeCountSnapshotCharacterizationTest {
         dailySummaryMapper.updateById(firstSnapshot);
 
         Map<String, Object> secondResponse = homeController.homeCountVO();
+        assertThat(todaySnapshot(today).getSalesAmount()).isEqualByComparingTo("-1.00");
+        dailySnapshotRefreshTask.refreshSnapshots("test update refresh");
         OmsDailySummary updatedSnapshot = todaySnapshot(today);
 
         assertThat(secondResponse).containsOnlyKeys("today", "month", "year", "total", "inventoryValue", "alerts");
@@ -154,6 +162,8 @@ class HomeCountSnapshotCharacterizationTest {
         Long outsideSnapshotId = outsideSnapshot.getId();
 
         homeController.homeCountVO();
+        assertThat(snapshotCount(oldestCompensatedDate)).isZero();
+        dailySnapshotRefreshTask.refreshSnapshots("test compensation refresh");
 
         assertThat(snapshotCount(oldestCompensatedDate)).isEqualTo(1);
         assertThat(snapshotCount(today)).isEqualTo(1);
