@@ -3,7 +3,7 @@ package com.money.feature.trade.application.checkout.refund;
 import com.money.constant.BizErrorStatus;
 import com.money.constant.OrderStatusEnum;
 import com.money.entity.OmsOrder;
-import com.money.entity.OmsRefundIdempotent;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsRefundIdempotent;
 import com.money.feature.trade.infrastructure.persistence.mapper.OmsRefundIdempotentMapper;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;

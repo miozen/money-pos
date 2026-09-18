@@ -36,8 +36,8 @@
 | AD-1.3 | HOME 写入边界实施与验收 | **已关闭** | AD-1.3a 已实施命令提取与原子写入；AD-1.3b 已采用启动即刷新、每五分钟定时刷新和并发闸门，GET 已纯读。见 `MoneyPOS-AD-1.3a-Home-Snapshot-Command-Implementation.md`、`MoneyPOS-AD-1.3b-Home-Scheduled-Snapshot-Refresh.md`。 | HOME 控制器、快照补偿、并发/重复请求、全量测试与架构门禁。 |
 | **AD-2** | 共享 Entity 物理归属收敛 | **实施中** | 将目前逻辑归属已明确、但仍放在共享 `com.money.entity` 的类型逐个迁到所有者持久化边界或以所有者 DTO 替代跨域暴露。 | 当前 75 个 Feature 文件 import 共享 Entity 只是报告指标，不可按数量机械迁移。 |
 | AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 已关闭 | 已按当前源码区分本域持久化、跨域泄露和兼容桥，并选定 TRADE `OmsRefundIdempotent`。见 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`。 | 已复核 Mapper XML、序列化、事务和跨域调用面；扫描继续报告，不机械阻断。 |
-| AD-2.2 | 首个 Entity 物理归属迁移 | 待实施 | 只迁移已确认所有者和消费者面都可控的 TRADE `OmsRefundIdempotent` 及其 Mapper/调用导入。 | 不改表/Flyway/外部 API；验证重复/完整/部分退款与全量回归。 |
-| AD-2.3 | Entity 跨域门禁升级 | 受 AD-2.2 约束 | 仅在本域/跨域分类可信后，让扫描器阻止**新增跨域** Entity 契约，同时继续允许所有者内部持久化使用。 | 不能把全部 75 项直接设为失败规则。 |
+| AD-2.2 | 首个 Entity 物理归属迁移 | 已关闭 | 已将 TRADE `OmsRefundIdempotent` 移至所有者持久化 entity 包，并更新 Mapper/guard 导入。 | 未改表/Flyway/外部 API；重复/完整/部分退款和全量回归通过。 |
+| AD-2.3 | Entity 跨域门禁升级 | 待设计 | 基于可信的本域/跨域分类，设计阻止**新增跨域** Entity 契约的 additions-only 门禁，同时继续允许所有者内部持久化使用。 | 不能把全部剩余共享 Entity import 直接设为失败规则。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -57,10 +57,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.2**：迁移 TRADE `OmsRefundIdempotent` 到所有者持久化边界。
-2. 依赖 AD-2 结果实施 AD-2.3；随后才讨论 AD-4 的物理模块化。
+1. **AD-2.3**：设计 Entity 跨域 additions-only 门禁升级。
+2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.2：首个 Entity 物理归属迁移（TRADE `OmsRefundIdempotent`）。**
+**AD-2.3：Entity 跨域门禁升级设计。**

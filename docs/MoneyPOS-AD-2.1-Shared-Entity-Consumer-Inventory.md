@@ -6,9 +6,9 @@
 `com.money.entity`。这个数是审计起点，不是违规数：所有者在自己的应用、领域和持久化层使用 ORM
 Entity 是合法的；本次没有把它机械地升级成失败门禁。
 
-首个物理归属切片确定为 **TRADE 的 `OmsRefundIdempotent`**。它只被 TRADE 的退款幂等防线和
-TRADE Mapper 实际使用，不在 HTTP、API DTO、跨 Feature 查询契约、Mapper XML 或序列化边界出现。
-下一项 AD-2.2 只迁移这个 Entity 与它的 Mapper/调用导入，不扩展到订单、支付或退款其它实体。
+首个物理归属切片 **TRADE 的 `OmsRefundIdempotent` 已由 AD-2.2 完成迁移**。它现在位于
+TRADE 持久化 entity 包，仅由退款幂等防线和 TRADE Mapper 实际使用；HTTP、API DTO、跨 Feature
+查询契约、Mapper XML 和序列化边界均未改变。
 
 ## 审计方法与分类规则
 
@@ -59,7 +59,7 @@ rg -l '^import com\.money\.entity\.' money-pos/qk-money-app/money-app-biz/src/ma
 | `OmsOrderDetail` | TRADE | 本域结账、退款、订单领域服务和 Mapper | 无跨域 Entity 契约。 |
 | `OmsOrderLog` | TRADE | 本域结账、退款、订单领域服务和专用 Mapper | 无跨域 Entity 契约。 |
 | `OmsOrderPay` | TRADE | 本域结账、退款、订单查询和 Mapper | FIN 使用支付快照；无首切片候选。 |
-| `OmsRefundIdempotent` | TRADE | 仅 TRADE `RefundStateGuard` 与 TRADE 专用 Mapper | **AD-2.2 首切片。** |
+| `OmsRefundIdempotent` | TRADE | TRADE `RefundStateGuard` 与 TRADE 专用 Mapper，均已使用所有者本地 Entity | **已迁移；不再导入共享 Entity 包。** |
 | `OmsDailySummary` | HOME | HOME 快照 writer/query/dashboard 和共享 Mapper | HOME 的自有读模型；不改变刷新或原子写入语义。 |
 | `SysBrandConfig` | SYS | SYS 服务/Mapper | `GoodsPosFacade`、GMS Excel 仍直接读取，是明确 SYS 边界后续项。 |
 | `SysPrintConfig` | SYS | SYS 服务/Mapper | 打印服务直读是硬件/运行时兼容桥，延后处理。 |
@@ -88,7 +88,17 @@ rg -l '^import com\.money\.entity\.' money-pos/qk-money-app/money-app-biz/src/ma
 回归，无法证明迁移后 Mapper 装配及业务语义；`GmsTurnoverWarningSnapshot` 则带有周转快照写入和告警
 时序。两者均不比退款幂等切片更适合作为首个有验收价值的迁移。
 
-## AD-2.2 验收边界
+## AD-2.2 完成证据
+
+- Entity 已从 `money-app-api: com.money.entity` 移至
+  `money-app-biz: com.money.feature.trade.infrastructure.persistence.entity`；TRADE Mapper 和 guard 仅更新
+  导入，`@TableName`、字段、联合主键语义和 Mapper 扫描根保持不变。
+- 新增的重复整单退款回归确认同一 `reqId` 的第二次请求返回 `POS_REFUND_REPEAT`；完整、部分退款与
+  全量隔离库回归均通过。
+- Java、测试和资源目录中没有旧 FQCN 或 Mapper XML 引用。最终扫描显示共享 Entity 原始扫描从 75
+  降至 74 个 Feature 文件；其余共享 Entity 继续为报告指标。
+
+## 已执行的 AD-2.2 验收边界
 
 1. 只移动 `OmsRefundIdempotent` 的物理 Java 包并更新 TRADE Mapper/guard；不得连带移动
    `OmsOrder`、`OmsOrderDetail`、订单 Mapper 或退款 API。

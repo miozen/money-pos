@@ -59,24 +59,24 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 75 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
+均为 0；共享 `com.money.entity` import 当前为 74 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
 
-## 当前任务：AD-2.2
+## 当前任务：AD-2.3
 
-**迁移 TRADE `OmsRefundIdempotent` 到所有者持久化边界。**
+**设计 Entity 跨域 additions-only 门禁升级。**
 
-先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`。已固定的实施边界：
+先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`，并重跑当前扫描。已固定的实施边界：
 
-- 只将 `OmsRefundIdempotent` 从 `money-app-api` 迁到 TRADE 的持久化 entity 包，并更新
-  `OmsRefundIdempotentMapper`、`RefundStateGuard` 的导入；不移动任何订单、支付或退款 API 类型。
-- 不改表、Flyway、Mapper 包/扫描、HTTP 路由、DTO、序列化字段、事务注解或退款调用顺序。
-- 必须回归重复退款、完整退款与部分退款；确认 Java/XML/测试中无旧 FQCN，并跑全量隔离库验证。
-- 共享 Entity 数量继续是报告指标，不能因本切片直接升级为失败门禁。
+- 本轮先完成门禁分类、基线、豁免和失败语义设计；不得直接把全部共享 Entity import 变成失败规则。
+- 门禁只应阻止新增的非所有者 Feature→Entity import；所有者内部 ORM、明确兼容桥和遗留基线须有
+  可审查的分类依据。
+- 必须确认脚本可区分具体 Entity 的单类 import 与通配符 import，并说明后者的保守处理方式。
+- 不改 HTTP 路由、表/Flyway、事务、DTO 或实体包；实施脚本改动必须作为设计后的独立最小切片。
 
 ## 后续编号顺序
 
-AD-2.2 完成后，按债务清单执行唯一下一最小任务：**AD-2.3——Entity 跨域门禁升级设计**。仅在本域/
-跨域分类可信后，才设计如何阻止新增跨域 Entity 契约；不能把当前报告数量直接设为失败规则。
+AD-2.3 设计完成后，按债务清单执行唯一下一最小任务：**AD-2.3.1——Entity 跨域 additions-only 门禁
+实施**。仅阻止新引入的、已分类非所有者 Entity 契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

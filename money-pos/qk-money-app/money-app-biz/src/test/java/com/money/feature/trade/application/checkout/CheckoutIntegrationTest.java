@@ -2,6 +2,7 @@ package com.money.feature.trade.application.checkout;
 
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
+import com.money.constant.BizErrorStatus;
 import com.money.entity.GmsGoods;
 import com.money.entity.GmsGoodsCombo;
 import com.money.entity.OmsOrder;
@@ -137,6 +138,22 @@ class CheckoutIntegrationTest {
         assertThat(order.getStatus()).isEqualTo("REFUNDED");
         assertThat(detail.getReturnQuantity()).isEqualTo(2);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
+    }
+
+    @Test
+    void duplicateFullRefundRequestIsRejectedByTheTradeIdempotentRecord() {
+        String suffix = String.valueOf(System.nanoTime());
+        String orderNo = "RI-" + suffix;
+        String refundRequestId = "RR-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, goods.getId(), 2, new BigDecimal("24.00")));
+
+        refundService.returnOrder(refundRequestId, orderNo);
+
+        assertThatThrownBy(() -> refundService.returnOrder(refundRequestId, orderNo))
+                .isInstanceOf(BaseException.class)
+                .satisfies(error -> assertThat(((BaseException) error).getErrorCode())
+                        .isEqualTo(BizErrorStatus.POS_REFUND_REPEAT.getCode()));
     }
 
     
