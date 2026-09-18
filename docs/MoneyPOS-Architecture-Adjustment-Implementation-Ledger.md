@@ -1156,3 +1156,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Inventoried the sole baseline TRADE → FIN implementation import in `OmsOrderController`. It is limited to the OMS statistics and profit-audit routes; their route names, permission keys, request binding, response DTOs and frontend callers are recorded in `MoneyPOS-Post-P2-Trade-Fin-Controller-Compatibility-Design.md`.
 - Designed two independent TRADE application adapters over the existing TRADE-owned `FinanceOperatingAnalysisQuery` and `FinanceProfitAuditQuery`. This preserves the different aggregate versus paged-audit formulas and lets FIN retain its own `/oms/analysis/*` report composition without remaining a dependency of the TRADE controller.
 - This is a design-only debt task: no production source, SQL, route, database object, page field or test behavior changed. The next smallest task is implementation of the two TRADE controller-compatibility adapters and replacement of the `OmsOrderController` FIN injection.
+
+### Completed: P2.6 TRADE OMS Controller Compatibility Adapters
+
+- Added separate TRADE application adapters for the existing OMS statistics and profit-audit routes. They consume the established TRADE-owned period-metric and profit-audit contracts, respectively; no FIN Entity, Mapper or implementation service is imported by TRADE.
+- Replaced `OmsOrderController`'s FIN `OmsSalesAnalysisService` injection while retaining both route paths, permission keys, parameter binding and legacy `OrderCountVO`/`PageVO<ProfitAuditVO>` responses. FIN's `/oms/analysis/*` reporting service remains unchanged.
+- Extended the isolated regression to exercise both TRADE adapters against closed-range operating metrics and paged `ANOMALY` audit output. The next smallest task is post-P2 Entity ownership convergence: inventory the first shared Entity whose physical package can be replaced by owner-local persistence and a narrow API DTO.

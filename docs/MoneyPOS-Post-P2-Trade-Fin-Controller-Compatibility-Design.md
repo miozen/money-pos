@@ -6,6 +6,10 @@
 `OmsSalesAnalysisService` 的既有依赖。它来自 OMS 历史路由将两个订单读接口暂时
 委托给 FIN 报表服务的兼容安排，是 P2 最终复核中唯一的跨 Feature 实现 import。
 
+**实施状态：** 已由 P2.6 实施。`OmsOrderController` 已改为注入两个独立的 TRADE
+应用适配服务；最终架构扫描的跨 Feature 实现 import 为 0。以下内容保留为该实施的
+边界和兼容依据。
+
 本任务的实施必须保持以下外部兼容面不变：
 
 | 路由 | 权限 | 入参/响应 | 当前调用方 |

@@ -18,6 +18,8 @@ import com.money.contract.trade.FinanceWaterfallOrderQuery;
 import com.money.contract.goods.FinanceWaterfallInventoryQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
+import com.money.feature.trade.application.orderquery.OmsOrderProfitAuditQueryService;
+import com.money.feature.trade.application.orderquery.OmsOrderStatisticsQueryService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.PerformanceReportVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.SalesDashboardVO;
@@ -101,6 +103,10 @@ class FinanceFeatureIntegrationTest {
     private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     @Autowired
     private OmsSalesAnalysisService salesAnalysisService;
+    @Autowired
+    private OmsOrderStatisticsQueryService orderStatisticsQueryService;
+    @Autowired
+    private OmsOrderProfitAuditQueryService orderProfitAuditQueryService;
 
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
@@ -356,6 +362,12 @@ class FinanceFeatureIntegrationTest {
         assertThat(totals.getTotalSales()).isEqualByComparingTo(new BigDecimal("30.00"));
         assertThat(totals.getCostCount()).isEqualByComparingTo(new BigDecimal("8.00"));
         assertThat(totals.getProfit()).isEqualByComparingTo(new BigDecimal("22.00"));
+
+        OrderCountVO omsTotals = orderStatisticsQueryService.countOrderAndSales(start, end);
+        assertThat(omsTotals.getOrderCount()).isEqualTo(2L);
+        assertThat(omsTotals.getTotalSales()).isEqualByComparingTo(new BigDecimal("30.00"));
+        assertThat(omsTotals.getCostCount()).isEqualByComparingTo(new BigDecimal("8.00"));
+        assertThat(omsTotals.getProfit()).isEqualByComparingTo(new BigDecimal("22.00"));
     }
 
     @Test
@@ -518,6 +530,9 @@ class FinanceFeatureIntegrationTest {
         com.money.contract.trade.FinanceProfitAuditPageSnapshot anomalyFirst =
                 financeProfitAuditQuery.getProfitAuditPage(1, 1, null, "ANOMALY");
         assertThat(salesAnalysisService.getProfitAuditPage(query).getRecords()).singleElement()
+                .extracting(com.money.dto.OmsOrder.ProfitAuditVO::getOrderNo)
+                .isEqualTo(anomalyFirst.getRecords().get(0).getOrderNo());
+        assertThat(orderProfitAuditQueryService.getProfitAuditPage(query).getRecords()).singleElement()
                 .extracting(com.money.dto.OmsOrder.ProfitAuditVO::getOrderNo)
                 .isEqualTo(anomalyFirst.getRecords().get(0).getOrderNo());
     }

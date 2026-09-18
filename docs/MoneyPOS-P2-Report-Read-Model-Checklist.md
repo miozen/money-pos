@@ -48,4 +48,6 @@ P2 不移动表、Flyway、Entity 物理包或 API 路由；不把报表查询�
 
 ## 当前最小任务
 
-**P2 已完成。后续工作应作为独立架构债务任务处理：共享 Entity 物理归属、既有 TRADE → FIN 兼容调用，以及新跨域场景的窄契约。**
+- [x] P2.6 已完成独立债务任务：TRADE `OmsOrderController` 的统计与利润审计入口改由两个 TRADE 应用适配服务消费既有 TRADE 所有者快照；删除唯一的 TRADE → FIN 实现 import，保持路由、权限、请求/响应及 FIN `/oms/analysis/*` 入口不变。
+
+**P2.6 已完成。后续工作应作为独立架构债务任务处理：共享 Entity 物理归属，以及新跨域场景的窄契约。**

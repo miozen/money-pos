@@ -21,10 +21,12 @@ P2 不包含 Entity 物理搬迁、Maven 子模块拆分、HOME 自有日快照�
 
 `scripts/architecture-scan.sh --check-new` 结果：Controller 直接 Mapper import 为 0，跨 Feature `ServiceImpl`/Mapper import 为 0，`platform -> feature` import 为 0，新增违规为 0。
 
-仍有两类不属于 P2 完成阻塞条件、但必须继续追踪的债务：
+P2.6 已在 P2 验收后独立消除 `OmsOrderController` 的既有 TRADE → FIN 实现 import；
+当前架构扫描的跨 Feature 实现 import 为 0。
 
-1. `OmsOrderController` 保留一项既有 TRADE → FIN 实现 import，属于扫描基线；本轮未新增或扩大它。
-2. 全仓有 73 个 Feature 文件导入共享 `com.money.entity`。这不是 73 项跨域违规：多数是数据所有者内部持久化实现。Entity 的逻辑归属及未来场景 DTO 优先级见 `MoneyPOS-Entity-Ownership-and-DTO-Plan.md`；P2 没有授权物理迁移 Entity 包。
+仍需继续追踪的债务是：全仓有 73 个 Feature 文件导入共享 `com.money.entity`。这不是
+73 项跨域违规：多数是数据所有者内部持久化实现。Entity 的逻辑归属及未来场景 DTO
+优先级见 `MoneyPOS-Entity-Ownership-and-DTO-Plan.md`；P2 没有授权物理迁移 Entity 包。
 
 ## 验证
 
@@ -38,4 +40,4 @@ P2 不包含 Entity 物理搬迁、Maven 子模块拆分、HOME 自有日快照�
 
 ## P2 后续建议
 
-后续架构工作应以独立任务处理共享 Entity 物理归属与既有 TRADE → FIN 兼容调用，优先针对新出现的跨域场景增加窄契约，而不是为移动包名进行大范围重构。
+后续架构工作应以独立任务处理共享 Entity 物理归属，优先针对新出现的跨域场景增加窄契约，而不是为移动包名进行大范围重构。既有 TRADE → FIN 控制器兼容调用已由 P2.6 关闭。

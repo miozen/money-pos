@@ -10,9 +10,10 @@ import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.dto.OmsOrder.ProfitAuditVO;
 import com.money.dto.OmsOrder.ReturnOrderDTO;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
+import com.money.feature.trade.application.orderquery.OmsOrderProfitAuditQueryService;
 import com.money.feature.trade.application.orderquery.OmsOrderService;
+import com.money.feature.trade.application.orderquery.OmsOrderStatisticsQueryService;
 import com.money.feature.trade.application.refund.OmsOrderRefundService;
-import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.service.printer.PosPrinterService;
 import com.money.web.exception.BaseException;
 import com.money.web.vo.PageVO;
@@ -34,7 +35,8 @@ public class OmsOrderController {
 
     private final OmsOrderService omsOrderService;
     private final OmsOrderRefundService omsOrderRefundService;
-    private final OmsSalesAnalysisService omsSalesAnalysisService;
+    private final OmsOrderStatisticsQueryService omsOrderStatisticsQueryService;
+    private final OmsOrderProfitAuditQueryService omsOrderProfitAuditQueryService;
     private final PosPrinterService posPrinterService;
 
     @Operation(summary = "订单分页列表")
@@ -50,7 +52,7 @@ public class OmsOrderController {
     public OrderCountVO statistics(
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-        return omsSalesAnalysisService.countOrderAndSales(startTime, endTime);
+        return omsOrderStatisticsQueryService.countOrderAndSales(startTime, endTime);
     }
 
     @Operation(summary = "订单详情 (支持ID或单号)")
@@ -83,7 +85,7 @@ public class OmsOrderController {
     @GetMapping("/profit-audit")
     @PreAuthorize("@rbac.hasPermission('oms:order:audit')")
     public PageVO<ProfitAuditVO> getProfitAuditPage(OmsOrderQueryDTO queryDTO) {
-        return omsSalesAnalysisService.getProfitAuditPage(queryDTO);
+        return omsOrderProfitAuditQueryService.getProfitAuditPage(queryDTO);
     }
 
     @Operation(summary = "硬件级：打印小票并弹开钱箱")
