@@ -1210,3 +1210,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Replaced TRADE, GMS and UMS consumption of `SysDictDetail` and its mapper with the existing SYS value-to-description map contract. This includes both display translation and the Excel import name-to-code reverse maps.
 - Preserved payment lookup case-insensitivity, order-status fallback, member-type filtering and GMS Excel price-column ordering. SYS management-side Entity access remains inside SYS.
 - Feature-source verification confirms no remaining `listByDict()`, `SysDictDetail` or `SysDictDetailMapper` use. GMS/UMS import and template tests plus TRADE checkout regression cover the migrated semantics. The next smallest task is AD-3.4: design the GMS-owned POS product-search snapshot.
+
+### Completed: AD-3.4 GMS→POS Goods-Search Snapshot Design
+
+- Audited the legacy `/gms/goods/pos-search` Facade against the existing `PosGoodsCatalogQuery`. The latter belongs to a different TRADE POS response and cannot be reused: it has a smaller field set, uppercases mnemonic input, omits the legacy status expression and does not carry the compatibility route's response shape.
+- Published `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`, defining a separate GMS-owned, Java 8 immutable snapshot and a narrow query port. It fixes the legacy fields, raw keyword behavior, level-price ownership, response adaptation and the explicit exclusion of SYS brand-coupon policy.
+- The inventory records that the ungrouped legacy MyBatis expression applies `SALE` only to the mnemonic-code arm under SQL precedence. This is an externally observable compatibility fact, so the next implementation must characterize and preserve it rather than silently turn this boundary refactor into a product filter change. The next smallest task is AD-3.4.1: implement the GMS snapshot and migrate the Facade's GMS input.
