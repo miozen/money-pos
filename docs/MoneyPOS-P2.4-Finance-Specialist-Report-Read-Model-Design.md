@@ -265,3 +265,26 @@ FinanceProfitAuditQuery                         // TRADE
 契约的页面元数据和行快照均是 Java 8 普通不可变类；不暴露 MyBatis `Page`、`ProfitAuditVO`、Mapper 或订单 Entity。TRADE 内部保留 `OmsOrderAuditMapper` 及其原 SQL。FIN 继续从既有 `OmsOrderQueryDTO` 取得页码、页大小和两个筛选项，并逐字段映射回未变的 `PageVO<ProfitAuditVO>`；不新增路由、表、Flyway 或事务边界。
 
 P2.4.4.5 已按此边界实施。FIN 不再直接依赖审计 Mapper；TRADE 返回审计分页快照，原筛选、状态集、计算字段、页元数据和按创建时间倒序语义保持不变。
+
+## P2.4.5：每日瀑布流 TRADE/GMS 输入收敛
+
+瀑布流原先在 FIN `FinanceReportMapper` 中通过一个跨 `oms_order` 与 `gms_inventory_doc` 的 `UNION ALL` 聚合。拆分后不把该 Mapper 移到任一所有者：TRADE 只聚合订单事实，GMS 只聚合入库采购事实，FIN 按原日期键合并并保留既有返回字段。
+
+| 所有者 | 每日输入 | 必须保持的公式和筛选 |
+| --- | --- | --- |
+| TRADE | `totalAmount`、`actualCouponDeduct`、`useVoucherAmount`、`manualDiscountAmount`、`payAmount`、退款额、净收 | 状态仅 `PAID`、`PARTIAL_REFUNDED`、`REFUNDED`；`refund = pay_amount - IFNULL(final_sales_amount, pay_amount)`；`netIncome = IFNULL(final_sales_amount, pay_amount)`；可选开始/结束时间仍为闭区间 |
+| GMS | `procurementAmount` | 仅 `doc_type = INBOUND`；`IFNULL(total_amount, 0)`；同一可选闭区间 |
+| FIN | 原 `FinanceWaterfallVO` | `queryDTO == null` 短路为空列表；按 `yyyy-MM-dd` 日期倒序合并；任一所有者缺席的金额字段补零 |
+
+```text
+FinanceWaterfallOrderQuery                  // TRADE
+  listDailyWaterfallOrders(startInclusive, endInclusive)
+    -> [ { date, totalAmount, couponAmount, voucherAmount,
+           manualDiscountAmount, payAmount, refundAmount, netIncome } ]
+
+FinanceWaterfallInventoryQuery              // GMS
+  listDailyInboundProcurements(startInclusive, endInclusive)
+    -> [ { date, procurementAmount } ]
+```
+
+两个契约与快照均为 Java 8 普通不可变类，不暴露订单/库存 Entity、Mapper、跨域 SQL 或 FIN 响应 DTO。P2.4.5 已按此边界实施并删除 FIN 的 `FinanceReportMapper`；FIN 只将两类日快照装配回原 `FinanceWaterfallVO`，未改路由、页面字段、数据库表、Flyway 或事务边界。

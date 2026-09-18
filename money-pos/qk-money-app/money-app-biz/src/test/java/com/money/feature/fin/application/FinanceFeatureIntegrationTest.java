@@ -14,6 +14,8 @@ import com.money.contract.trade.FinanceSalesDashboardQuery;
 import com.money.contract.trade.FinanceTrafficQuery;
 import com.money.contract.trade.FinanceProductAnalysisQuery;
 import com.money.contract.trade.FinanceProfitAuditQuery;
+import com.money.contract.trade.FinanceWaterfallOrderQuery;
+import com.money.contract.goods.FinanceWaterfallInventoryQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
 import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
@@ -91,6 +93,10 @@ class FinanceFeatureIntegrationTest {
     private FinanceProductAnalysisQuery financeProductAnalysisQuery;
     @Autowired
     private FinanceProfitAuditQuery financeProfitAuditQuery;
+    @Autowired
+    private FinanceWaterfallOrderQuery financeWaterfallOrderQuery;
+    @Autowired
+    private FinanceWaterfallInventoryQuery financeWaterfallInventoryQuery;
     @Autowired
     private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
     @Autowired
@@ -506,6 +512,55 @@ class FinanceFeatureIntegrationTest {
     }
 
     @Test
+    void waterfallUsesSeparateTradeAndGmsSnapshotsWithLegacyAmounts() {
+        String suffix = "WF" + (System.nanoTime() % 1_000_000L);
+        LocalDate date = LocalDate.of(2028, 4, 1);
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(LocalTime.MAX);
+        insertWaterfallOrder(suffix + "-PAID", "PAID", start, new BigDecimal("100.00"),
+                new BigDecimal("10.00"), new BigDecimal("5.00"), new BigDecimal("3.00"),
+                new BigDecimal("82.00"), new BigDecimal("82.00"));
+        insertWaterfallOrder(suffix + "-PARTIAL", "PARTIAL_REFUNDED", start.plusHours(1), new BigDecimal("50.00"),
+                new BigDecimal("2.00"), BigDecimal.ZERO, BigDecimal.ZERO,
+                new BigDecimal("48.00"), new BigDecimal("30.00"));
+        insertWaterfallOrder(suffix + "-REFUNDED", "REFUNDED", start.plusHours(2), new BigDecimal("20.00"),
+                new BigDecimal("1.00"), BigDecimal.ZERO, BigDecimal.ZERO,
+                new BigDecimal("19.00"), BigDecimal.ZERO);
+        insertWaterfallInventoryDocument(suffix + "-IN", "INBOUND", new BigDecimal("40.00"), start.plusHours(3));
+        insertWaterfallInventoryDocument(suffix + "-OUT", "OUTBOUND", new BigDecimal("99.00"), start.plusHours(4));
+
+        assertThat(financeWaterfallOrderQuery.listDailyWaterfallOrders(start, end)).singleElement()
+                .satisfies(row -> {
+                    assertThat(row.getDate()).isEqualTo(date.toString());
+                    assertThat(row.getTotalAmount()).isEqualByComparingTo(new BigDecimal("170.00"));
+                    assertThat(row.getCouponAmount()).isEqualByComparingTo(new BigDecimal("13.00"));
+                    assertThat(row.getVoucherAmount()).isEqualByComparingTo(new BigDecimal("5.00"));
+                    assertThat(row.getManualDiscountAmount()).isEqualByComparingTo(new BigDecimal("3.00"));
+                    assertThat(row.getPayAmount()).isEqualByComparingTo(new BigDecimal("149.00"));
+                    assertThat(row.getRefundAmount()).isEqualByComparingTo(new BigDecimal("37.00"));
+                    assertThat(row.getNetIncome()).isEqualByComparingTo(new BigDecimal("112.00"));
+                });
+        assertThat(financeWaterfallInventoryQuery.listDailyInboundProcurements(start, end)).singleElement()
+                .satisfies(row -> assertThat(row.getProcurementAmount())
+                        .isEqualByComparingTo(new BigDecimal("40.00")));
+
+        com.money.dto.Finance.FinanceWaterfallQueryDTO query = new com.money.dto.Finance.FinanceWaterfallQueryDTO();
+        query.setStartTime(start);
+        query.setEndTime(end);
+        assertThat(financeReportService.getDailyWaterfallReport(query)).singleElement().satisfies(row -> {
+            assertThat(row.getDate()).isEqualTo(date.toString());
+            assertThat(row.getTotalAmount()).isEqualByComparingTo(new BigDecimal("170.00"));
+            assertThat(row.getCouponAmount()).isEqualByComparingTo(new BigDecimal("13.00"));
+            assertThat(row.getVoucherAmount()).isEqualByComparingTo(new BigDecimal("5.00"));
+            assertThat(row.getManualDiscountAmount()).isEqualByComparingTo(new BigDecimal("3.00"));
+            assertThat(row.getPayAmount()).isEqualByComparingTo(new BigDecimal("149.00"));
+            assertThat(row.getRefundAmount()).isEqualByComparingTo(new BigDecimal("37.00"));
+            assertThat(row.getNetIncome()).isEqualByComparingTo(new BigDecimal("112.00"));
+            assertThat(row.getProcurementAmount()).isEqualByComparingTo(new BigDecimal("40.00"));
+        });
+    }
+
+    @Test
     void trafficAnalysisUsesTradeMetricsAndSystemStrategySnapshots() {
         LocalDateTime start = LocalDateTime.now().minusMinutes(1).withNano(0);
         LocalDateTime end = LocalDateTime.now().plusMinutes(1).withNano(0);
@@ -565,6 +620,41 @@ class FinanceFeatureIntegrationTest {
         doc.setTenantId(0L);
         doc.setCreateTime(LocalDateTime.now());
         inventoryDocMapper.insert(doc);
+    }
+
+    private void insertWaterfallInventoryDocument(String docNo, String docType, BigDecimal totalAmount,
+                                                   LocalDateTime createTime) {
+        GmsInventoryDoc doc = new GmsInventoryDoc();
+        doc.setDocNo(docNo);
+        doc.setDocType(docType);
+        doc.setTotalQty(1);
+        doc.setTotalAmount(totalAmount);
+        doc.setOperator("waterfall-test");
+        doc.setTenantId(0L);
+        doc.setCreateTime(createTime);
+        inventoryDocMapper.insert(doc);
+    }
+
+    private void insertWaterfallOrder(String orderNo, String status, LocalDateTime createTime, BigDecimal totalAmount,
+                                      BigDecimal couponAmount, BigDecimal voucherAmount, BigDecimal manualDiscountAmount,
+                                      BigDecimal payAmount, BigDecimal finalSalesAmount) {
+        OmsOrder order = new OmsOrder();
+        order.setOrderNo(orderNo);
+        order.setStatus(status);
+        order.setVip(false);
+        order.setTotalAmount(totalAmount);
+        order.setCouponAmount(couponAmount);
+        order.setActualCouponDeduct(couponAmount);
+        order.setWaivedCouponAmount(BigDecimal.ZERO);
+        order.setUseVoucherAmount(voucherAmount);
+        order.setManualDiscountAmount(manualDiscountAmount);
+        order.setPayAmount(payAmount);
+        order.setFinalSalesAmount(finalSalesAmount);
+        order.setCostAmount(BigDecimal.ZERO);
+        order.setPaymentTime(createTime);
+        order.setTenantId(0L);
+        order.setCreateTime(createTime);
+        orderMapper.insert(order);
     }
 
     private void insertMemberLog(Long memberId, String operateType, BigDecimal realAmount) {

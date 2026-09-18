@@ -2,14 +2,20 @@ package com.money.feature.fin.application.report;
 
 import com.money.dto.Finance.FinanceWaterfallQueryDTO;
 import com.money.dto.Finance.FinanceWaterfallVO;
-import com.money.feature.fin.infrastructure.persistence.mapper.FinanceReportMapper;
+import com.money.contract.goods.FinanceWaterfallInventoryQuery;
+import com.money.contract.goods.FinanceWaterfallProcurementSnapshot;
+import com.money.contract.trade.FinanceWaterfallOrderQuery;
+import com.money.contract.trade.FinanceWaterfallOrderSnapshot;
 import com.money.feature.fin.application.report.FinanceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * <p>
@@ -24,7 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FinanceReportServiceImpl implements FinanceReportService {
 
-    private final FinanceReportMapper financeReportMapper;
+    private final FinanceWaterfallOrderQuery financeWaterfallOrderQuery;
+    private final FinanceWaterfallInventoryQuery financeWaterfallInventoryQuery;
 
     @Override
     public List<FinanceWaterfallVO> getDailyWaterfallReport(FinanceWaterfallQueryDTO queryDTO) {
@@ -35,9 +42,39 @@ public class FinanceReportServiceImpl implements FinanceReportService {
             return Collections.emptyList();
         }
 
-        // 🌟 架构备忘：极致的“计算下沉”。
-        // Java 内存开销为 0。所有期初、流入、流出、期末的统筹计算，
-        // 均交由底层 FinanceReportMapper 通过 UNION ALL (oms_order_pay & ums_member_log) 完成。
-        return financeReportMapper.getDailyWaterfallReport(queryDTO.getStartTime(), queryDTO.getEndTime());
+        Map<String, FinanceWaterfallVO> rowsByDate = new TreeMap<>(Collections.reverseOrder());
+        for (FinanceWaterfallOrderSnapshot snapshot : financeWaterfallOrderQuery
+                .listDailyWaterfallOrders(queryDTO.getStartTime(), queryDTO.getEndTime())) {
+            FinanceWaterfallVO row = rowFor(rowsByDate, snapshot.getDate());
+            row.setTotalAmount(snapshot.getTotalAmount());
+            row.setCouponAmount(snapshot.getCouponAmount());
+            row.setVoucherAmount(snapshot.getVoucherAmount());
+            row.setManualDiscountAmount(snapshot.getManualDiscountAmount());
+            row.setPayAmount(snapshot.getPayAmount());
+            row.setRefundAmount(snapshot.getRefundAmount());
+            row.setNetIncome(snapshot.getNetIncome());
+        }
+        for (FinanceWaterfallProcurementSnapshot snapshot : financeWaterfallInventoryQuery
+                .listDailyInboundProcurements(queryDTO.getStartTime(), queryDTO.getEndTime())) {
+            rowFor(rowsByDate, snapshot.getDate()).setProcurementAmount(snapshot.getProcurementAmount());
+        }
+        return new ArrayList<>(rowsByDate.values());
+    }
+
+    private FinanceWaterfallVO rowFor(Map<String, FinanceWaterfallVO> rowsByDate, String date) {
+        FinanceWaterfallVO row = rowsByDate.get(date);
+        if (row != null) return row;
+        row = new FinanceWaterfallVO();
+        row.setDate(date);
+        row.setTotalAmount(java.math.BigDecimal.ZERO);
+        row.setCouponAmount(java.math.BigDecimal.ZERO);
+        row.setVoucherAmount(java.math.BigDecimal.ZERO);
+        row.setManualDiscountAmount(java.math.BigDecimal.ZERO);
+        row.setPayAmount(java.math.BigDecimal.ZERO);
+        row.setRefundAmount(java.math.BigDecimal.ZERO);
+        row.setNetIncome(java.math.BigDecimal.ZERO);
+        row.setProcurementAmount(java.math.BigDecimal.ZERO);
+        rowsByDate.put(date, row);
+        return row;
     }
 }
