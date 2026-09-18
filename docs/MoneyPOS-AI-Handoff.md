@@ -62,19 +62,20 @@
 均为 0；共享 `com.money.entity` import 当前为 73 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.8
+## 当前任务：AD-2.9
 
-**选择第四个共享 Entity 物理归属迁移切片。**
+**迁移 GMS 库存单明细 Entity，并增加 Mapper CRUD 回归。**
 
-先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`、`MoneyPOS-AD-2.6-Third-Entity-Slice-Selection.md`，并重跑当前扫描。已固定的选择边界：
+先完整阅读 `MoneyPOS-AD-2.8-Fourth-Entity-Slice-Selection.md`，并重跑当前扫描。已固定的实施边界：
 
-- 只做消费者、Mapper/资源、表映射、测试与门禁基线盘点，选择恰好一个逻辑所有者明确且回归可验证的 Entity；不得在本任务移动 Entity、Mapper、Controller 或服务。
-- 不把 Feature 共享 Entity 文件数当作唯一优先级；优先避免跨域兼容桥、未知 Mapper 扫描或宽业务读写面。
-- 为下一实施切片明确不变边界、必要回归、旧 FQCN/资源检查及扫描预期；不改表/Flyway、HTTP、DTO、事务或租户行为。
+- 只移动 `GmsInventoryOrderDetail` 到 `feature.gms.infrastructure.persistence.entity`，更新
+  `GmsInventoryOrderDetailMapper` 与 `GmsInventoryOrderServiceImpl` 导入；不得连带移动主单、其他 Entity、Mapper、Controller 或服务。
+- 保留无 `@TableName` 的推导、`IdType.ASSIGN_ID`、字段类型、GMS Mapper 包和扫描根；不改表/Flyway、HTTP、DTO、事务、租户、库存/均价/日志算法。
+- 先补 Mapper 插入、读回、更新、删除 CRUD 回归；随后使用隔离 `money_pos_test` 全量验证。预期共享 Entity Feature 文件数由 73 降至 72，所有权登记由 26 降至 25。
 
 ## 后续编号顺序
 
-AD-2.8 完成后，按债务清单进入所选 Entity 的单独迁移切片。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
+AD-2.9 完成后，按债务清单重新选择下一最小任务。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
 把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束

@@ -1285,3 +1285,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Source/resource verification found no API-module copy, old FQCN or resource dependency. The ownership registry fell from 27 to 26 while the Feature shared-Entity importer count correctly remains 73 because the retained mapper is outside `feature/**`.
 - The targeted CRUD test passed; the isolated full Maven suite passed with 25 current test classes and 68 tests (0 failures / 0 errors). Package build, script fixtures, report/additions-only architecture scans and whitespace check passed.
 - The next smallest task is AD-2.8: re-inventory candidates and select exactly one fourth shared-Entity physical-ownership migration slice before moving it.
+
+### Completed: AD-2.8 Fourth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.8-Fourth-Entity-Slice-Selection.md`. It selects GMS `GmsInventoryOrderDetail` as the sole AD-2.9 target after re-auditing the remaining lowest-surface persistence records.
+- The selected Entity has exactly two consumers: the GMS inventory-order service creates detail rows in its existing inbound/check/outbound transactions, and the already-GMS `GmsInventoryOrderDetailMapper` persists them. No Controller, DTO, JSON/Excel boundary, XML FQCN, other Maven module or cross-Feature contract directly consumes the Entity.
+- AD-2.9 will preserve the implicit MyBatis-Plus `gms_inventory_order_detail` table-name derivation, `ASSIGN_ID`, field types, GMS mapper scan root and all existing inventory business semantics. A direct Mapper CRUD integration test will establish the missing persistence evidence. Feature importer count is expected to fall from 73 to 72 and the ownership registry from 26 to 25.
+- `GmsInventoryOrder` remains deferred because its `IService<Entity>` generic is a wider compatibility surface; `GmsMemberTransaction` remains deferred because its only legacy Mapper lacks an application consumer and requires separate scan/derivation characterization. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- The next smallest task is AD-2.9: move only `GmsInventoryOrderDetail` into GMS persistence and add the required Mapper CRUD regression.

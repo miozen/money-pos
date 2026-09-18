@@ -45,7 +45,7 @@ import 判断：
 | `GmsInventoryDoc` | GMS | 本域库存单据、库存命令、FIN 瀑布查询实现 | FIN 使用 API 快照；Mapper 仍是兼容桥。 |
 | `GmsInventoryDocItem` | GMS | 本域单据/库存命令、Mapper | 无跨域 Entity 契约。 |
 | `GmsInventoryOrder` | GMS | 本域库存订单、Mapper | 无跨域 Entity 契约。 |
-| `GmsInventoryOrderDetail` | GMS | 本域库存订单、Mapper | 无跨域 Entity 契约。 |
+| `GmsInventoryOrderDetail` | GMS | GMS 库存单服务、GMS 专用 Mapper | **AD-2.8 已选为 AD-2.9**；无跨域 Entity 契约，须以 CRUD 回归锁定隐式表名与字段映射。 |
 | `GmsMemberTransaction` | UMS | 仅遗留共享 Mapper，未发现 Feature 应用层实际消费者 | 候选很小但没有行为回归覆盖，暂不作为首切片。 |
 | `GmsStockLog` | GMS | 本域库存、分析、查询服务和 Mapper | TRADE 库存写入已收敛为命令；遗留批量日志服务仍为兼容桥。 |
 | `GmsTurnoverWarningSnapshot` | GMS | GMS 周转服务与专用 Mapper，均已使用所有者本地 Entity | **已由 AD-2.5 迁移；新增创建/更新、趋势读取和异常吞没回归。** |
