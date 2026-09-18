@@ -61,22 +61,25 @@
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
 均为 0；共享 `com.money.entity` import 当前为 74 个 Feature 文件，仍是报告型债务，尚不可设为失败门禁。
 
-## 当前任务：AD-2.3
+## 当前任务：AD-2.3.1
 
-**设计 Entity 跨域 additions-only 门禁升级。**
+**实施 Entity 跨域 additions-only 门禁。**
 
-先完整阅读 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`，并重跑当前扫描。已固定的实施边界：
+开始前必须完整阅读 `MoneyPOS-AD-2.3-Shared-Entity-Additions-Only-Gate-Design.md`，并重跑当前扫描。
+已固定的实施边界：
 
-- 本轮先完成门禁分类、基线、豁免和失败语义设计；不得直接把全部共享 Entity import 变成失败规则。
-- 门禁只应阻止新增的非所有者 Feature→Entity import；所有者内部 ORM、明确兼容桥和遗留基线须有
-  可审查的分类依据。
-- 必须确认脚本可区分具体 Entity 的单类 import 与通配符 import，并说明后者的保守处理方式。
-- 不改 HTTP 路由、表/Flyway、事务、DTO 或实体包；实施脚本改动必须作为设计后的独立最小切片。
+- 只改扫描脚本、受版本控制的所有权/基线数据及架构文档；不改业务源码、HTTP 路由、表/Flyway、事务、DTO
+  或实体包。
+- `--check-new` 只阻止新增的非所有者或未登记 Entity import，允许所有者内部 ORM 使用，并只允许精确登记
+  的既有兼容桥。
+- 新共享 Entity 通配符必须失败；三个既有通配符按实际类型使用和精确路径基线审计，不能成为新增跨域类型的
+  绕过通道。
+- 不得把当前 74 个共享 Entity 导入文件按数量直接设为失败规则；默认 report 模式继续只报告分类。
 
 ## 后续编号顺序
 
-AD-2.3 设计完成后，按债务清单执行唯一下一最小任务：**AD-2.3.1——Entity 跨域 additions-only 门禁
-实施**。仅阻止新引入的、已分类非所有者 Entity 契约；不能把当前报告数量直接设为失败规则。
+AD-2.3.1 完成后，按债务清单再选择下一任务。该实施仅阻止新引入的、已分类非所有者 Entity 契约；不能
+把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 
