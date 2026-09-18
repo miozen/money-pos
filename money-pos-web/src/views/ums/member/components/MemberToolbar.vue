@@ -25,8 +25,8 @@
 </template>
 
 <script setup>
-import MoneyRR from "@/components/crud/MoneyRR.vue";
-import MoneyCUD from "@/components/crud/MoneyCUD.vue";
+import MoneyRR from "@/components/Crud/MoneyRR.vue";
+import MoneyCUD from "@/components/Crud/MoneyCUD.vue";
 import MemberSmartSearch from "@/components/common/MemberSmartSearch.vue";
 import { useDataImportExport } from "@/hooks/useDataImportExport.js";
 import memberApi from "@/api/ums/member.js";

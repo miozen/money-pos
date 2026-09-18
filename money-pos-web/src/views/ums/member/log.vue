@@ -107,9 +107,9 @@
 
 <script setup>
 import PageWrapper from "@/components/PageWrapper.vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js'
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyRR from "@/components/crud/MoneyRR.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js'
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyRR from "@/components/Crud/MoneyRR.vue";
 import memberLogApi from "@/api/ums/memberLog.js";
 import { ref, onBeforeMount } from "vue";
 import { Document } from '@element-plus/icons-vue'

@@ -52,10 +52,10 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js';
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyForm from "@/components/crud/MoneyForm.vue";
-import MoneyUD from "@/components/crud/MoneyUD.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js';
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyForm from "@/components/Crud/MoneyForm.vue";
+import MoneyUD from "@/components/Crud/MoneyUD.vue";
 import PageWrapper from "@/components/PageWrapper.vue";
 
 import MemberToolbar from "./components/MemberToolbar.vue";

@@ -29,8 +29,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyUD from "@/components/crud/MoneyUD.vue";
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyUD from "@/components/Crud/MoneyUD.vue";
 import goodsApi from "@/api/gms/goods.js";
 
 const props = defineProps({

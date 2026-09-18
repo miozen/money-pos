@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import MoneyCrud from "@/components/crud/MoneyCrud.js";
+import MoneyCrud from "@/components/Crud/MoneyCrud.js";
 import { computed, ref } from "vue";
 
 const { moneyCrud } = defineProps({

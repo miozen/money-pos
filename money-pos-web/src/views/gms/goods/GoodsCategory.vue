@@ -42,8 +42,8 @@
 
 <script setup>
 import {ref, watch} from 'vue'
-import MoneyForm from "@/components/crud/MoneyForm.vue";
-import MoneyCrud from "@/components/crud/MoneyCrud.js";
+import MoneyForm from "@/components/Crud/MoneyForm.vue";
+import MoneyCrud from "@/components/Crud/MoneyCrud.js";
 
 import {useUserStore} from "@/store/index.js";
 import goodsCategoryApi from "@/api/gms/goodsCategory.js";

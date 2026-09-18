@@ -65,11 +65,11 @@
 
 <script setup>
 import PageWrapper from "@/components/PageWrapper.vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js'
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyRR from "@/components/crud/MoneyRR.vue";
-import MoneyCUD from "@/components/crud/MoneyCUD.vue";
-import MoneyForm from "@/components/crud/MoneyForm.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js'
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyRR from "@/components/Crud/MoneyRR.vue";
+import MoneyCUD from "@/components/Crud/MoneyCUD.vue";
+import MoneyForm from "@/components/Crud/MoneyForm.vue";
 
 import OrderSmartSearch from "@/components/common/OrderSmartSearch.vue";
 import OrderDetailModal from "@/components/OrderDetailModal.vue";

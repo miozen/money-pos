@@ -28,8 +28,8 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js';
-import MoneyForm from "@/components/crud/MoneyForm.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js';
+import MoneyForm from "@/components/Crud/MoneyForm.vue";
 import PageWrapper from "@/components/PageWrapper.vue";
 import GoodsCategory from "@/views/gms/goods/GoodsCategory.vue";
 

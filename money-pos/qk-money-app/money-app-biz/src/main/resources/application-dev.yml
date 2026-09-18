@@ -10,6 +10,10 @@ spring:
     # url: jdbc:mysql://127.0.0.1:3306/money_pos...
     # username: root
     # password: ...
+    url: ${MONEY_DB_URL:jdbc:mysql://127.0.0.1:3306/money_pos?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8}
+    username: ${MONEY_DB_USERNAME:money_pos}
+    password: ${MONEY_DB_PASSWORD:money_pos_dev}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
     # 使用 Hikari 数据池（保持原有高性能参数）
     type: com.zaxxer.hikari.HikariDataSource

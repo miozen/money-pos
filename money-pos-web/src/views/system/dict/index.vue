@@ -73,12 +73,12 @@
 </template>
 <script setup>
 import PageWrapper from "@/components/PageWrapper.vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js';
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyRR from "@/components/crud/MoneyRR.vue";
-import MoneyUD from "@/components/crud/MoneyUD.vue";
-import MoneyCUD from "@/components/crud/MoneyCUD.vue";
-import MoneyForm from "@/components/crud/MoneyForm.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js';
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyRR from "@/components/Crud/MoneyRR.vue";
+import MoneyUD from "@/components/Crud/MoneyUD.vue";
+import MoneyCUD from "@/components/Crud/MoneyCUD.vue";
+import MoneyForm from "@/components/Crud/MoneyForm.vue";
 
 import {ref} from "vue";
 import {useUserStore} from "@/store/index.js";

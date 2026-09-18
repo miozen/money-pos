@@ -17,7 +17,7 @@
 - 工作目录：`/home/mio/projects/money-pos`。
 - Maven 根目录：`/home/mio/projects/money-pos/money-pos`。
 - 当前分支：`dev`；仅在 `dev` 开发。
-- **可本地提交，但用户明确要求不得推送**，尤其不得推送 `main`。
+- 可提交并推送到 `origin/dev` 以供双电脑接力；不得推送 `main`，不得强推或覆盖另一台电脑的提交。
 - 不使用 `git reset --hard`，不使用广泛的 `git checkout` / `git restore`。
 - 每次只 `git add` 当前最小任务明确修改的文件；提交前先检查暂存区。
 
@@ -29,6 +29,9 @@
 - `money-pos/qk-money-app/money-app-biz/src/main/java/com/money/QkMoneyApplication.java`；
 - `money-pos/qk-money-app/money-app-biz/src/main/resources/application-dev.yml`；
 - 未跟踪的 `docs/WSL-双电脑开发测试环境指南.md`（只读参考）。
+
+本轮已获用户授权将这些本地进度连同双电脑接力资料提交并推送到 `origin/dev`；后续如需提交范围之外的
+本地改动，仍应先获得明确授权。
 
 开始工作先执行 `git status --short`，提交后再次确认只留下这些用户改动。
 
@@ -127,4 +130,5 @@ MariaDB 未启动、凭据不可用或沙箱限制时，需要用户授权；不
 - `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`
 - `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`
 - `MoneyPOS-P2-Final-Acceptance-Review.md`
-- `WSL-双电脑开发测试环境指南.md`（用户未跟踪，仅只读）
+- `WSL-双电脑开发测试环境指南.md`（已纳入双电脑接力资料）
+- `MoneyPOS-双电脑接力协议.md`（提交/推送、交接、冲突和数据库隔离流程）

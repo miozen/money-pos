@@ -110,9 +110,9 @@
 
 <script setup>
 import PageWrapper from "@/components/PageWrapper.vue";
-import MoneyCrud from '@/components/crud/MoneyCrud.js'
-import MoneyCrudTable from "@/components/crud/MoneyCrudTable.vue";
-import MoneyRR from "@/components/crud/MoneyRR.vue";
+import MoneyCrud from '@/components/Crud/MoneyCrud.js'
+import MoneyCrudTable from "@/components/Crud/MoneyCrudTable.vue";
+import MoneyRR from "@/components/Crud/MoneyRR.vue";
 import stockLogApi from "@/api/gms/stockLog.js";
 import { req } from "@/api/index.js";
 import { ref, computed } from "vue";
