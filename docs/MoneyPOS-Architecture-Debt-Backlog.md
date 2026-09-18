@@ -38,8 +38,8 @@
 | AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 待实施 | 对每个 import 标记“本域持久化合法 / 跨域泄露 / 兼容桥”，并选择一个低风险、单一所有者的实体切片。 | 更新归属表，证明没有 Mapper XML、序列化、事务或跨域调用遗漏。 |
 | AD-2.2 | 首个 Entity 物理归属迁移 | 受 AD-2.1 约束 | 只迁移一个已确认所有者和消费者面都可控的 Entity/Mapper/DTO 组合。 | 不改表/Flyway/外部 API；其余消费者通过窄契约；全量回归。 |
 | AD-2.3 | Entity 跨域门禁升级 | 受 AD-2.2 约束 | 仅在本域/跨域分类可信后，让扫描器阻止**新增跨域** Entity 契约，同时继续允许所有者内部持久化使用。 | 不能把全部 73 项直接设为失败规则。 |
-| **AD-3** | API/实现类型泄露复核 | **待设计** | 清除跨 Feature 服务签名、Controller 或 DTO 中暴露的实现类嵌套类型及可能遗留的 `IService<Entity>` 兼容面。 | 历史阶段 5 文档早于 P1.6 的部分描述，必须重新以当前代码盘点，不得将旧清单直接当作现状。 |
-| AD-3.1 | 会员画像实现类型泄露 | 待实施 | 将 `UmsMemberService.getTop20Goods()` / `UmsMemberController` 暴露的 `UmsMemberServiceImpl.MemberGoodsRankVO` 设计为 API 顶层 DTO。 | 保持排行榜路由与 JSON 字段；搜索所有调用方并补接口回归。 |
+| **AD-3** | API/实现类型泄露复核 | **实施中** | 清除跨 Feature 服务签名、Controller 或 DTO 中暴露的实现类嵌套类型及可能遗留的 `IService<Entity>` 兼容面。 | 历史阶段 5 文档早于 P1.6 的部分描述，必须重新以当前代码盘点，不得将旧清单直接当作现状。 |
+| AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | 待设计 | 复核 P1.6 之后是否仍有真实调用方可从 GMS/UMS 服务得到持久化 Entity；仅对实际泄露场景新增窄契约。 | 先输出调用矩阵；不为包名整洁批量改造。 |
 | **AD-4** | Maven 物理模块化重新评估 | **受前置条件约束** | 未来再评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前结论仍为“暂不拆分”。 | 必须先满足 Entity-free 契约、无 UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证；见阶段 5 决策。 |
 | **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
@@ -54,11 +54,11 @@
 
 ## 推荐执行顺序
 
-1. **AD-3.1**：会员画像 DTO 泄露是边界清晰、低风险的独立契约切片。
+1. **AD-3.2**：复核现存跨域 `IService<Entity>` 是否仍有实际泄露调用方。
 2. **AD-2.1**：以当前代码而非历史数量重建共享 Entity 消费矩阵，并选首个物理归属迁移。
 3. 依赖 AD-2 结果实施 AD-2.2/AD-2.3；随后才讨论 AD-4 的物理模块化。
 4. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-3.1：盘点并收敛会员画像 DTO 的实现类型泄露。**
+**AD-3.2：盘点跨域 `IService<Entity>` 的真实调用方及遗留泄露。**

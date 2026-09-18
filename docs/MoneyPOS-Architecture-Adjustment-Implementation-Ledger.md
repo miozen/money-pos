@@ -1192,3 +1192,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Selected and implemented the bounded-staleness scheduler strategy: refresh once after application readiness and every five minutes thereafter, including the existing seven-day missing-snapshot compensation. `GET /home/count` now performs no snapshot command.
 - Added an overlap guard and failure handling: concurrent triggers are skipped, a failing assembly/write logs the failure and releases the next run, while the existing atomic writer leaves the prior valid row intact. Read-only dashboard fallback supplies zero values if no row is available yet.
 - Fixed the tenant interceptor's background-thread behavior to use the configured default tenant when no HTTP request exists, which allows startup and scheduled work to operate correctly. HOME integration and task-level concurrency/recovery coverage verify the new boundary.
+
+### Completed: AD-3.1 Member-Profile API DTO Isolation
+
+- Re-audited the current member-profile ranking path and found one implementation-type leak: `UmsMemberService.getTop20Goods()` and `UmsMemberController` publicly named `UmsMemberServiceImpl.MemberGoodsRankVO`.
+- Replaced that nested implementation DTO with the API-module top-level `MemberGoodsRankVO`; the route, SQL ranking semantics and `goodsName` / `buyCount` JSON fields remain unchanged. Integration coverage exercises the exposed service contract and its fields; the controller compiles directly against the same top-level DTO.
+- No Entity, Mapper ownership, database table, Flyway or cross-Feature command flow changed. The next smallest task is AD-3.2: audit actual cross-Feature `IService<Entity>` call sites before proposing any replacement contracts.

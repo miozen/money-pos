@@ -18,7 +18,7 @@ import com.money.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
-import com.money.feature.ums.application.member.UmsMemberServiceImpl.MemberGoodsRankVO;
+import com.money.dto.UmsMember.MemberGoodsRankVO;
 import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
 import com.money.web.exception.BaseException;

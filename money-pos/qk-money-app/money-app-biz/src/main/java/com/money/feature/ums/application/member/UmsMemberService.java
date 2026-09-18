@@ -7,6 +7,7 @@ import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.dto.UmsMember.MemberRankVO;
+import com.money.dto.UmsMember.MemberGoodsRankVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -74,7 +75,7 @@ public interface UmsMemberService extends IService<UmsMember> {
     /**
      * 获取会员最爱购买的 Top 20 商品
      */
-    java.util.List<UmsMemberServiceImpl.MemberGoodsRankVO> getTop20Goods(Long memberId);
+    java.util.List<MemberGoodsRankVO> getTop20Goods(Long memberId);
 
     /**
      * 沉睡雷达：按天数筛选流失会员

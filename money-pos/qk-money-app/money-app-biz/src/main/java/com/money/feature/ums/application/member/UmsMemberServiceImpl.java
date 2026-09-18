@@ -6,12 +6,12 @@ import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.dto.UmsMember.MemberRankVO;
+import com.money.dto.UmsMember.MemberGoodsRankVO;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
 import com.money.feature.ums.application.memberasset.UmsMemberRechargeService;
 import com.money.mapper.UmsMemberMapper;
 import com.money.web.vo.PageVO;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,19 +30,6 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember> implements UmsMemberService {
-
-    // ==========================================
-    // 🌟 核心修复：把误删的内部类补回来！
-    // ==========================================
-    @Data
-    public static class MemberGoodsRankVO {
-        private String goodsName;
-        private Integer buyCount;
-        public MemberGoodsRankVO(String goodsName, Integer buyCount) {
-            this.goodsName = goodsName;
-            this.buyCount = buyCount;
-        }
-    }
 
     // 🌟 注入刚拆分完毕的 4 大核心子域
     private final UmsMemberProfileService UmsMemberProfileService;
