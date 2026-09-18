@@ -1269,3 +1269,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Source/resource verification found no old FQCN, API-module copy or Mapper XML dependency. The shared-Entity scanner fell from 74 to 73 Feature files and from 28 to 27 registered shared Entities; no cross-owner bridge baseline changed.
 - The isolated full Maven suite passed with 24 current test classes and 67 tests; package build, script fixtures, report/additions-only architecture scans and whitespace check passed. No route, DTO, table, Flyway, Mapper package, transaction boundary, SYS strategy behavior, turnover algorithm, sorting or Top20 behavior changed.
 - The next smallest task is AD-2.6: re-inventory candidates and select exactly one third shared-Entity physical-ownership migration slice before moving it.
+
+### Completed: AD-2.6 Third Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.6-Third-Entity-Slice-Selection.md`. It selects UMS `PosMemberLevel` as the sole AD-2.7 migration target after re-auditing the smallest remaining persistence surfaces.
+- `PosMemberLevel` has an explicit `pos_member_level` table mapping and auto-increment key, with only the scanned legacy `PosMemberLevelMapper` as production consumer. No Feature application service, controller, DTO, JSON/Excel boundary, XML FQCN, cross-Feature contract or other Maven module consumes it.
+- AD-2.7 will preserve the legacy Mapper package and `com.money.mapper` scan root, changing only its generic import. Its purpose is Entity physical ownership; the Feature shared-Entity file count therefore may remain 73 while the ownership registry falls from 27 to 26. A direct Mapper CRUD integration regression will provide the currently missing behavior evidence.
+- `GmsMemberTransaction` remains deferred because its Entity lacks `@TableName` and its legacy Mapper lacks `@Mapper`; `OmsDailySummary` remains deferred because its HOME read/write/compensation surface is wider. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- The next smallest task is AD-2.7: move only `PosMemberLevel` into UMS persistence and add the required Mapper CRUD regression.
