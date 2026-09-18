@@ -1198,3 +1198,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Re-audited the current member-profile ranking path and found one implementation-type leak: `UmsMemberService.getTop20Goods()` and `UmsMemberController` publicly named `UmsMemberServiceImpl.MemberGoodsRankVO`.
 - Replaced that nested implementation DTO with the API-module top-level `MemberGoodsRankVO`; the route, SQL ranking semantics and `goodsName` / `buyCount` JSON fields remain unchanged. Integration coverage exercises the exposed service contract and its fields; the controller compiles directly against the same top-level DTO.
 - No Entity, Mapper ownership, database table, Flyway or cross-Feature command flow changed. The next smallest task is AD-3.2: audit actual cross-Feature `IService<Entity>` call sites before proposing any replacement contracts.
+
+### Completed: AD-3.2 Cross-Feature `IService<Entity>` Call Audit
+
+- Audited 20 current `IService<Entity>` interfaces and their production consumers. No UMS or TRADE service exposes an actual cross-Feature entity-service call after P1/P2; same-Feature use remains legitimate persistence implementation.
+- Found two remaining risks: business Features receive `SysDictDetail` from the SYS dictionary service, and the legacy POS goods facade calls `GmsGoodsService.lambdaQuery()` and reads `GmsGoods`. The complete ownership and caller matrix is recorded in `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`.
+- Chose the smallest next implementation slice: AD-3.3 replaces the SYS dictionary entity reads with the already available value-to-description map contract. The GMS→POS search contract remains a separate AD-3.4 design task, preventing product-search and dictionary semantics from being mixed.
