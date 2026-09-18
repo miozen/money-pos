@@ -119,6 +119,7 @@ class HomeCountSnapshotCharacterizationTest {
         Long snapshotId = firstSnapshot.getId();
 
         firstSnapshot.setSalesAmount(new BigDecimal("-1.00"));
+        firstSnapshot.setMemberRecharge(new BigDecimal("19.00"));
         dailySummaryMapper.updateById(firstSnapshot);
 
         Map<String, Object> secondResponse = homeController.homeCountVO();
@@ -127,6 +128,7 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(secondResponse).containsOnlyKeys("today", "month", "year", "total", "inventoryValue", "alerts");
         assertThat(updatedSnapshot.getId()).isEqualTo(snapshotId);
         assertThat(updatedSnapshot.getSalesAmount()).isNotEqualByComparingTo("-1.00");
+        assertThat(updatedSnapshot.getMemberRecharge()).isEqualByComparingTo("19.00");
         assertThat(dailySummaryMapper.selectCount(new LambdaQueryWrapper<OmsDailySummary>()
                 .eq(OmsDailySummary::getRecordDate, today))).isEqualTo(1);
     }

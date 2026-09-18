@@ -1180,3 +1180,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Designed HOME-local assembler, command, writer and dashboard-query responsibilities. Historical compensation becomes an atomic insert-if-absent and today's refresh an atomic upsert over the existing `uk_record_date`; no new Flyway, cross-Feature command or JVM-only lock is proposed.
 - Defined a safe two-stage migration: AD-1.3a extracts commands and removes the check-then-insert race while preserving GET-triggered refresh exactly; AD-1.3b makes GET read-only only after the user chooses and authorizes a freshness strategy (scheduler or transaction event).
 - Preserved all current report semantics, including seven-day compensation, today overwrite, order states/boundaries, alert window and the historical use of current inventory valuation. No production source, SQL, route, schema, Flyway or test behavior changed in this design-only task. The next smallest task is AD-1.3a: implement HOME command/query separation and atomic daily-snapshot writes without changing GET triggering.
+
+### Completed: AD-1.3a HOME Command/Query Split and Atomic Daily-Snapshot Writes
+
+- Implemented HOME-local immutable snapshot assembly, command service, atomic writer and dashboard query service. The `DecisionEngine` now only preserves the existing GET compatibility sequence while command and query responsibilities are isolated.
+- Historical compensation uses an atomic insert-if-absent on the existing `uk_record_date`; today's refresh uses an atomic upsert. The refresh updates only snapshot-owned metrics and preserves `member_recharge`.
+- Extended HOME characterization coverage for that preservation and ran it against `money_pos_test`. No route, response field, database table, Flyway, transaction boundary of unrelated flows or GET trigger timing changed. `AD-1.3b` remains intentionally open pending a user-selected scheduler or transaction-event freshness strategy.
