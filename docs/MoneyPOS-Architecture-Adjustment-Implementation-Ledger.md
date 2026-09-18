@@ -1277,3 +1277,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.7 will preserve the legacy Mapper package and `com.money.mapper` scan root, changing only its generic import. Its purpose is Entity physical ownership; the Feature shared-Entity file count therefore may remain 73 while the ownership registry falls from 27 to 26. A direct Mapper CRUD integration regression will provide the currently missing behavior evidence.
 - `GmsMemberTransaction` remains deferred because its Entity lacks `@TableName` and its legacy Mapper lacks `@Mapper`; `OmsDailySummary` remains deferred because its HOME read/write/compensation surface is wider. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - The next smallest task is AD-2.7: move only `PosMemberLevel` into UMS persistence and add the required Mapper CRUD regression.
+
+### Completed: AD-2.7 UMS Member-Level Entity Physical-Ownership Migration
+
+- Moved `PosMemberLevel` from the shared API entity package to `feature.ums.infrastructure.persistence.entity`. Only the legacy `PosMemberLevelMapper` generic import changed; its `com.money.mapper` package and scan root remain intact. `@TableName("pos_member_level")`, `IdType.AUTO`, the string tenant id, table/Flyway and external API contracts are unchanged.
+- Added `PosMemberLevelMapperIntegrationTest` against `money_pos_test`, proving generated-key insert, readback of level and tenant fields, update, and deletion through the existing Mapper.
+- Source/resource verification found no API-module copy, old FQCN or resource dependency. The ownership registry fell from 27 to 26 while the Feature shared-Entity importer count correctly remains 73 because the retained mapper is outside `feature/**`.
+- The targeted CRUD test passed; the isolated full Maven suite passed with 25 current test classes and 68 tests (0 failures / 0 errors). Package build, script fixtures, report/additions-only architecture scans and whitespace check passed.
+- The next smallest task is AD-2.8: re-inventory candidates and select exactly one fourth shared-Entity physical-ownership migration slice before moving it.

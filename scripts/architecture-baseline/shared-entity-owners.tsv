@@ -16,7 +16,6 @@ OmsOrderLog	trade
 OmsOrderPay	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
-PosMemberLevel	ums
 PosSkuLevelPrice	gms
 Provinces	sys
 SysBrandConfig	sys

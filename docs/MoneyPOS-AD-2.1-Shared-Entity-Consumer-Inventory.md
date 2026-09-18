@@ -3,7 +3,7 @@
 ## 结论
 
 AD-2.1 盘点时，`money-app-biz` 的 Feature 源码有 **75 个文件**直接导入共享
-`com.money.entity`；AD-2.2 与 AD-2.5 分别移除退款幂等和周转预警快照 Entity 后，当前为 **73 个文件**。这个数是审计起点，不是
+`com.money.entity`；AD-2.2、AD-2.5 与 AD-2.7 分别移除退款幂等、周转预警快照和会员等级 Entity 后，当前为 **73 个文件**。这个数是审计起点，不是
 违规数：所有者在自己的应用、领域和持久化层使用 ORM Entity 是合法的；本次没有把它机械地升级成失败门禁。
 
 首个物理归属切片 **TRADE 的 `OmsRefundIdempotent` 已由 AD-2.2 完成迁移**。它现在位于
@@ -33,7 +33,7 @@ import 判断：
 ## 当前消费者归属矩阵
 
 下表保留 AD-2.1 时实际被导入的全部 29 个共享 Entity，包含后续已迁移的 `OmsRefundIdempotent` 与
-`GmsTurnoverWarningSnapshot`；当前剩余 27 个。`本域`包括相应 Feature 的应用/领域/持久化实现；`桥/泄露`
+`GmsTurnoverWarningSnapshot` 与 `PosMemberLevel`；当前剩余 26 个。`本域`包括相应 Feature 的应用/领域/持久化实现；`桥/泄露`
 只列需要后续单独处理的实际消费面。
 
 | Entity | 逻辑所有者 | 当前消费者分类 | 桥/泄露与后续方向 |
@@ -56,7 +56,7 @@ import 判断：
 | `UmsRechargeOrder` | UMS | 本域充值/资产和 Mapper | 控制器返回 Entity 的兼容 API 仍需独立 DTO 任务。 |
 | `PosCouponRule` | UMS | UMS 权益查询、Mapper | TRADE 优惠券管理仍直接使用它，是已知跨域持久化兼容面；不与 AD-2.2 混合。 |
 | `PosMemberCoupon` | UMS | UMS 权益/资产命令、Mapper | TRADE 优惠券管理与统计仍有直接持久化用途；需独立命令/查询切片。 |
-| `PosMemberLevel` | UMS | 共享 Mapper 兼容层 | 无新增跨域 Entity 契约。 |
+| `PosMemberLevel` | UMS | 遗留 Mapper 兼容层（现导入 UMS 本地 Entity） | **AD-2.7 已迁移**；无新增跨域 Entity 契约，CRUD 回归已覆盖。 |
 | `OmsOrder` | TRADE | 本域结账、退款、订单查询、报表查询和 Mapper | FIN/HOME 已使用报表快照；订单接口仍是本域 `IService` 兼容面。 |
 | `OmsOrderDetail` | TRADE | 本域结账、退款、订单领域服务和 Mapper | 无跨域 Entity 契约。 |
 | `OmsOrderLog` | TRADE | 本域结账、退款、订单领域服务和专用 Mapper | 无跨域 Entity 契约。 |
