@@ -1428,3 +1428,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Published `MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md`. The authorized remedy is a separate AD-2.24.2: keep the Entity in the API package temporarily, model only its eight real geographic fields with explicit `provinces` mapping, and replace generic Mapper/service write inheritance with a narrow explicit read query and service.
 - No source, table, Flyway, tenant-ignore, route, DTO, scanner baseline or registry changed in this design task. The repair must not add synthetic ID/audit columns, write SQL or dictionary data mutations. After its validation and push, AD-2.25 resumes solely as the SYS physical-ownership move.
 - Next: AD-2.24.2 Provinces read-only mapping repair implementation with Mapper/cache/HTTP regression.
+
+### Completed: AD-2.24.2 Provinces Read-Only Mapping Repair Implementation
+
+- Replaced the false `BaseEntity` / `BaseMapper` model with a real static-dictionary model while leaving `Provinces` temporarily in `money-app-api`: explicit `@TableName("provinces")`, exactly eight geographic fields, and no inherited ID/audit fields.
+- `ProvincesMapper` now exposes only an explicit eight-column `selectAll()` query. `ProvincesService` and its implementation no longer inherit `IService` / `ServiceImpl`; the existing first-read double-checked JVM cache uses that read query and retains all three `SelectVO` methods.
+- Added read-only integration regressions: the Mapper asserts the Flyway Beijing seed record's eight fields without mutations; the Controller/service test verifies province/city/district `SelectVO` values and repeated reads of the initialized cache. It binds the existing web-log request context, without modifying production Controller behavior.
+- Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate and whitespace validation passed. Table/Flyway, tenant-ignore, seed data, routes, scanner baseline and ownership registry did not change.
+- Next: AD-2.25 SYS Provinces Entity physical-ownership migration.

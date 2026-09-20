@@ -1,7 +1,6 @@
 package com.money.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.money.dto.SelectVO;
 import com.money.entity.Provinces;
 import com.money.mapper.ProvincesMapper;
@@ -25,11 +24,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProvincesServiceImpl extends ServiceImpl<ProvincesMapper, Provinces> implements ProvincesService {
+public class ProvincesServiceImpl implements ProvincesService {
 
     // 🌟 核心优化：JVM 级内存缓存，彻底阻断高频无意义的数据库 IO
     private volatile boolean initialized = false;
     private final Object lock = new Object();
+    private final ProvincesMapper provincesMapper;
 
     // 缓存容器
     private List<SelectVO> provinceCache = new ArrayList<>();
@@ -58,7 +58,7 @@ public class ProvincesServiceImpl extends ServiceImpl<ProvincesMapper, Provinces
         long start = System.currentTimeMillis();
 
         // 仅触发一次全表扫描（约三四千条数据，占用内存极小）
-        List<Provinces> allData = this.list();
+        List<Provinces> allData = provincesMapper.selectAll();
 
         // 临时数据结构，使用 LinkedHashSet 保证去重且维持插入顺序
         Set<String> pSet = new LinkedHashSet<>();
