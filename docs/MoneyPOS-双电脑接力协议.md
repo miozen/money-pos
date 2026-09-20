@@ -2,6 +2,23 @@
 
 本协议与 `MoneyPOS-AI-Handoff.md`、`WSL-双电脑开发测试环境指南.md` 一起使用，目标是让两台开发电脑在
 同一 `dev` 分支上安全、可重复地接力，而不共享本机数据库或临时运行状态。
+## Codex Windows 宿主与 WSL 执行规则
+
+本 Codex 桌面任务的工具宿主是 Windows PowerShell；仓库、Git、Maven、测试数据库和开发命令则位于 WSL Ubuntu。因此每条仓库命令都经历“PowerShell 启动 `wsl.exe` → WSL Bash 执行”的两层解析。Windows 宿主不是错误，但将 Bash 的 `$变量`、`$(命令替换)`、正则、反斜杠或引号直接嵌入外层 PowerShell 命令会在进入 WSL 前被错误解析。
+
+涉及变量、正则、数据库凭据、Maven 参数或多行逻辑时，必须使用以下唯一模板：外层 PowerShell 只保存并传递单引号 here-string，所有业务语法只由 WSL Bash 解释。
+
+```powershell
+$wslScript = @'
+set -euo pipefail
+cd /home/mio/projects/money-pos/money-pos
+# 以下内容只使用 Bash 语法，例如 $变量、$(命令替换)、Perl 正则和 Maven 命令
+'@
+wsl.exe -d Ubuntu -- bash -lc $wslScript
+```
+
+简单的无变量只读命令可以直接使用 `wsl.exe -d Ubuntu -- bash -lc 'cd ... && git status -sb'`。只要命令含有上述 Bash 语法，就不得把它直接拼进 PowerShell 命令字符串。若报错来自 `ParserError`、PowerShell 或 Windows 路径，先修正外层封装；不得误报为 WSL、Maven 或数据库失败，也不得重复消耗测试执行。
+
 
 ## 强制的编号任务闭环
 

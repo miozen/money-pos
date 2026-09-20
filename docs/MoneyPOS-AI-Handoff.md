@@ -29,6 +29,8 @@
   `main`，不得强推或覆盖另一台电脑的提交。
 - 不使用 `git reset --hard`，不使用广泛的 `git checkout` / `git restore`。
 - 每次只 `git add` 当前最小任务明确修改的文件；提交前先检查暂存区。
+执行环境为 Windows PowerShell 宿主 + WSL Ubuntu 仓库。所有含 Bash 变量、命令替换、正则、凭据或多行逻辑的命令，必须通过 `MoneyPOS-双电脑接力协议.md` 的 `$wslScript` 单引号 here-string 模板传入 `wsl.exe ... bash -lc`；外层 PowerShell 只能传递脚本，不解释业务语法。看到 PowerShell `ParserError` 时，该命令尚未进入 WSL，先修正封装，不要将其记作 Maven、数据库或代码失败。
+
 
 ## 工作区所有权与同步
 
