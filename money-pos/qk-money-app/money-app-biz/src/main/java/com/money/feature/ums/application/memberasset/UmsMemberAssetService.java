@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
-import com.money.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
 import com.money.mapper.UmsRechargeOrderMapper;

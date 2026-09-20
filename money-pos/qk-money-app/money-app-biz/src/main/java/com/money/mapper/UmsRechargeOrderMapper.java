@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

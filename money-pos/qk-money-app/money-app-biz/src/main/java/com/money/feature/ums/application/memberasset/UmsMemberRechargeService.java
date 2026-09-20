@@ -7,7 +7,7 @@ import com.money.dto.Ums.RechargeDTO;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
-import com.money.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;

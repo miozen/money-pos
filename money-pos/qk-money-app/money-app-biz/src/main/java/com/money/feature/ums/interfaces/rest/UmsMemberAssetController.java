@@ -2,7 +2,7 @@ package com.money.feature.ums.interfaces.rest;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.entity.UmsMemberLog;
-import com.money.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.feature.ums.application.memberasset.UmsMemberAssetService; // 🌟 引入标准的资产服务
 import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.exception.BaseException;

@@ -69,4 +69,5 @@ API 模块、复制一个兼容类，或趁机改为 DTO 的做法都超出 AD-2
 
 ## 下一步
 
-唯一下一最小任务为 **AD-2.27：迁移 `UmsRechargeOrder` 到 UMS 持久化实体包，并补 Mapper、充值/红冲与查询接口回归**。
+AD-2.27 已闭环：`UmsRechargeOrder` 已移至 UMS 持久化实体包，Mapper、两项资产服务和查询 Controller
+均已使用本地类型；Mapper 持久化、余额充值/红冲及查询处理器回归均通过。下一最小任务须由债务清单重新盘点后确定。
