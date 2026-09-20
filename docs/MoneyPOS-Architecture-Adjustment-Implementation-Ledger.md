@@ -1324,3 +1324,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.13 will retain implicit MyBatis-Plus table derivation, direct `ASSIGN_ID`, all fields, legacy Mapper scan root and all database/API behavior. It must add direct Mapper CRUD coverage because the type currently has no behavior regression. The ownership registry is expected to fall from 24 to 23 while the Feature shared-import file count remains 72.
 - `GmsInventoryOrder` remains deferred because of its `IService<Entity>` surface; `GmsInventoryDoc` retains FIN query implementations; `GmsGoodsCombo` and `GmsStockLog` have wider product/inventory/transaction consumers; `Provinces` retains an `IService<Entity>` and Controller surface. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.13 UMS member-transaction Entity physical-ownership migration.
+
+### Completed: AD-2.13 UMS Member-Transaction Entity Physical-Ownership Migration
+
+- Moved `GmsMemberTransaction` from the shared API entity package to `feature.ums.infrastructure.persistence.entity`. Only the legacy `GmsMemberTransactionMapper` generic import changed; its `com.money.mapper` package and scan root remain intact. The historical class and `gms_member_transaction` table names were deliberately retained.
+- Added `GmsMemberTransactionMapperIntegrationTest`, covering insert with assigned ID, readback of the implicit table mapping and member-fund snapshot fields, update and delete under the existing tenant/authentication test context.
+- No old FQCN or API copy remains. Registry fell 24→23; shared-import file count remains 72 because no Feature application class consumed this Entity.
+- Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace check passed.
+- Next: AD-2.14 seventh shared-Entity slice selection.

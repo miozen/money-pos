@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`2836be3 refactor(ad-2.11): localize inventory document item entity`**；本次
-提交闭环 AD-2.12。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`b566351 docs(ad-2.12): select member transaction migration`**；本次
+提交闭环 AD-2.13。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,20 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 72 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.13
+## 当前任务：AD-2.14
 
-**迁移 UMS 会员资金流水 Entity，并增加 Mapper CRUD 回归。**
+**选择第七个共享 Entity 物理归属迁移切片。**
 
-先完整阅读 `MoneyPOS-AD-2.12-Sixth-Entity-Slice-Selection.md`，并重跑当前扫描。已固定的实施边界：
+先重跑当前扫描并重新盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的实施边界：
 
-- 只移动 `GmsMemberTransaction` 到 `feature.ums.infrastructure.persistence.entity`，更新遗留 `GmsMemberTransactionMapper` 导入；不得连带移动 Mapper、服务、Controller 或其他 Entity。
-- 保留直接 `@TableId(IdType.ASSIGN_ID)`、无 `@TableName`/`BaseEntity` 的现状、字段类型、遗留 Mapper 包和 `com.money.mapper` 扫描根；不改表/Flyway、HTTP、DTO、事务、租户或会员资金规则。
-- 新增 Mapper 插入、读回、更新、删除回归；随后使用隔离 `money_pos_test` 全量验证。所有权登记预期由 24 降至 23，Feature 共享 Entity 文件数仍为 72。
+- 仅选择一个边界最小、可验证的候选；不得在 AD-2.14 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
+- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
+- 当前所有权登记为 23，Feature 共享 Entity import 文件数仍为 72；后者是报告型指标，不可机械作为迁移目标或门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.13 完成后，按债务清单重新选择下一最小任务。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
-把当前报告数量直接设为失败规则。
+AD-2.14 完成后，按其选择文档固定唯一的第七个 Entity 迁移任务。门禁仅阻止新引入的、已分类非所有者 Entity
+契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 
