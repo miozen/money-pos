@@ -1397,3 +1397,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 20→19; owner-local uses fell 107→101 and shared-import files fell 67→64. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
 - Targeted Mapper/TRADE checkout suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
 - Next: AD-2.22 eleventh shared-Entity slice selection.
+
+### Completed: AD-2.22 Eleventh Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.22-Eleventh-Entity-Slice-Selection.md`. It re-audits all 19 remaining registered shared Entities and selects GMS `GmsInventoryOrder` as the sole AD-2.23 migration target.
+- The Entity has one GMS-local Mapper and two GMS-local service declarations. Its `IService<GmsInventoryOrder>` generic remains entirely within GMS; production search found no Controller, other Feature, DTO/VO, serialization, XML/resource FQCN or Maven-module consumer.
+- AD-2.23 will retain implicit MyBatis-Plus `gms_inventory_order` derivation, `IdType.ASSIGN_ID`, all fields, the GMS Mapper scan root and inbound/check/outbound transactions. It will add Mapper CRUD plus three inventory-order command regressions covering the completed main record, details, stock logs and each path's inventory/cost results. Registry is expected to fall 19→18 and shared-import files 64→62.
+- SYS/UMS low-use candidates remain deferred for Controller, compatibility or runtime surfaces; GMS document/log, goods/price and remaining TRADE/UMS/SYS candidates retain wider algorithms, API compatibility or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.23 GMS inventory-order Entity physical-ownership migration.
