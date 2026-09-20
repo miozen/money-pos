@@ -12,28 +12,30 @@
 台账记录已完成工作的事实，债务清单决定后续编号与当前顺序；两者冲突时，以台账的实施事实和
 债务清单的当前待办共同校正，不能回退到历史 P2 清单继续编号。
 
+## 编号任务与双机接力总规则
+
+`MoneyPOS-Architecture-Debt-Backlog.md` 的“当前任务”是唯一允许开始的任务编号。每轮只完成一个编号任务：先读其设计边界，再实施、验证、更新台账/债务清单/本文件，最后提交。不得在迁移任务中自行选择下一切片，也不得在选择任务中夹带迁移实现。
+
+每轮的完成定义是：**编号任务 → 任务范围内的代码/测试/文档 → 验证 → 本地提交 → 推送 `origin/dev` → 确认 `ahead=0` 且 `behind=0`**。任一步未完成，只能报告“本地进行中”或“本地完成待同步”，不能作为另一台电脑或新 AI 对话继续下一编号任务的基线。详细命令、数据库隔离和冲突处理见 `MoneyPOS-双电脑接力协议.md`。
+
+
 ## 仓库与操作红线
 
-- 工作目录：`/home/mio/projects/money-pos`。
+- WSL 工作目录：`/home/mio/projects/money-pos`。
 - Maven 根目录：`/home/mio/projects/money-pos/money-pos`。
 - 当前分支：`dev`；仅在 `dev` 开发。
-- 可提交并推送到 `origin/dev` 以供双电脑接力；不得推送 `main`，不得强推或覆盖另一台电脑的提交。
+- 远端为 SSH `git@github.com:miozen/money-pos.git`。开始前 `git fetch origin`、`git pull --ff-only origin dev`；
+  完成后可提交并推送到 `origin/dev` 以供双电脑接力。推送后再次 `git fetch origin`，确认无 ahead/behind；不得推送
+  `main`，不得强推或覆盖另一台电脑的提交。
 - 不使用 `git reset --hard`，不使用广泛的 `git checkout` / `git restore`。
 - 每次只 `git add` 当前最小任务明确修改的文件；提交前先检查暂存区。
 
-## 必须保留的现有用户改动
+## 工作区所有权与同步
 
-当前工作区并不干净。下列内容属于用户或其他工作，禁止重置、覆盖、暂存或混入架构提交：
+双电脑接力的起点应是干净且已同步的 `dev`：开始前执行 `git fetch origin`、`git pull --ff-only origin dev` 和 `git status --short`。若发现未提交改动，先确认其所有者和任务归属；只暂存当前编号任务明确修改的文件，绝不把未知改动混入架构提交。不得用 `git reset --hard`、广泛 `checkout` 或 `restore` 清理他人工作。
 
-- `money-pos-web/**` 的所有现有修改；
-- `money-pos/qk-money-app/money-app-biz/src/main/java/com/money/QkMoneyApplication.java`；
-- `money-pos/qk-money-app/money-app-biz/src/main/resources/application-dev.yml`；
-- 未跟踪的 `docs/WSL-双电脑开发测试环境指南.md`（只读参考）。
+每轮结束必须先提交、推送，再执行 `git fetch origin` 和 `git status -sb` 确认与 `origin/dev` 对齐。若发生非快进、冲突或推送失败，停止开始下一编号任务，保留双方提交并按双电脑协议处理。
 
-本轮已获用户授权将这些本地进度连同双电脑接力资料提交并推送到 `origin/dev`；后续如需提交范围之外的
-本地改动，仍应先获得明确授权。
-
-开始工作先执行 `git status --short`，提交后再次确认只留下这些用户改动。
 
 ## 当前基线与已完成架构工作
 
@@ -115,10 +117,10 @@ MariaDB 未启动、凭据不可用或沙箱限制时，需要用户授权；不
 
 每轮完成后必须清晰报告：
 
-1. **本次完成什么**：编号、实际改动、本地提交号；
+1. **本次完成什么**：编号、实际改动、本地提交号、`origin/dev` 推送与对齐状态；
 2. **验证结果**：专项、全量、打包、架构门禁、`git diff --check` 分别说明；
 3. **遗留风险或延期项**；
-4. **下一轮做什么**：只给一个带编号的最小任务。
+4. **下一轮做什么**：只给债务清单中的一个带编号最小任务。
 
 代码、测试、文档和本地提交未形成闭环时，明确写“未完成”，不得称“已完成”。
 
