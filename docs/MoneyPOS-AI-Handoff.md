@@ -29,7 +29,7 @@
   `main`，不得强推或覆盖另一台电脑的提交。
 - 不使用 `git reset --hard`，不使用广泛的 `git checkout` / `git restore`。
 - 每次只 `git add` 当前最小任务明确修改的文件；提交前先检查暂存区。
-执行环境为 Windows PowerShell 宿主 + WSL Ubuntu 仓库。所有含 Bash 变量、命令替换、正则、凭据或多行逻辑的命令，必须通过 `MoneyPOS-双电脑接力协议.md` 的 `$wslScript` 单引号 here-string 模板传入 `wsl.exe ... bash -lc`；外层 PowerShell 只能传递脚本，不解释业务语法。看到 PowerShell `ParserError` 时，该命令尚未进入 WSL，先修正封装，不要将其记作 Maven、数据库或代码失败。
+执行环境为 Windows PowerShell 宿主 + WSL Ubuntu 仓库。所有含 Bash 变量、命令替换、正则、凭据或多行逻辑的命令，必须通过 `MoneyPOS-双电脑接力协议.md` 的 `$wslScript` 单引号 here-string 模板，以标准输入传入 `wsl.exe ... bash -s`；外层 PowerShell 只能传递脚本，不解释业务语法。看到 PowerShell `ParserError` 时，该命令尚未进入 WSL，先修正封装，不要将其记作 Maven、数据库或代码失败。
 
 
 ## 工作区所有权与同步
@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新文档基线是 **`f7dc5c4 docs: refresh architecture handoff`**；它记录 AD-3.4.1 的
-实施起点。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`86b6bb6 docs: clarify WSL command execution boundary`**；本次
+提交闭环 AD-2.11。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,21 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 72 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.11
+## 当前任务：AD-2.12
 
-**迁移 GMS 库存单明细快照 Entity，并增加库存单明细与 Mapper CRUD 回归。**
+**选择第六个共享 Entity 物理归属迁移切片。**
 
-先完整阅读 `MoneyPOS-AD-2.10-Fifth-Entity-Slice-Selection.md`，并重跑当前扫描。已固定的实施边界：
+先重跑当前扫描并重新盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的实施边界：
 
-- 只移动 `GmsInventoryDocItem` 到 `feature.gms.infrastructure.persistence.entity`，更新遗留 Mapper、
-  `GmsInventoryDocServiceImpl` 和 `GmsStockCommandService` 导入；不得连带移动主单、其他 Entity、Controller 或服务。
-- 保留显式表名、`BaseEntity`/`ASSIGN_ID`、字段类型、遗留 Mapper 包和 `com.money.mapper` 扫描根；不改表/Flyway、HTTP、DTO、事务、租户、库存/均价/日志算法。
-- 扩展既有入库回归断言明细快照，并补 Mapper 插入、读回、更新、删除回归；随后使用隔离 `money_pos_test` 全量验证。预期共享 Entity Feature 文件数由 72 降至 70，所有权登记由 25 降至 24。
+- 仅选择一个边界最小、可验证的候选；不得在 AD-2.12 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
+- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
+- 当前所有权登记为 24，Feature 共享 Entity import 文件数仍为 72；后者是报告型指标，不可机械作为迁移目标或门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.11 完成后，按债务清单重新选择下一最小任务。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能
-把当前报告数量直接设为失败规则。
+AD-2.12 完成后，按其选择文档固定唯一的第六个 Entity 迁移任务。门禁仅阻止新引入的、已分类非所有者 Entity
+契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

@@ -4,7 +4,6 @@ GmsGoods	gms
 GmsGoodsCategory	gms
 GmsGoodsCombo	gms
 GmsInventoryDoc	gms
-GmsInventoryDocItem	gms
 GmsInventoryOrder	gms
 GmsMemberTransaction	ums
 GmsStockLog	gms

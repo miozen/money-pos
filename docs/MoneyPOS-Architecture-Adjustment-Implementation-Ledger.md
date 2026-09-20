@@ -1309,3 +1309,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.11 will preserve the explicit `gms_inventory_doc_item` table mapping, BaseEntity `ASSIGN_ID`/audit fields, snapshot fields, legacy mapper scan root and existing inventory semantics. It will extend the existing inbound inventory regression to observe the persisted item snapshot and add direct Mapper CRUD coverage. Feature importer count is expected to fall from 72 to 70 and the ownership registry from 25 to 24.
 - `GmsInventoryDoc` remains deferred because FIN's query implementations depend on it; `GmsInventoryOrder` retains its `IService<Entity>` compatibility surface; `GmsMemberTransaction` still needs isolated scan/derivation characterization. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - The next smallest task is AD-2.11: move only `GmsInventoryDocItem` into GMS persistence and add the required snapshot and Mapper CRUD regressions.
+### Completed: AD-2.11 GMS Inventory-Document-Item Entity Physical-Ownership Migration
+
+- Moved `GmsInventoryDocItem` from the shared API entity package to `feature.gms.infrastructure.persistence.entity`. Only the two GMS inventory services and legacy `GmsInventoryDocItemMapper` imports changed; explicit table mapping, BaseEntity `ASSIGN_ID`/audit behavior, fields and Mapper scan root remain intact.
+- Added inbound document-item snapshot assertions and `GmsInventoryDocItemMapperIntegrationTest` CRUD coverage for the GMS-local Entity.
+- No old FQCN or API copy remains. Registry fell 25→24 and owner-local Entity uses 119→117; shared-import file count remains 72 because both services import other shared Entities.
+- Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace check passed.
+- Next: AD-2.12 sixth shared Entity slice selection.

@@ -16,11 +16,13 @@ import com.money.entity.PosSkuLevelPrice;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.feature.gms.application.inventory.GmsInventoryDocService;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDocItem;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.GmsInventoryDocMapper;
+import com.money.mapper.GmsInventoryDocItemMapper;
 import com.money.mapper.PosSkuLevelPriceMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +70,8 @@ class GmsFeatureIntegrationTest {
     private PosSkuLevelPriceMapper levelPriceMapper;
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
+    @Autowired
+    private GmsInventoryDocItemMapper inventoryDocItemMapper;
     @Autowired
     private CheckoutGoodsQuery checkoutGoodsQuery;
     @Autowired
@@ -140,9 +144,24 @@ class GmsFeatureIntegrationTest {
         inventoryDocService.executeDoc(inbound);
 
         assertThat(goodsMapper.selectById(component.getId()).getStock()).isEqualTo(11L);
-        assertThat(inventoryDocMapper.selectCount(new LambdaQueryWrapper<GmsInventoryDoc>()
+        GmsInventoryDoc inboundDoc = inventoryDocMapper.selectOne(new LambdaQueryWrapper<GmsInventoryDoc>()
                 .eq(GmsInventoryDoc::getDocType, "INBOUND")
-                .eq(GmsInventoryDoc::getRemark, "GMS integration regression"))).isEqualTo(1L);
+                .eq(GmsInventoryDoc::getRemark, "GMS integration regression"));
+        assertThat(inboundDoc).isNotNull();
+        assertThat(inventoryDocItemMapper.selectList(new LambdaQueryWrapper<GmsInventoryDocItem>()
+                .eq(GmsInventoryDocItem::getDocNo, inboundDoc.getDocNo())))
+                .singleElement()
+                .extracting(GmsInventoryDocItem::getDocNo,
+                        GmsInventoryDocItem::getGoodsId,
+                        GmsInventoryDocItem::getGoodsName,
+                        GmsInventoryDocItem::getBarcode,
+                        GmsInventoryDocItem::getChangeQty,
+                        GmsInventoryDocItem::getCostPrice,
+                        GmsInventoryDocItem::getPreStock,
+                        GmsInventoryDocItem::getAfterStock,
+                        GmsInventoryDocItem::getTenantId)
+                .containsExactly(inboundDoc.getDocNo(), component.getId(), component.getName(), component.getBarcode(),
+                        3, new BigDecimal("6.00"), 8L, 11L, 0L);
     }
 
     private GmsBrand createBrand(String suffix) {

@@ -46,7 +46,8 @@
 | AD-2.8 | 第四个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsInventoryOrderDetail`，并确认其 GMS 服务/Mapper、隐式表名推导、无 Entity 外泄与必补 CRUD 回归。见 `MoneyPOS-AD-2.8-Fourth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
 | AD-2.9 | GMS 库存单明细 Entity 物理归属迁移 | 已关闭 | 已将 `GmsInventoryOrderDetail` 移到 GMS 持久化 entity 包，更新 GMS 服务/Mapper 导入并增加 CRUD 回归。 | 主单、Mapper 与扫描根未移动，隐式表名/Flyway/API 未改；Feature 文件扫描降至 72。 |
 | AD-2.10 | 第五个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsInventoryDocItem`，并确认两个 GMS 服务、遗留 Mapper、显式表名、无 Entity 外泄与必补快照/CRUD 回归。见 `MoneyPOS-AD-2.10-Fifth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
-| AD-2.11 | GMS 库存单明细快照 Entity 物理归属迁移 | 待实施 | 将 `GmsInventoryDocItem` 移到 GMS 持久化 entity 包，更新两个 GMS 服务/遗留 Mapper 导入并增加快照与 CRUD 回归。 | 不移动主单、Mapper 或扫描根，不改表/Flyway/API；Feature 文件扫描预计降至 70。 |
+| AD-2.11 | GMS 库存单明细快照 Entity 物理归属迁移 | 已关闭 | 已将 `GmsInventoryDocItem` 移到 GMS 持久化 entity 包，更新两个 GMS 服务/遗留 Mapper 导入并增加入库快照与 CRUD 回归。 | 不移动主单、Mapper 或扫描根，不改表/Flyway/API；所有权登记降至 24。 |
+| AD-2.12 | 第六个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点剩余共享 Entity，选择一个边界最小、可验证的第六迁移切片并形成选择文档。 | 仅选择，不移动 Entity；须重新核对消费者、Mapper/XML、表映射、跨域契约和回归入口。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -66,10 +67,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.11**：迁移 GMS 库存单明细快照 Entity 并增加回归。
+1. **AD-2.12**：重新盘点候选并选择第六个共享 Entity 物理归属迁移切片。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.11：迁移 GMS 库存单明细快照 Entity 并增加回归。**
+**AD-2.12：选择第六个共享 Entity 物理归属迁移切片。**

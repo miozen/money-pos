@@ -1,4 +1,4 @@
-package com.money.entity;
+package com.money.feature.gms.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.money.mb.base.BaseEntity;

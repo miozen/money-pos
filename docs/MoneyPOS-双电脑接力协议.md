@@ -14,10 +14,10 @@ set -euo pipefail
 cd /home/mio/projects/money-pos/money-pos
 # 以下内容只使用 Bash 语法，例如 $变量、$(命令替换)、Perl 正则和 Maven 命令
 '@
-wsl.exe -d Ubuntu -- bash -lc $wslScript
+$wslScript | wsl.exe -d Ubuntu -- bash -s
 ```
 
-简单的无变量只读命令可以直接使用 `wsl.exe -d Ubuntu -- bash -lc 'cd ... && git status -sb'`。只要命令含有上述 Bash 语法，就不得把它直接拼进 PowerShell 命令字符串。若报错来自 `ParserError`、PowerShell 或 Windows 路径，先修正外层封装；不得误报为 WSL、Maven 或数据库失败，也不得重复消耗测试执行。
+简单的无变量只读命令可以直接使用 `wsl.exe -d Ubuntu -- bash -lc 'cd ... && git status -sb'`。只要命令含有上述 Bash 语法，就必须通过 here-string 的标准输入执行 `bash -s`，不得将其作为 `bash -lc` 的命令行参数。若报错来自 `ParserError`、PowerShell 或 Windows 路径，先修正外层封装；不得误报为 WSL、Maven 或数据库失败，也不得重复消耗测试执行。
 
 
 ## 强制的编号任务闭环
