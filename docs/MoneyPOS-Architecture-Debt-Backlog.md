@@ -51,7 +51,8 @@
 | AD-2.13 | UMS 会员资金流水 Entity 物理归属迁移 | 已关闭 | 已将 `GmsMemberTransaction` 移到 UMS 持久化 entity 包，更新遗留 Mapper 泛型导入并增加 CRUD 回归。 | 不移动 Mapper 或服务，不改隐式表名/Flyway/API；所有权登记降至 23。 |
 | AD-2.14 | 第七个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 TRADE `OmsOrderPay`，并确认三个 TRADE 消费者、遗留 Mapper 聚合 SQL、无 HTTP/跨域 Entity 外泄与必补支付快照/CRUD 回归。见 `MoneyPOS-AD-2.14-Seventh-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
 | AD-2.15 | TRADE 订单支付明细 Entity 物理归属迁移 | 已关闭 | 已将 `OmsOrderPay` 移到 TRADE 持久化 entity 包，更新三个 TRADE 消费者/遗留 Mapper/测试导入并增加支付快照与 CRUD 回归。 | 不移动 Mapper 或服务，不改隐式表名、聚合 SQL、表/Flyway/API；所有权登记降至 22。 |
-| AD-2.16 | 第八个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点剩余共享 Entity，选择一个边界最小、可验证的第八迁移切片并形成选择文档。 | 仅选择，不移动 Entity；须重新核对消费者、Mapper/XML、表映射、跨域契约和回归入口。 |
+| AD-2.16 | 第八个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 HOME `OmsDailySummary`，并确认三个 HOME 消费者、遗留 Mapper 原子 SQL、无 HTTP/跨域 Entity 外泄与必补 Mapper/日快照回归。见 `MoneyPOS-AD-2.16-Eighth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
+| AD-2.17 | HOME 每日经营快照 Entity 物理归属迁移 | 待实施 | 将 `OmsDailySummary` 移至 HOME 持久化 entity 包，更新三个 HOME 消费者/遗留 Mapper/测试导入，并补 Mapper 原子写入与日快照回归。 | 不移动 Mapper 或服务，不改显式表名、原子 SQL、补偿/刷新、表/Flyway/API；所有权登记预计降至 21。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -71,10 +72,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.16**：重新盘点候选并选择第八个共享 Entity 物理归属迁移切片。
+1. **AD-2.17**：迁移 HOME `OmsDailySummary` 并补 Mapper 与日快照回归。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.16：选择第八个共享 Entity 物理归属迁移切片。**
+**AD-2.17：迁移 `OmsDailySummary` 到 HOME 持久化实体包，并补 Mapper 与日快照回归。**

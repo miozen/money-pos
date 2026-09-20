@@ -1348,3 +1348,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 23→22; shared-import file count is verified by the architecture scan after the move.
 - Targeted Mapper/checkout/finance suites and full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
 - Next: AD-2.16 eighth shared-Entity slice selection.
+
+### Completed: AD-2.16 Eighth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.16-Eighth-Entity-Slice-Selection.md`. It re-audits the remaining candidates and selects HOME `OmsDailySummary` as the sole AD-2.17 migration target.
+- Although it retains the OMS prefix, all production consumers are HOME's daily-summary query, writer and dashboard services. HOME already owns its read-model writes; TRADE/GMS/UMS provide Entity-free snapshot inputs, and no Controller, DTO, XML FQCN, other module or cross-Feature contract exposes this Entity.
+- AD-2.17 will retain `BaseEntity`, explicit `@TableName("oms_daily_summary")`, `IdType.AUTO`, all fields, the legacy Mapper scan root, both annotated atomic SQL statements, the unique `uk_record_date`, and the deliberate preservation of `member_recharge`. It must add direct Mapper persistence coverage while retaining the HOME snapshot characterization suite.
+- `UmsRechargeOrder` remains deferred for Controller Entity exposure; `GmsInventoryOrder`, `Provinces`, `SysPrintConfig` and `OmsOrderLog` retain `IService<Entity>` or wider service/controller surfaces; the remaining GMS/SYS candidates have wider algorithmic or compatibility surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.17 HOME daily-summary Entity physical-ownership migration.
