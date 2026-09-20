@@ -2,7 +2,7 @@ package com.money.feature.gms.application.inventory;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.dto.inventory.GmsInventoryOrderDTO;
-import com.money.entity.GmsInventoryOrder;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrder;
 
 public interface GmsInventoryOrderService extends IService<GmsInventoryOrder> {
 

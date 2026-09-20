@@ -1405,3 +1405,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.23 will retain implicit MyBatis-Plus `gms_inventory_order` derivation, `IdType.ASSIGN_ID`, all fields, the GMS Mapper scan root and inbound/check/outbound transactions. It will add Mapper CRUD plus three inventory-order command regressions covering the completed main record, details, stock logs and each path's inventory/cost results. Registry is expected to fall 19→18 and shared-import files 64→62.
 - SYS/UMS low-use candidates remain deferred for Controller, compatibility or runtime surfaces; GMS document/log, goods/price and remaining TRADE/UMS/SYS candidates retain wider algorithms, API compatibility or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.23 GMS inventory-order Entity physical-ownership migration.
+
+### Completed: AD-2.23 GMS Inventory-Order Entity Physical-Ownership Migration
+
+- Moved `GmsInventoryOrder` from the shared API entity package to `feature.gms.infrastructure.persistence.entity`. Updated only its GMS Mapper, local service interface and implementation; Mapper package and scan root remain unchanged.
+- Added `GmsInventoryOrderMapperIntegrationTest`, covering the GMS-local Entity's assigned ID, implicit table mapping, all main-record fields, update and deletion. Added `GmsInventoryOrderServiceIntegrationTest`, covering inbound weighted-cost update, check difference and outbound scrap deduction together with their completed main record, detail and stock-log writes.
+- No old FQCN or API copy remains. Registry fell 19→18; owner-local uses fell 101→98 and shared-import files fell 64→62. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
+- Targeted Mapper/GMS inventory-order suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
+- Next: AD-2.24 twelfth shared-Entity slice selection.
