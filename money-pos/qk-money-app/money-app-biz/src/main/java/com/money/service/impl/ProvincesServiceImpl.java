@@ -2,7 +2,7 @@ package com.money.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.dto.SelectVO;
-import com.money.entity.Provinces;
+import com.money.feature.sys.infrastructure.persistence.entity.Provinces;
 import com.money.mapper.ProvincesMapper;
 import com.money.service.ProvincesService;
 import lombok.RequiredArgsConstructor;

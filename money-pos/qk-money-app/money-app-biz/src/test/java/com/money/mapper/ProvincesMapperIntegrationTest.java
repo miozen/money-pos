@@ -1,6 +1,6 @@
 package com.money.mapper;
 
-import com.money.entity.Provinces;
+import com.money.feature.sys.infrastructure.persistence.entity.Provinces;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

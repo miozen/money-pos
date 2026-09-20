@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`5f3861c docs(ad-2.24.1): design provinces read mapping repair`**；本次
-提交闭环 AD-2.24.2。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`a8cdd4e fix(ad-2.24.2): model provinces as read-only dictionary`**；本次
+提交闭环 AD-2.25。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,22 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 62 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.25
+## 当前任务：AD-2.26
 
-**迁移已验证的 `Provinces` 到 SYS 持久化实体包。**
+**选择第十三个共享 Entity 物理归属迁移切片。**
 
-必须先完整阅读 `MoneyPOS-AD-2.24-Twelfth-Entity-Slice-Selection.md` 与
-`MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md`。AD-2.24.2 已将旧的
-`BaseEntity` / `BaseMapper` 默认列推导替换为显式八列只读模型，并在隔离库回归通过。已固定的任务边界：
+重新运行当前扫描并盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的任务边界：
 
-- 只移动 `Provinces` 到 `com.money.feature.sys.infrastructure.persistence.entity`，更新遗留 Mapper、服务接口、实现和测试导入；不得移动 Mapper、Controller、DTO、扫描根或其他 Entity。
-- 保持显式 `@TableName("provinces")`、八个地理字段、窄 Mapper 查询、无 `BaseEntity`/`BaseMapper`/`IService`/`ServiceImpl` 写继承、Flyway 种子数据、tenant-ignore、三个 `SelectVO` 路由与 JVM 缓存行为；不改表、不新增写 SQL 或 CRUD。
-- 当前所有权登记为 18，Feature 共享 Entity import 为 62 个文件；迁移后以实际扫描记录，不将其机械设为门禁失败条件。复用只读 Mapper、缓存与接口回归，确认 API 模块无旧 Entity，业务 Java/测试/资源无旧 FQCN。
+- 仅选择一个边界最小、可验证的候选；不得在 AD-2.26 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
+- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
+- 当前所有权登记为 17，Feature 共享 Entity import 为 62 个文件、owner-local uses 为 98、跨所有者桥为 6、通配符基线为 3；后者均为报告型指标，不可机械作为迁移目标或门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.25 完成后，按债务清单开始下一次候选选择任务；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
-当前报告数量直接设为失败规则。
+AD-2.26 完成后，按其选择文档固定唯一的第十三个 Entity 迁移任务；门禁仅阻止新引入的、已分类非所有者
+Entity 契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

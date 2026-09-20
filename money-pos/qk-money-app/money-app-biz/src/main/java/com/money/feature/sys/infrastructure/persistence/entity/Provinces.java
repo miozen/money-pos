@@ -1,4 +1,4 @@
-package com.money.entity;
+package com.money.feature.sys.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author money

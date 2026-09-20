@@ -9,7 +9,6 @@ OmsOrderDetail	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
 PosSkuLevelPrice	gms
-Provinces	sys
 SysBrandConfig	sys
 SysPrintConfig	sys
 SysStrategy	sys

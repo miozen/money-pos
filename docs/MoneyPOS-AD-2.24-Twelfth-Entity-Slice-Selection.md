@@ -69,4 +69,6 @@
 
 ## 下一步
 
-唯一下一最小任务为 **AD-2.25：迁移 `Provinces` 到 SYS 持久化实体包，并补只读 Mapper/省市区缓存与接口回归**。
+AD-2.25 已在 AD-2.24.2 只读映射修复后闭环：`Provinces` 已移至
+`com.money.feature.sys.infrastructure.persistence.entity`，旧 API 副本与所有权登记均已删除，Mapper/缓存/接口
+回归继续通过。下一最小任务由债务清单重新盘点后确定。

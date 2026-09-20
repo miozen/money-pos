@@ -1,6 +1,6 @@
 package com.money.mapper;
 
-import com.money.entity.Provinces;
+import com.money.feature.sys.infrastructure.persistence.entity.Provinces;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;

@@ -1436,3 +1436,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added read-only integration regressions: the Mapper asserts the Flyway Beijing seed record's eight fields without mutations; the Controller/service test verifies province/city/district `SelectVO` values and repeated reads of the initialized cache. It binds the existing web-log request context, without modifying production Controller behavior.
 - Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate and whitespace validation passed. Table/Flyway, tenant-ignore, seed data, routes, scanner baseline and ownership registry did not change.
 - Next: AD-2.25 SYS Provinces Entity physical-ownership migration.
+
+### Completed: AD-2.25 SYS Provinces Entity Physical-Ownership Migration
+
+- Moved the already-validated read-only `Provinces` Entity from `money-app-api: com.money.entity` to `feature.sys.infrastructure.persistence.entity`. Updated only the legacy Mapper, the SYS service implementation and the Mapper regression import; the Controller, service interface, Mapper package and scan root remain unchanged.
+- Retained the explicit `provinces` mapping, exactly eight-column read query, no `BaseEntity` / generic write inheritance, Flyway seed data, tenant-ignore configuration, first-read JVM cache and all three `SelectVO` routes. No schema, Flyway, SQL, route, DTO or cache behavior changed.
+- No API copy or old FQCN remains. The ownership registry fell 18→17; shared Feature import files and owner-local-use report remain 62 and 98 because the affected legacy consumers were outside the scan's Feature-file metric. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
+- Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.26 thirteenth shared-Entity slice selection.
