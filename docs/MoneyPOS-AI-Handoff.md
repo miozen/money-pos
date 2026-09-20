@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`d08fd94 docs(ad-2.28): select print config migration`**；本次
-提交闭环 AD-2.29。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`4ec3267 refactor(ad-2.29): localize print config entity`**；本次
+提交闭环 AD-2.30 的选择设计。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,20 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 62 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.30
+## 当前任务：AD-2.31
 
-**选择第十五个共享 Entity 物理归属迁移切片。**
+**迁移 GMS `GmsInventoryDoc` 到持久化实体包。**
 
-重新运行当前扫描并盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的任务边界：
+先完整阅读 `MoneyPOS-AD-2.30-Fifteenth-Entity-Slice-Selection.md`。已固定的任务边界：
 
-- 仅选择一个边界最小、可验证的候选；不得在 AD-2.30 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
-- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
-- 当前所有权登记为 15，Feature 共享 Entity import 为 62 个文件、owner-local uses 为 95、跨所有者桥为 6、通配符基线为 3；后者均为报告型指标，不可机械作为迁移目标或门禁失败条件。
+- 只移动 `GmsInventoryDoc`，更新遗留 Mapper、四个 GMS 库存/财务快照消费者及受影响测试；不得移动 Mapper、Controller、DTO、其他 Entity、扫描根或跨域契约。
+- 保持显式 `gms_inventory_doc`、`BaseEntity`、既有 ASSIGN_ID/AUTO_INCREMENT 共存语义、库存单据/成本/明细/流水事务、FIN 快照口径、TRADE 库存命令、路由/DTO、表/Flyway/唯一键不变。
+- 必须补 Mapper 持久化、库存单据、结账/退款与 FIN 快照回归。当前所有权登记为 15，Feature 共享 Entity import 为 62 个文件、owner-local uses 为 95、跨所有者桥为 6、通配符基线为 3；预期迁移后前两项为 14、60、91，均为报告型指标，最终以实际扫描为准。
 
 ## 后续编号顺序
 
-AD-2.30 完成后，按其选择文档固定唯一的第十五个 Entity 迁移任务；门禁仅阻止新引入的、已分类非所有者
-Entity 契约；不能把当前报告数量直接设为失败规则。
+AD-2.31 完成后，重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
+当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

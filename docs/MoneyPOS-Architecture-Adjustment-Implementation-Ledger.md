@@ -1478,3 +1478,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Registry fell 16→15. Shared Feature import files and owner-local-use report remain 62 and 95 because all affected consumers are outside `feature/**`; bridges (6) and wildcard baseline (3) are unchanged.
 - Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate, static fixed-ID read check and whitespace validation passed.
 - Next: AD-2.30 fifteenth shared-Entity slice selection.
+
+### Completed: AD-2.30 Fifteenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.30-Fifteenth-Entity-Slice-Selection.md`. It re-audits all 15 remaining registered shared Entities and selects GMS `GmsInventoryDoc` as the sole AD-2.31 migration target.
+- Production use is one legacy Mapper plus four GMS inventory/financial-snapshot consumers. The two services carrying `Finance` in their names are GMS-owned adapters that return existing Entity-free finance snapshots; FIN neither imports the Entity nor the Mapper. The inventory Controller only accepts a DTO, and TRADE invokes inventory commands rather than the Entity.
+- AD-2.31 will retain explicit `gms_inventory_doc`, `BaseEntity`, the historical assigned-ID/auto-increment coexistence, all fields, `uk_doc_no`, Mapper scan root, inventory document/cost/detail/log transactions, TRADE stock-command behavior and FIN aggregation semantics. It will add direct Mapper persistence coverage and retain GMS inventory, checkout/refund and finance snapshot regressions.
+- `SysBrandConfig` and `SysStrategy` remain deferred because GMS still directly consumes their SYS configuration/strategy Entities; remaining GMS, UMS and TRADE candidates retain wider algorithms, asset workflows, public compatibility or transaction surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.31 GMS inventory-document Entity physical-ownership migration.
