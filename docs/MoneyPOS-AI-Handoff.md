@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`1b19c62 docs(ad-2.16): select home daily summary migration`**；本次
-提交闭环 AD-2.17。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`a18b0b3 refactor(ad-2.17): localize home daily summary entity`**；本次
+提交闭环 AD-2.18。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,19 +69,19 @@
 均为 0；共享 `com.money.entity` import 当前为 68 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.18
+## 当前任务：AD-2.19
 
-**选择第九个共享 Entity 物理归属迁移切片。**
+**迁移 `GmsGoodsCombo` 到 GMS 持久化实体包，并补 Mapper 与套餐库存回归。**
 
-先重跑当前扫描并重新盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的实施边界：
+先完整阅读 `MoneyPOS-AD-2.18-Ninth-Entity-Slice-Selection.md`，再实施唯一已选切片。已固定的实施边界：
 
-- 仅选择一个边界最小、可验证的候选；不得在 AD-2.18 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
-- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
-- 当前所有权登记为 21，Feature 共享 Entity import 为 68 个文件；后者是报告型指标，不可机械作为迁移目标或门禁失败条件。
+- 只移动 `GmsGoodsCombo`，更新遗留 `GmsGoodsComboMapper`、四个 GMS 应用消费者和两处套餐测试导入；不得移动 Mapper、服务、Controller、DTO、其他 Entity 或库存命令契约。
+- 保留 `IdType.ASSIGN_ID`、隐式 `gms_goods_combo` 表名、字段、Mapper 扫描根，以及 Java 主键策略与历史自增表定义的既有共存；不改表/Flyway、HTTP、DTO、事务、套餐覆盖策略、库存公式或结账/退款逻辑。
+- 当前所有权登记为 21，Feature 共享 Entity import 为 68 个文件；迁移预期分别降至 20 和 64。后者为报告型指标，不可机械作为门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.18 完成后，按其选择文档固定唯一的第九个 Entity 迁移任务。门禁仅阻止新引入的、已分类非所有者 Entity
+AD-2.19 完成后，再重新盘点并选择下一 Entity 切片。门禁仅阻止新引入的、已分类非所有者 Entity
 契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束

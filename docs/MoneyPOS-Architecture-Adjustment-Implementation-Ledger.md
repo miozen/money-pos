@@ -1364,3 +1364,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 22→21; the architecture scan reports shared-import files 71→68 and owner-local uses 114→111, with cross-owner bridges and wildcard baseline unchanged.
 - Targeted Mapper/HOME snapshot suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
 - Next: AD-2.18 ninth shared-Entity slice selection.
+
+### Completed: AD-2.18 Ninth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.18-Ninth-Entity-Slice-Selection.md`. It re-audits the remaining candidates and selects GMS `GmsGoodsCombo` as the sole AD-2.19 migration target.
+- The Entity is consumed only by its legacy Mapper and four GMS product/inventory services. TRADE reaches GMS through stock command contracts rather than importing the Entity; no Controller, DTO, XML FQCN, public `IService<Entity>`, other Maven module or cross-Feature production contract exposes it.
+- AD-2.19 will retain implicit MyBatis-Plus table derivation, `IdType.ASSIGN_ID`, every field, the legacy Mapper scan root and the historical coexistence of that Java key strategy with the table's auto-increment definition. It will add direct Mapper CRUD while retaining GMS combo/stock and TRADE combo checkout/refund regressions. The ownership registry is expected to fall from 21 to 20 and shared-import files from 68 to 64.
+- `GmsInventoryOrder`, `Provinces`, `SysPrintConfig`, `UmsRechargeOrder`, `UmsMemberLog` and `OmsOrderLog` remain deferred for public generic or HTTP Entity surfaces; the remaining price, stock, document and strategy candidates have wider algorithmic, compatibility or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.19 GMS goods-combo Entity physical-ownership migration.
