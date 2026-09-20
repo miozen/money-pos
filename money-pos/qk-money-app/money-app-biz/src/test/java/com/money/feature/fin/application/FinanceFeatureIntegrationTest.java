@@ -29,7 +29,7 @@ import com.money.entity.GmsBrand;
 import com.money.entity.GmsGoodsCategory;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
-import com.money.entity.OmsOrderPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.entity.UmsMember;
 import com.money.entity.UmsMemberLog;
 import com.money.entity.SysStrategy;

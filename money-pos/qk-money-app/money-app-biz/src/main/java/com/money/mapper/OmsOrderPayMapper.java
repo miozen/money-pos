@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.OmsOrderPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 

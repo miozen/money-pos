@@ -3,7 +3,7 @@ package com.money.feature.trade.application.checkout;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.SettleAccountsDTO; // 🌟 引入 DTO
-import com.money.entity.OmsOrderPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.service.SysDictDetailService;
 import lombok.RequiredArgsConstructor;

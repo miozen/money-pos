@@ -10,7 +10,6 @@ OmsDailySummary	home
 OmsOrder	trade
 OmsOrderDetail	trade
 OmsOrderLog	trade
-OmsOrderPay	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
 PosSkuLevelPrice	gms

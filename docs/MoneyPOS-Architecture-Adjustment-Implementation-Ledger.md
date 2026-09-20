@@ -1340,3 +1340,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.15 will retain implicit `oms_order_pay` derivation, `IdType.AUTO`, every payment snapshot field, existing legacy Mapper scan root and both annotated aggregate SQL statements. It will add direct Mapper CRUD and payment-snapshot assertions while retaining checkout/refund and finance aggregate regressions. The ownership registry is expected to fall from 23 to 22 and shared-import files from 72 to 71.
 - `UmsRechargeOrder` remains deferred because its Controller returns the Entity; `GmsInventoryOrder`, `Provinces`, `SysPrintConfig` and `OmsOrderLog` retain `IService<Entity>` or wider service/controller surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.15 TRADE order-payment Entity physical-ownership migration.
+
+### Completed: AD-2.15 TRADE Order-Payment Entity Physical-Ownership Migration
+
+- Moved `OmsOrderPay` from the shared API entity package to `feature.trade.infrastructure.persistence.entity`. Updated only the legacy `OmsOrderPayMapper`, TRADE checkout/order-detail/refund consumers and affected test imports; mapper package, scan root and both annotated payment aggregate SQL statements remain unchanged.
+- Added `OmsOrderPayMapperIntegrationTest`, covering assigned auto primary key, implicit table mapping, all payment snapshot fields, update and delete. Extended the cash-checkout regression to characterize the persisted order number, method code/name and legacy/net/original/change amount snapshots.
+- No old FQCN or API copy remains. Registry fell 23→22; shared-import file count is verified by the architecture scan after the move.
+- Targeted Mapper/checkout/finance suites and full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
+- Next: AD-2.16 eighth shared-Entity slice selection.

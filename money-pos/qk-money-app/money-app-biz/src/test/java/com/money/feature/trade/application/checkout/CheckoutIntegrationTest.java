@@ -10,6 +10,7 @@ import com.money.entity.OmsOrderDetail;
 import com.money.entity.UmsMember;
 import com.money.entity.PosCouponRule;
 import com.money.entity.PosMemberCoupon;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsInventoryDocMapper;
@@ -112,9 +113,19 @@ class CheckoutIntegrationTest {
         assertThat(order).isNotNull();
         assertThat(order.getPayAmount()).isEqualByComparingTo("24.00");
         assertThat(updatedGoods.getStock()).isEqualTo(8L);
-        assertThat(omsOrderPayMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                        .eq(com.money.entity.OmsOrderPay::getOrderNo, requestId))).isEqualTo(1);
+        assertThat(omsOrderPayMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                        .eq(OmsOrderPay::getOrderNo, requestId)))
+                .singleElement()
+                .extracting(OmsOrderPay::getOrderNo,
+                        OmsOrderPay::getPayMethodCode,
+                        OmsOrderPay::getPayMethodName,
+                        OmsOrderPay::getPayAmount,
+                        OmsOrderPay::getOriginalAmount,
+                        OmsOrderPay::getNetAmount,
+                        OmsOrderPay::getChangeAllocated)
+                .containsExactly(requestId, "CASH", "现金支付", new BigDecimal("24.00"), new BigDecimal("24.00"),
+                        new BigDecimal("24.00"), new BigDecimal("0.00"));
         assertThat(inventoryDocMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
                         .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
@@ -218,9 +229,9 @@ class CheckoutIntegrationTest {
         assertThat(updatedMember.getBalance()).isEqualByComparingTo("26.00");
         assertThat(updatedMember.getConsumeAmount()).isEqualByComparingTo("24.00");
         assertThat(updatedMember.getConsumeTimes()).isEqualTo(1);
-        assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo)
-                .eq(com.money.entity.OmsOrderPay::getPayMethodCode, "BALANCE"))).isEqualTo(1);
+        assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                .eq(OmsOrderPay::getOrderNo, orderNo)
+                .eq(OmsOrderPay::getPayMethodCode, "BALANCE"))).isEqualTo(1);
         OmsOrder order = omsOrderMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                 .eq(OmsOrder::getOrderNo, orderNo));
         assertThat(order.getMemberId()).isEqualTo(member.getId());
@@ -346,8 +357,8 @@ class CheckoutIntegrationTest {
         checkoutOrchestrator.orchestrate(tradeFixture.mixedCashBalanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("10.00"), new BigDecimal("14.00")));
 
         assertThat(umsMemberMapper.selectById(member.getId()).getBalance()).isEqualByComparingTo("6.00");
-        assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo))).isEqualTo(2);
+        assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                .eq(OmsOrderPay::getOrderNo, orderNo))).isEqualTo(2);
     }
 
     @Test
@@ -371,8 +382,8 @@ class CheckoutIntegrationTest {
             assertThat(updatedMember.getConsumeAmount()).isEqualByComparingTo("0.00");
             assertThat(updatedMember.getConsumeTimes()).isZero();
         } finally {
-            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                    .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
+            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                    .eq(OmsOrderPay::getOrderNo, orderNo));
             omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
@@ -409,8 +420,8 @@ class CheckoutIntegrationTest {
             assertThat(posMemberCouponMapper.selectById(coupon.getId()).getStatus()).isEqualTo("UNUSED");
         } finally {
             posMemberCouponMapper.deleteById(coupon.getId());
-            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                    .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
+            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                    .eq(OmsOrderPay::getOrderNo, orderNo));
             omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
@@ -537,8 +548,8 @@ class CheckoutIntegrationTest {
 
     private void deleteCheckoutArtifacts(String... orderNos) {
         for (String orderNo : orderNos) {
-            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.OmsOrderPay>()
-                    .eq(com.money.entity.OmsOrderPay::getOrderNo, orderNo));
+            omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
+                    .eq(OmsOrderPay::getOrderNo, orderNo));
             omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()

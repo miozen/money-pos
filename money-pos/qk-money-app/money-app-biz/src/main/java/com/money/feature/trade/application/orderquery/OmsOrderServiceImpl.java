@@ -14,6 +14,7 @@ import com.money.dto.OmsOrder.OmsOrderVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
 import com.money.entity.*;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
