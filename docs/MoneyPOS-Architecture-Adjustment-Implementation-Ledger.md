@@ -1444,3 +1444,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No API copy or old FQCN remains. The ownership registry fell 18→17; shared Feature import files and owner-local-use report remain 62 and 98 because the affected legacy consumers were outside the scan's Feature-file metric. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
 - Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.26 thirteenth shared-Entity slice selection.
+
+### Completed: AD-2.26 Thirteenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.26-Thirteenth-Entity-Slice-Selection.md`. It re-audits all 17 remaining registered shared Entities and selects UMS `UmsRechargeOrder` as the sole AD-2.27 migration target.
+- Direct production use is restricted to the legacy Mapper, `UmsMemberRechargeService`, `UmsMemberAssetService` and `UmsMemberAssetController`, all within UMS. Its single direct REST return is UMS-local; no other Feature, module, DTO/VO, XML/resource FQCN or compatibility bridge consumes the type.
+- AD-2.27 will retain explicit `ums_recharge_order`, `Serializable`, AUTO ID, fields, the legacy Mapper scan root, `uk_order_no`, `idx_member_id`, recharge/red-void asset/log transactions and the existing query route/JSON/authorization behavior. It must add Mapper insert/readback/VOID-update, balance recharge/red-void, and query-route regression; it must not introduce a direct deletion flow.
+- `SysPrintConfig` remains deferred for printer/cash-drawer runtime behavior; the remaining UMS member/coupon, GMS inventory/product, TRADE order and SYS configuration/strategy candidates have wider workflow, compatibility, algorithmic or cross-Feature surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.27 UMS recharge-certificate Entity physical-ownership migration.

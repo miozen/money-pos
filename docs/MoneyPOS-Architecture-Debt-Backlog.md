@@ -63,7 +63,8 @@
 | AD-2.24.1 | Provinces 只读映射修复设计 | 已关闭 | AD-2.25 特征化确认 `BaseEntity` / `BaseMapper` 默认查询包含表中不存在的 `id` 与审计列；已选择真实表驱动的窄只读 Mapper/服务模型。见 `MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md`。 | 不迁包、不改表/Flyway/tenant-ignore；先收紧只读映射与伪写 API，再恢复物理迁移。 |
 | AD-2.24.2 | Provinces 只读映射修复实施 | 已关闭 | `Provinces` 现显式映射真实八列，Mapper 仅保留只读查询，服务移除了通用写继承；已补北京种子、缓存和接口回归。 | 暂留 API 包；未改路由、缓存行为、表/Flyway/tenant-ignore、种子数据或新增写 SQL。 |
 | AD-2.25 | SYS 省市区字典 Entity 物理归属迁移 | 已关闭 | 已将验证后的只读 `Provinces` 移至 SYS 持久化实体包，更新 Mapper、服务实现和测试导入，并删除 API 副本及所有权登记。 | Mapper/Controller/扫描根、显式八列查询、Flyway、tenant-ignore、路由与缓存均未改；共享 Feature import 报告保持 62。 |
-| AD-2.26 | 第十三个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点剩余共享 Entity，选择一个边界最小、可验证的第十三个迁移切片并形成选择文档。 | 仅选择，不移动 Entity；须重新核对消费者、Mapper/XML、表映射、跨域契约和回归入口。 |
+| AD-2.26 | 第十三个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 UMS `UmsRechargeOrder`，并确认一个遗留 Mapper、两个本域资产服务、同域查询 Controller、显式表映射、无跨域/资源 FQCN 与必补 Mapper/充值红冲/接口回归。见 `MoneyPOS-AD-2.26-Thirteenth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；HTTP 输出仅限 UMS 同域，不能以复制 API Entity 或 DTO 重写代替物理归属迁移。 |
+| AD-2.27 | UMS 充值凭证 Entity 物理归属迁移 | 待实施 | 将 `UmsRechargeOrder` 移至 UMS 持久化实体包，更新 Mapper、两项资产服务和查询 Controller，并补 Mapper、充值/红冲及查询接口回归。 | 保持显式表名、AUTO ID、单号/资产/日志/红冲事务、路由、鉴权、表/Flyway/索引不变；不新增凭证删除语义。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -83,10 +84,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.26**：重新盘点候选并选择第十三个共享 Entity 物理归属迁移切片。
+1. **AD-2.27**：迁移 `UmsRechargeOrder` 到 UMS 持久化实体包，并补 Mapper、充值/红冲与查询接口回归。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.26：选择第十三个共享 Entity 物理归属迁移切片。**
+**AD-2.27：迁移 `UmsRechargeOrder` 到 UMS 持久化实体包，并补 Mapper、充值/红冲与查询接口回归。**
