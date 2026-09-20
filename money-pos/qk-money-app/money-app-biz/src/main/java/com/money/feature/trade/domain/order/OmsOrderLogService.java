@@ -1,7 +1,7 @@
 package com.money.feature.trade.domain.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.money.entity.OmsOrderLog;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 
 import java.util.List;
 

@@ -1388,3 +1388,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.21 will retain `@TableName("oms_order_log")`, `BaseEntity` / `ASSIGN_ID`, audit fills, the Mapper scan root, the `(order_id, create_time DESC)` index dependence and the service-level ban on audit-log updates/deletes. It will add Mapper insert/read-back coverage and extend existing checkout/refund/order-detail integration checks. Registry is expected to fall 20→19; shared-import files may fall only 67→64 because three relevant files retain other shared Entity imports.
 - `GmsInventoryOrder`, `Provinces`, `SysPrintConfig`, `UmsRechargeOrder`, `UmsMemberLog` and the remaining price, stock, document and strategy candidates remain deferred for wider workflow, compatibility, HTTP or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.21 TRADE order-audit-log Entity physical-ownership migration.
+
+### Completed: AD-2.21 TRADE Order-Audit-Log Entity Physical-Ownership Migration
+
+- Moved `OmsOrderLog` from the shared API entity package to `feature.trade.infrastructure.persistence.entity`. Updated only its TRADE Mapper, local service interface/implementation, checkout, refund and order-detail consumers; Mapper package and scan root remain unchanged.
+- Added `OmsOrderLogMapperIntegrationTest`, covering the TRADE-local Entity's explicit `oms_order_log` mapping, inherited assigned ID, order ID, description, tenant ID and audit-field insert/read-back. It intentionally does not perform direct Mapper update/delete operations, preserving the existing service-level audit-log immutability rule.
+- Extended `CheckoutIntegrationTest`: settlement creates its JSON audit record; full and partial refunds append their respective descriptions; order details return the same ascending timestamp order as the Mapper result through `OrderLogVO`.
+- No old FQCN or API copy remains. Registry fell 20→19; owner-local uses fell 107→101 and shared-import files fell 67→64. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
+- Targeted Mapper/TRADE checkout suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
+- Next: AD-2.22 eleventh shared-Entity slice selection.

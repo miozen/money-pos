@@ -1,7 +1,7 @@
 package com.money.feature.trade.domain.order;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.money.entity.OmsOrderLog;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.infrastructure.persistence.mapper.OmsOrderLogMapper;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
 import com.money.web.exception.BaseException;

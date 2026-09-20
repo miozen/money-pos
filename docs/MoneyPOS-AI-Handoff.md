@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`b07d018 refactor(ad-2.19): localize goods combo entity`**；本次
-提交闭环 AD-2.20。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`5e679a9 docs(ad-2.20): select order log migration`**；本次
+提交闭环 AD-2.21。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -66,26 +66,23 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 67 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
+均为 0；共享 `com.money.entity` import 当前为 64 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.21
+## 当前任务：AD-2.22
 
-**迁移 `OmsOrderLog` 到 TRADE 持久化实体包，并补 Mapper 与订单审计日志回归。**
+**选择第十一个共享 Entity 物理归属迁移切片。**
 
-已由 `MoneyPOS-AD-2.20-Tenth-Entity-Slice-Selection.md` 固定实施边界：
+先重跑当前扫描并重新盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的任务边界：
 
-- 只移动 TRADE `OmsOrderLog`，更新专用 Mapper、`OmsOrderLogService`、`OmsOrderLogServiceImpl`、结账、退款与订单详情
-  六处生产消费者；不移动 Mapper/扫描根、Controller、DTO、其他 Entity 或跨域契约。
-- 保留显式 `oms_order_log` 映射、`BaseEntity` 的 `ASSIGN_ID`、审计填充、审计日志禁止经服务修改/删除的语义、表/Flyway/API
-  与交易事务。Mapper 回归只覆盖插入/读回；结账、退款和订单详情回归覆盖生命周期写入与 VO 查询。
-- 当前所有权登记为 20，Feature 共享 Entity import 为 67 个文件；实施后前者应为 19。后者是报告型指标，不可机械作为迁移
-  目标或门禁失败条件。
+- 仅选择一个边界最小、可验证的候选；不得在 AD-2.22 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
+- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
+- 当前所有权登记为 19，Feature 共享 Entity import 为 64 个文件；后者是报告型指标，不可机械作为迁移目标或门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.21 完成后，重新盘点候选并选择第十一个共享 Entity 物理归属迁移切片。门禁仅阻止新引入的、已分类非所有者
-Entity 契约；不能把当前报告数量直接设为失败规则。
+AD-2.22 完成后，按其选择文档固定唯一的第十一个 Entity 迁移任务。门禁仅阻止新引入的、已分类非所有者 Entity
+契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

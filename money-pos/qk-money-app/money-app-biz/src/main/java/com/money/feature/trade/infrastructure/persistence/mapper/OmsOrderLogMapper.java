@@ -1,7 +1,7 @@
 package com.money.feature.trade.infrastructure.persistence.mapper;
 
-import com.money.entity.OmsOrderLog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 
 /**
  * <p>

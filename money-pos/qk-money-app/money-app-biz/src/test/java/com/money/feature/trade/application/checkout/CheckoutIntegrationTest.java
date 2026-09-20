@@ -11,6 +11,8 @@ import com.money.entity.UmsMember;
 import com.money.entity.PosCouponRule;
 import com.money.entity.PosMemberCoupon;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsOrderLogMapper;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsInventoryDocMapper;
@@ -39,6 +41,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,6 +80,8 @@ class CheckoutIntegrationTest {
     private OmsOrderDetailMapper omsOrderDetailMapper;
     @Autowired
     private OmsOrderPayMapper omsOrderPayMapper;
+    @Autowired
+    private OmsOrderLogMapper omsOrderLogMapper;
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
 
@@ -126,6 +131,18 @@ class CheckoutIntegrationTest {
                         OmsOrderPay::getChangeAllocated)
                 .containsExactly(requestId, "CASH", "现金支付", new BigDecimal("24.00"), new BigDecimal("24.00"),
                         new BigDecimal("24.00"), new BigDecimal("0.00"));
+        assertThat(omsOrderLogMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderLog>()
+                        .eq(OmsOrderLog::getOrderId, order.getId())))
+                .singleElement()
+                .extracting(OmsOrderLog::getDescription)
+                .asString()
+                .contains("\"action\":\"SETTLE_SUCCESS\"", "\"orderNo\":\"" + requestId + "\"");
+        assertThat(omsOrderService.getOrderDetailByNo(requestId).getOrderLog())
+                .singleElement()
+                .extracting(com.money.dto.OmsOrder.OrderDetailVO.OrderLogVO::getDescription)
+                .asString()
+                .contains("\"action\":\"SETTLE_SUCCESS\"");
         assertThat(inventoryDocMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
                         .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
@@ -149,6 +166,18 @@ class CheckoutIntegrationTest {
         assertThat(order.getStatus()).isEqualTo("REFUNDED");
         assertThat(detail.getReturnQuantity()).isEqualTo(2);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
+        List<OmsOrderLog> fullRefundLogs = omsOrderLogMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderLog>()
+                        .eq(OmsOrderLog::getOrderId, order.getId())
+                        .orderByAsc(OmsOrderLog::getCreateTime));
+        assertThat(fullRefundLogs)
+                .extracting(OmsOrderLog::getDescription)
+                .anySatisfy(description -> assertThat(description).contains("\"action\":\"SETTLE_SUCCESS\""))
+                .anySatisfy(description -> assertThat(description).isEqualTo("执行整单退款操作，资产与满减券已原路回退"));
+        assertThat(fullRefundLogs).extracting(OmsOrderLog::getCreateTime).isSorted();
+        assertThat(omsOrderService.getOrderDetailByNo(orderNo).getOrderLog())
+                .extracting(com.money.dto.OmsOrder.OrderDetailVO.OrderLogVO::getId)
+                .containsExactly(fullRefundLogs.get(0).getId(), fullRefundLogs.get(1).getId());
     }
 
     @Test
@@ -190,6 +219,15 @@ class CheckoutIntegrationTest {
         assertThat(order.getStatus()).isEqualTo("PARTIAL_REFUNDED");
         assertThat(updatedDetail.getReturnQuantity()).isEqualTo(1);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
+        List<OmsOrderLog> partialRefundLogs = omsOrderLogMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderLog>()
+                        .eq(OmsOrderLog::getOrderId, order.getId())
+                        .orderByAsc(OmsOrderLog::getCreateTime));
+        assertThat(partialRefundLogs)
+                .extracting(OmsOrderLog::getDescription)
+                .anySatisfy(description -> assertThat(description).contains("\"action\":\"SETTLE_SUCCESS\""))
+                .anySatisfy(description -> assertThat(description).contains("执行部分退货:", "x1"));
+        assertThat(partialRefundLogs).extracting(OmsOrderLog::getCreateTime).isSorted();
     }
 
     @Test

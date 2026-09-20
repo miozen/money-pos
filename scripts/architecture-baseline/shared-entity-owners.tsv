@@ -7,7 +7,6 @@ GmsInventoryOrder	gms
 GmsStockLog	gms
 OmsOrder	trade
 OmsOrderDetail	trade
-OmsOrderLog	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
 PosSkuLevelPrice	gms
