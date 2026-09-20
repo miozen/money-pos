@@ -59,7 +59,8 @@
 | AD-2.21 | TRADE 订单审计日志 Entity 物理归属迁移 | 已关闭 | 已将 `OmsOrderLog` 移至 TRADE 持久化实体包，更新专用 Mapper、六个 TRADE 消费者，并增加 Mapper 插入/读回与订单审计日志回归。 | 保持显式表名、`BaseEntity` / `ASSIGN_ID`、审计日志不可修改/删除语义、表/Flyway/API/事务不变；所有权登记降至 19，Feature 共享 import 降至 64。 |
 | AD-2.22 | 第十一个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsInventoryOrder`，并确认专用 Mapper、本域服务/泛型、三个库存命令、无 HTTP/跨 Feature Entity 外泄与必补 Mapper/库存单主流程回归。见 `MoneyPOS-AD-2.22-Eleventh-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
 | AD-2.23 | GMS 库存单主表 Entity 物理归属迁移 | 已关闭 | 已将 `GmsInventoryOrder` 移至 GMS 持久化实体包，更新专用 Mapper、服务接口/实现，并增加 Mapper CRUD 与入库/盘点/报损主流程回归。 | 保持 `ASSIGN_ID`、隐式表名、本域 `IService`、库存/成本/流水语义、表/Flyway/API/事务不变；所有权登记降至 18，Feature 共享 import 降至 62。 |
-| AD-2.24 | 第十二个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点剩余共享 Entity，选择一个边界最小、可验证的第十二个迁移切片并形成选择文档。 | 仅选择，不移动 Entity；须重新核对消费者、Mapper/XML、表映射、跨域契约和回归入口。 |
+| AD-2.24 | 第十二个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 SYS `Provinces`，并确认单 Mapper、本域服务泛型、`SelectVO` HTTP 契约、只读缓存、Flyway 种子表与 tenant-ignore 约束。见 `MoneyPOS-AD-2.24-Twelfth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；历史 `BaseEntity`/表列不对称只能特征化，不能趁迁移修复。 |
+| AD-2.25 | SYS 省市区字典 Entity 物理归属迁移 | 待实施 | 将 `Provinces` 移至 SYS 持久化实体包，更新 Mapper、服务及测试导入，并补只读 Mapper、缓存和接口回归。 | 不移动 Mapper/Controller/扫描根，不改隐式表名、基类、Flyway、tenant-ignore、路由或缓存；不补写入型 CRUD。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -79,10 +80,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.24**：重新盘点候选并选择第十二个共享 Entity 物理归属迁移切片。
+1. **AD-2.25**：迁移 `Provinces` 到 SYS 持久化实体包，并补只读 Mapper、缓存与接口回归。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.24：选择第十二个共享 Entity 物理归属迁移切片。**
+**AD-2.25：迁移 `Provinces` 到 SYS 持久化实体包，并补只读 Mapper、缓存与接口回归。**

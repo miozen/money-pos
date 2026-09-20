@@ -1413,3 +1413,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 19→18; owner-local uses fell 101→98 and shared-import files fell 64→62. Cross-owner bridges (6) and wildcard baseline (3) are unchanged.
 - Targeted Mapper/GMS inventory-order suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
 - Next: AD-2.24 twelfth shared-Entity slice selection.
+
+### Completed: AD-2.24 Twelfth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.24-Twelfth-Entity-Slice-Selection.md`. It re-audits all 18 remaining registered shared Entities and selects SYS `Provinces` as the sole AD-2.25 migration target.
+- Direct production Entity use is limited to the legacy `ProvincesMapper`, `ProvincesService` and `ProvincesServiceImpl`; the public Controller exposes only `SelectVO` through the province, city and district routes. The retained `IService<Provinces>` generic has no other Feature, Maven module, DTO/VO, resource or HTTP Entity consumer.
+- AD-2.25 will move only the Entity to `feature.sys.infrastructure.persistence.entity`, retaining its implicit `provinces` mapping, `BaseEntity`, legacy Mapper scan root, tenant-ignore configuration, Flyway seed data and one-time JVM cache semantics. The historical mismatch between inherited ID/audit fields and the eight-column read-only seed table is explicitly not a migration repair: first characterize its current read path, then do not add write CRUD or alter schema/Flyway.
+- `SysBrandConfig`, `SysPrintConfig`, `SysStrategy`, UMS asset/log candidates and remaining GMS/TRADE candidates remain deferred for broader configuration, device, HTTP, algorithmic or transaction surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.25 SYS Provinces Entity physical-ownership migration with read-only Mapper/cache/HTTP regression.

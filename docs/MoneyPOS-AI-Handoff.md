@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`8619d69 docs(ad-2.22): select inventory order migration`**；本次
-提交闭环 AD-2.23。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`78f5d2e refactor(ad-2.23): localize inventory order entity`**；本次
+提交闭环 AD-2.24。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,20 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 62 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.24
+## 当前任务：AD-2.25
 
-**选择第十二个共享 Entity 物理归属迁移切片。**
+**迁移 SYS `Provinces` 到持久化实体包，并补只读 Mapper、省市区缓存与接口回归。**
 
-先重跑当前扫描并重新盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的任务边界：
+必须先完整阅读 `MoneyPOS-AD-2.24-Twelfth-Entity-Slice-Selection.md`。已固定的任务边界：
 
-- 仅选择一个边界最小、可验证的候选；不得在 AD-2.24 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
-- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
-- 当前所有权登记为 18，Feature 共享 Entity import 为 62 个文件；后者是报告型指标，不可机械作为迁移目标或门禁失败条件。
+- 只移动 `Provinces` 至 `com.money.feature.sys.infrastructure.persistence.entity`，更新遗留 Mapper、服务接口和实现导入；不得移动 Mapper、Controller、DTO、扫描根或其他 Entity。
+- 保持隐式 `provinces` 表名、`BaseEntity`、八个地理字段、Flyway 种子数据、tenant-ignore、三个 `SelectVO` 路由与首次全表读取/JVM 缓存行为；不把历史映射风险改造成表或 CRUD 改造。
+- 当前所有权登记为 18，Feature 共享 Entity import 为 62 个文件；迁移后以实际扫描记录，不将其机械设为门禁失败条件。必须先以隔离库的只读回归特征化 Mapper/缓存；不增加插入、更新、删除 CRUD。
 
 ## 后续编号顺序
 
-AD-2.24 完成后，按其选择文档固定唯一的第十二个 Entity 迁移任务。门禁仅阻止新引入的、已分类非所有者 Entity
-契约；不能把当前报告数量直接设为失败规则。
+AD-2.25 完成后，按债务清单开始下一次候选选择任务。门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
+当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 
