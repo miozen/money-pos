@@ -1372,3 +1372,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.19 will retain implicit MyBatis-Plus table derivation, `IdType.ASSIGN_ID`, every field, the legacy Mapper scan root and the historical coexistence of that Java key strategy with the table's auto-increment definition. It will add direct Mapper CRUD while retaining GMS combo/stock and TRADE combo checkout/refund regressions. The ownership registry is expected to fall from 21 to 20 and shared-import files from 68 to 64.
 - `GmsInventoryOrder`, `Provinces`, `SysPrintConfig`, `UmsRechargeOrder`, `UmsMemberLog` and `OmsOrderLog` remain deferred for public generic or HTTP Entity surfaces; the remaining price, stock, document and strategy candidates have wider algorithmic, compatibility or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.19 GMS goods-combo Entity physical-ownership migration.
+
+### Completed: AD-2.19 GMS Goods-Combo Entity Physical-Ownership Migration
+
+- Moved `GmsGoodsCombo` from the shared API entity package to `feature.gms.infrastructure.persistence.entity`. Updated only the legacy `GmsGoodsComboMapper`, GMS combo/product/stock-command consumers and affected GMS/TRADE test imports; Mapper package and scan root remain unchanged.
+- Added `GmsGoodsComboMapperIntegrationTest`, covering the GMS-local Entity's assigned ID, implicit table mapping, BOM fields, explicit creation timestamp, update and delete. Existing GMS combo/stock and TRADE combo checkout/full-refund integration regressions remain intact.
+- No old FQCN or API copy remains. Registry fell 21→20; owner-local uses fell 111→107. Shared-import **files** fell 68→67 rather than the four-import forecast because three changed GMS files still import other shared Entities; cross-owner bridges and wildcard baseline are unchanged.
+- Targeted Mapper/GMS combo/TRADE checkout suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
+- Next: AD-2.20 tenth shared-Entity slice selection.

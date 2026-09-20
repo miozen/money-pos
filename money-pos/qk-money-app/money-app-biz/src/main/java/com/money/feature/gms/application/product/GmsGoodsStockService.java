@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.entity.GmsGoods;
-import com.money.entity.GmsGoodsCombo;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
 import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.web.exception.BaseException;

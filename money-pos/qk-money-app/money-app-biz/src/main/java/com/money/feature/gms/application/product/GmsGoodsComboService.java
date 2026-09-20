@@ -2,7 +2,7 @@ package com.money.feature.gms.application.product;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.GmsGoodsComboDTO;
-import com.money.entity.GmsGoodsCombo;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
 import com.money.mapper.GmsGoodsComboMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
