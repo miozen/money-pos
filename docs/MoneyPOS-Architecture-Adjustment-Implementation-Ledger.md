@@ -1316,3 +1316,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 25→24 and owner-local Entity uses 119→117; shared-import file count remains 72 because both services import other shared Entities.
 - Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace check passed.
 - Next: AD-2.12 sixth shared Entity slice selection.
+
+### Completed: AD-2.12 Sixth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.12-Sixth-Entity-Slice-Selection.md`. It re-audits the remaining smallest persistence surfaces and selects UMS `GmsMemberTransaction` as the sole AD-2.13 migration target.
+- The legacy-named member-fund transaction Entity has only its legacy Mapper as a production consumer; no service, Controller, DTO, serialization boundary, XML FQCN, other Maven module or cross-Feature contract directly consumes it. The `gms_member_transaction` Flyway table and member-fund fields confirm UMS ownership despite the historical GMS prefix.
+- AD-2.13 will retain implicit MyBatis-Plus table derivation, direct `ASSIGN_ID`, all fields, legacy Mapper scan root and all database/API behavior. It must add direct Mapper CRUD coverage because the type currently has no behavior regression. The ownership registry is expected to fall from 24 to 23 while the Feature shared-import file count remains 72.
+- `GmsInventoryOrder` remains deferred because of its `IService<Entity>` surface; `GmsInventoryDoc` retains FIN query implementations; `GmsGoodsCombo` and `GmsStockLog` have wider product/inventory/transaction consumers; `Provinces` retains an `IService<Entity>` and Controller surface. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.13 UMS member-transaction Entity physical-ownership migration.
