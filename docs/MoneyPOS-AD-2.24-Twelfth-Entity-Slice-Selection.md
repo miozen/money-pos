@@ -13,6 +13,10 @@
 `IService<Provinces>`，但全量源码搜索没有其他 Feature、Maven 模块、DTO/VO、序列化、Excel、资源或
 跨域契约引用该类型；泛型的实际范围仍限于 SYS 遗留服务层。
 
+> **实施前置条件更新（AD-2.24.1）**：AD-2.25 的首次隔离库特征化发现继承 `BaseEntity` 的默认查询会读取
+> `provinces` 中不存在的 `id`/审计列。该问题已拆为 AD-2.24.2；只读映射修复闭环前不得实施本迁包。修复后的
+> AD-2.25 以 `MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md` 的显式只读模型为准。
+
 ## 已确认的消费面与固定约束
 
 | 面 | 当前事实 | AD-2.25 边界 |

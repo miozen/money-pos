@@ -90,7 +90,7 @@ git log --oneline -8
 - 分支与远端：`dev` → `origin/dev`（SSH：`git@github.com:miozen/money-pos.git`）。
 - 最新架构提交：以 `MoneyPOS-Architecture-Adjustment-Implementation-Ledger.md` 和 `git log --oneline` 为准。
 - 当前最小任务：以 `MoneyPOS-AI-Handoff.md` 与 `MoneyPOS-Architecture-Debt-Backlog.md` 的“当前任务”为准。
-- 共享 Entity 迁移前必须阅读对应选择文档；当前 AD-2.25 须先阅读 `MoneyPOS-AD-2.24-Twelfth-Entity-Slice-Selection.md`，只迁移 SYS `Provinces`，并保持只读种子表与缓存/接口边界。
+- 共享 Entity 迁移前必须阅读对应选择文档；当前 AD-2.24.2 须先阅读 `MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md`，先修复 SYS `Provinces` 的只读映射，闭环后才恢复 AD-2.25 迁包。
 
 ## 冲突最小化约定
 

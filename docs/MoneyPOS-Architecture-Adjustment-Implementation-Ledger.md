@@ -1421,3 +1421,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.25 will move only the Entity to `feature.sys.infrastructure.persistence.entity`, retaining its implicit `provinces` mapping, `BaseEntity`, legacy Mapper scan root, tenant-ignore configuration, Flyway seed data and one-time JVM cache semantics. The historical mismatch between inherited ID/audit fields and the eight-column read-only seed table is explicitly not a migration repair: first characterize its current read path, then do not add write CRUD or alter schema/Flyway.
 - `SysBrandConfig`, `SysPrintConfig`, `SysStrategy`, UMS asset/log candidates and remaining GMS/TRADE candidates remain deferred for broader configuration, device, HTTP, algorithmic or transaction surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.25 SYS Provinces Entity physical-ownership migration with read-only Mapper/cache/HTTP regression.
+
+### Completed: AD-2.24.1 Provinces Read-Only Mapping Repair Design
+
+- The first AD-2.25 isolated-database characterization found that the inherited `BaseEntity` made MyBatis-Plus select `id` and audit columns from the eight-column Flyway `provinces` seed table. `money_pos_test` correctly failed with `Unknown column 'id' in 'SELECT'`; the cache and Controller therefore had no usable migration baseline.
+- Published `MoneyPOS-AD-2.24.1-Provinces-Read-Only-Mapping-Repair-Design.md`. The authorized remedy is a separate AD-2.24.2: keep the Entity in the API package temporarily, model only its eight real geographic fields with explicit `provinces` mapping, and replace generic Mapper/service write inheritance with a narrow explicit read query and service.
+- No source, table, Flyway, tenant-ignore, route, DTO, scanner baseline or registry changed in this design task. The repair must not add synthetic ID/audit columns, write SQL or dictionary data mutations. After its validation and push, AD-2.25 resumes solely as the SYS physical-ownership move.
+- Next: AD-2.24.2 Provinces read-only mapping repair implementation with Mapper/cache/HTTP regression.
