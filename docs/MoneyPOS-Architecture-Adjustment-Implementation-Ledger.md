@@ -1380,3 +1380,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 21→20; owner-local uses fell 111→107. Shared-import **files** fell 68→67 rather than the four-import forecast because three changed GMS files still import other shared Entities; cross-owner bridges and wildcard baseline are unchanged.
 - Targeted Mapper/GMS combo/TRADE checkout suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
 - Next: AD-2.20 tenth shared-Entity slice selection.
+
+### Completed: AD-2.20 Tenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.20-Tenth-Entity-Slice-Selection.md`. It re-audits all 20 remaining registered shared Entities and selects TRADE `OmsOrderLog` as the sole AD-2.21 migration target.
+- `OmsOrderLog` has one TRADE-local Mapper and five TRADE application/domain consumers. Its `IService<OmsOrderLog>` generic remains inside TRADE, while the order-details route converts it to `OrderLogVO`; no other Feature, HTTP contract, resource FQCN or Maven module consumes the Entity.
+- AD-2.21 will retain `@TableName("oms_order_log")`, `BaseEntity` / `ASSIGN_ID`, audit fills, the Mapper scan root, the `(order_id, create_time DESC)` index dependence and the service-level ban on audit-log updates/deletes. It will add Mapper insert/read-back coverage and extend existing checkout/refund/order-detail integration checks. Registry is expected to fall 20→19; shared-import files may fall only 67→64 because three relevant files retain other shared Entity imports.
+- `GmsInventoryOrder`, `Provinces`, `SysPrintConfig`, `UmsRechargeOrder`, `UmsMemberLog` and the remaining price, stock, document and strategy candidates remain deferred for wider workflow, compatibility, HTTP or cross-Feature query surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.21 TRADE order-audit-log Entity physical-ownership migration.

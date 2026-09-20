@@ -55,7 +55,8 @@
 | AD-2.17 | HOME 每日经营快照 Entity 物理归属迁移 | 已关闭 | 已将 `OmsDailySummary` 移至 HOME 持久化 entity 包，更新三个 HOME 消费者/遗留 Mapper/测试导入，并增加 Mapper CRUD、原子写入与日快照回归。 | 不移动 Mapper 或服务，不改显式表名、原子 SQL、补偿/刷新、表/Flyway/API；所有权登记降至 21，Feature 共享 import 降至 68。 |
 | AD-2.18 | 第九个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsGoodsCombo`，并确认四个 GMS 消费者、遗留 Mapper、无 HTTP/跨 Feature Entity 外泄与必补 Mapper/套餐库存回归。见 `MoneyPOS-AD-2.18-Ninth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
 | AD-2.19 | GMS 商品套餐明细 Entity 物理归属迁移 | 已关闭 | 已将 `GmsGoodsCombo` 移至 GMS 持久化 entity 包，更新四个 GMS 消费者/遗留 Mapper/测试导入，并增加 Mapper CRUD 与套餐库存回归。 | 不移动 Mapper 或服务，不改 `ASSIGN_ID`、隐式表名、套餐库存命令、表/Flyway/API；所有权登记降至 20，Feature 共享 import 按文件计由 68 降至 67。 |
-| AD-2.20 | 第十个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点剩余共享 Entity，选择一个边界最小、可验证的第十迁移切片并形成选择文档。 | 仅选择，不移动 Entity；须重新核对消费者、Mapper/XML、表映射、跨域契约和回归入口。 |
+| AD-2.20 | 第十个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 TRADE `OmsOrderLog`，并确认六个 TRADE 消费者、专用 Mapper、审计不可变语义、无 HTTP/跨 Feature Entity 外泄与必补 Mapper/订单审计日志回归。见 `MoneyPOS-AD-2.20-Tenth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；不能以扩展 additions-only 基线代替契约治理。 |
+| AD-2.21 | TRADE 订单审计日志 Entity 物理归属迁移 | 待实施 | 将 `OmsOrderLog` 移到 TRADE 持久化实体包，更新 Mapper、六个 TRADE 消费者，并补 Mapper 与订单审计日志回归。 | 保持显式表名、`BaseEntity` / `ASSIGN_ID`、审计日志不可修改/删除语义、表/Flyway/API/事务不变。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -75,10 +76,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.20**：重新盘点候选并选择第十个共享 Entity 物理归属迁移切片。
+1. **AD-2.21**：迁移 `OmsOrderLog` 到 TRADE 持久化实体包，并补 Mapper 与订单审计日志回归。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.20：选择第十个共享 Entity 物理归属迁移切片。**
+**AD-2.21：迁移 `OmsOrderLog` 到 TRADE 持久化实体包，并补 Mapper 与订单审计日志回归。**
