@@ -6,7 +6,6 @@ GmsGoodsCombo	gms
 GmsInventoryDoc	gms
 GmsInventoryOrder	gms
 GmsStockLog	gms
-OmsDailySummary	home
 OmsOrder	trade
 OmsOrderDetail	trade
 OmsOrderLog	trade

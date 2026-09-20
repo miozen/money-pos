@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.OmsDailySummary;
+import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 

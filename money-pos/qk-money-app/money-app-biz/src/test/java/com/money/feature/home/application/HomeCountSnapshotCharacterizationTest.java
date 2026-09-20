@@ -18,7 +18,7 @@ import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
 import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
-import com.money.entity.OmsDailySummary;
+import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;

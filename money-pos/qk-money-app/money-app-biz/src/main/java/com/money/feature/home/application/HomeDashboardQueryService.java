@@ -3,7 +3,7 @@ package com.money.feature.home.application;
 import com.money.contract.goods.InventoryValuationQuery;
 import com.money.contract.trade.HomeDashboardOrderSnapshot;
 import com.money.contract.trade.HomeOrderReadQuery;
-import com.money.entity.OmsDailySummary;
+import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.money.entity.OmsDailySummary;
+import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;
 import com.money.mapper.OmsDailySummaryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;

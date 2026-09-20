@@ -1356,3 +1356,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.17 will retain `BaseEntity`, explicit `@TableName("oms_daily_summary")`, `IdType.AUTO`, all fields, the legacy Mapper scan root, both annotated atomic SQL statements, the unique `uk_record_date`, and the deliberate preservation of `member_recharge`. It must add direct Mapper persistence coverage while retaining the HOME snapshot characterization suite.
 - `UmsRechargeOrder` remains deferred for Controller Entity exposure; `GmsInventoryOrder`, `Provinces`, `SysPrintConfig` and `OmsOrderLog` retain `IService<Entity>` or wider service/controller surfaces; the remaining GMS/SYS candidates have wider algorithmic or compatibility surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.17 HOME daily-summary Entity physical-ownership migration.
+
+### Completed: AD-2.17 HOME Daily-Summary Entity Physical-Ownership Migration
+
+- Moved `OmsDailySummary` from the shared API entity package to `feature.home.infrastructure.persistence.entity`. Updated only the legacy `OmsDailySummaryMapper`, HOME daily-summary query/writer/dashboard consumers and HOME snapshot test imports; the Mapper package, scan root and both annotated atomic SQL statements remain unchanged.
+- Added `OmsDailySummaryMapperIntegrationTest`, covering the HOME-local Entity's explicit table mapping, `AUTO` primary key, all snapshot-field CRUD, duplicate-date `insertIfAbsent`, same-record `upsertSnapshot`, and preservation of `member_recharge`. `HomeCountSnapshotCharacterizationTest` continues to cover refresh, read-only GET, seven-day compensation and dashboard snapshot behavior.
+- No old FQCN or API copy remains. Registry fell 22→21; the architecture scan reports shared-import files 71→68 and owner-local uses 114→111, with cross-owner bridges and wildcard baseline unchanged.
+- Targeted Mapper/HOME snapshot suites and the full isolated `money_pos_test` suite passed, followed by package, scan fixtures, additions-only gate and whitespace check.
+- Next: AD-2.18 ninth shared-Entity slice selection.
