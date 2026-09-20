@@ -1461,3 +1461,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Registry fell 17→16. The architecture scan reports shared Feature import files 62→62 and owner-local uses 98→95 because the legacy Mapper lies outside `feature/**` and all three changed Feature consumers still use other shared Entity types; bridges (6) and wildcard baseline (3) remain unchanged.
 - Targeted Mapper/service/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate and whitespace validation passed. The first sandbox test attempt was blocked before DB connection; its identical approved isolated-db rerun passed.
 - Next: AD-2.28 fourteenth shared-Entity slice selection.
+
+### Completed: AD-2.28 Fourteenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.28-Fourteenth-Entity-Slice-Selection.md`. It re-audits all 16 remaining registered shared Entities and selects SYS `SysPrintConfig` as the sole AD-2.29 migration target.
+- Direct production use is limited to the legacy Mapper, service interface/implementation, configuration Controller and `PosPrinterService`, all within SYS's legacy application boundary. Controller JSON exposure and the printer's fixed-ID read are local runtime behavior; no other Feature, module, DTO/VO, XML/resource FQCN or compatibility bridge consumes the type.
+- AD-2.29 will retain explicit `sys_print_config`, `BaseEntity`, INPUT ID, fixed ID=1 semantics, Flyway seed/configuration row, audit fields, Mapper scan root, controller route/JSON/failure behavior and the printer's ESC/POS/hardware handling. It must add ID=1 Mapper read/update and configuration service/controller regression, while retaining real printer/cash-drawer verification as a manual environment check.
+- `SysStrategy` and `SysBrandConfig` remain deferred for strategy/brand compatibility surfaces; UMS member/coupon, GMS inventory/product and TRADE order candidates retain wider workflow, cross-owner, algorithmic or public-contract surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.29 SYS print-configuration Entity physical-ownership migration.
