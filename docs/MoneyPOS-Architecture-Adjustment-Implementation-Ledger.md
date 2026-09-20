@@ -1332,3 +1332,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - No old FQCN or API copy remains. Registry fell 24→23; shared-import file count remains 72 because no Feature application class consumed this Entity.
 - Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace check passed.
 - Next: AD-2.14 seventh shared-Entity slice selection.
+
+### Completed: AD-2.14 Seventh Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.14-Seventh-Entity-Slice-Selection.md`. It re-audits the remaining smallest persistence surfaces and selects TRADE `OmsOrderPay` as the sole AD-2.15 migration target.
+- The Entity is consumed only by TRADE checkout, order-detail and refund application code plus its legacy Mapper. FIN accesses payment aggregates through TRADE-owned Entity-free query contracts; no Controller, DTO, serialization boundary, XML FQCN or other Maven module directly exposes it.
+- AD-2.15 will retain implicit `oms_order_pay` derivation, `IdType.AUTO`, every payment snapshot field, existing legacy Mapper scan root and both annotated aggregate SQL statements. It will add direct Mapper CRUD and payment-snapshot assertions while retaining checkout/refund and finance aggregate regressions. The ownership registry is expected to fall from 23 to 22 and shared-import files from 72 to 71.
+- `UmsRechargeOrder` remains deferred because its Controller returns the Entity; `GmsInventoryOrder`, `Provinces`, `SysPrintConfig` and `OmsOrderLog` retain `IService<Entity>` or wider service/controller surfaces. No production source, gate baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.15 TRADE order-payment Entity physical-ownership migration.
