@@ -1469,3 +1469,12 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.29 will retain explicit `sys_print_config`, `BaseEntity`, INPUT ID, fixed ID=1 semantics, Flyway seed/configuration row, audit fields, Mapper scan root, controller route/JSON/failure behavior and the printer's ESC/POS/hardware handling. It must add ID=1 Mapper read/update and configuration service/controller regression, while retaining real printer/cash-drawer verification as a manual environment check.
 - `SysStrategy` and `SysBrandConfig` remain deferred for strategy/brand compatibility surfaces; UMS member/coupon, GMS inventory/product and TRADE order candidates retain wider workflow, cross-owner, algorithmic or public-contract surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.29 SYS print-configuration Entity physical-ownership migration.
+
+### Completed: AD-2.29 SYS Print-Configuration Entity Physical-Ownership Migration
+
+- Moved `SysPrintConfig` from `money-app-api: com.money.entity` to `feature.sys.infrastructure.persistence.entity`. Updated only the legacy Mapper, service interface/implementation, configuration Controller, `PosPrinterService` and new SYS-local test imports; Mapper package and scan root remain unchanged.
+- Added `SysPrintConfigMapperIntegrationTest`, which reads the Flyway ID=1 seed through the SYS-local Entity, asserts every configuration and inherited audit field, then updates and reads back that same fixed record. Added Controller regression proving a non-1 request ID is forced to 1 and that the route returns all printer configuration fields; neither test invokes hardware.
+- Retained explicit `sys_print_config`, `BaseEntity`, INPUT ID, fixed ID=1 semantics, seed row, audit fills, route/JSON/failure behavior, `PosPrinterService`'s `selectById(1L)` timing, ESC/POS generation and error handling. No API copy or old FQCN remains; actual printer/cash-drawer verification remains a manual environment acceptance item.
+- Registry fell 16→15. Shared Feature import files and owner-local-use report remain 62 and 95 because all affected consumers are outside `feature/**`; bridges (6) and wildcard baseline (3) are unchanged.
+- Targeted Mapper/controller, full isolated `money_pos_test`, package, scan fixtures, additions-only gate, static fixed-ID read check and whitespace validation passed.
+- Next: AD-2.30 fifteenth shared-Entity slice selection.

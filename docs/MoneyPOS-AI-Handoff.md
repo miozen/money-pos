@@ -41,8 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前的最新已推送基线是 **`36abb7c refactor(ad-2.27): localize recharge order entity`**；本次
-提交闭环 AD-2.28。此前的相邻架构提交为：
+接力前的最新已推送基线是 **`d08fd94 docs(ad-2.28): select print config migration`**；本次
+提交闭环 AD-2.29。此前的相邻架构提交为：
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -69,24 +69,20 @@
 均为 0；共享 `com.money.entity` import 当前为 62 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.29
+## 当前任务：AD-2.30
 
-**迁移 `SysPrintConfig` 到 SYS 持久化实体包，并补 Mapper 与打印配置接口回归。**
+**选择第十五个共享 Entity 物理归属迁移切片。**
 
-已由 `MoneyPOS-AD-2.28-Fourteenth-Entity-Slice-Selection.md` 固定该切片。生产直接消费者只有遗留
-`SysPrintConfigMapper`、`SysPrintConfigService` 与实现、`SysPrintConfigController`、`PosPrinterService`；
-没有跨 Feature、Maven 模块、DTO/VO、XML、资源 FQCN 或兼容桥消费者。Controller 直接读写该 Entity、打印服务
-以固定 ID=1 读取它，但均为 SYS 本域；迁移后保持 JSON、路由、异常和硬件行为不变。已固定的任务边界：
+重新运行当前扫描并盘点剩余共享 Entity 的消费者、Mapper/XML、表映射、跨域契约和既有回归入口，形成独立选择文档。已固定的任务边界：
 
-- 只移动该一个 Entity 并更新上述五个生产消费者及相关测试；不得移动 Mapper、服务、Controller、DTO、其他 Entity、扫描根或跨域契约。
-- 保持 `@TableName("sys_print_config")`、`BaseEntity`、INPUT ID、固定 ID=1、种子记录、路由/JSON/异常、表/Flyway 和打印/钱箱行为不变；不新增多配置、删除或硬件模拟语义。
-- 必补 ID=1 Mapper 读回/更新及服务/Controller 的 ID 强制与字段回归；然后执行隔离全量测试、打包、扫描夹具、`--check-new` 与空白检查。硬件实机验收仍为手工项。
-- 当前所有权登记为 16，Feature 共享 Entity import 为 62 个文件、owner-local uses 为 95、跨所有者桥为 6、通配符基线为 3；迁移预计为 15 / 62 / 95 / 6 / 3，均以实际扫描为准，报告指标不可机械作为门禁失败条件。
+- 仅选择一个边界最小、可验证的候选；不得在 AD-2.30 中移动 Entity、调整 Mapper/扫描根或改变任何业务实现。
+- 选择必须说明候选比较、所有生产/测试消费者、Mapper XML/资源 FQCN、持久化映射与表/Flyway 约束、跨域契约，以及下一迁移任务必需的回归。
+- 当前所有权登记为 15，Feature 共享 Entity import 为 62 个文件、owner-local uses 为 95、跨所有者桥为 6、通配符基线为 3；后者均为报告型指标，不可机械作为迁移目标或门禁失败条件。
 
 ## 后续编号顺序
 
-AD-2.29 完成后，才重新盘点并选择下一切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把当前
-报告数量直接设为失败规则。
+AD-2.30 完成后，按其选择文档固定唯一的第十五个 Entity 迁移任务；门禁仅阻止新引入的、已分类非所有者
+Entity 契约；不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

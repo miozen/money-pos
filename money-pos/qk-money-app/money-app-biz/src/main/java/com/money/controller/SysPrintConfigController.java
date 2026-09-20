@@ -1,6 +1,6 @@
 package com.money.controller;
 
-import com.money.entity.SysPrintConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 import com.money.service.SysPrintConfigService;
 import com.money.web.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;

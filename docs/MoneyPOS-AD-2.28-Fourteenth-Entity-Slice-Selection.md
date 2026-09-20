@@ -69,4 +69,6 @@ JSON 适配器、Excel、Mapper XML、resultMap、YAML 或资源中的 Entity FQ
 
 ## 下一步
 
-唯一下一最小任务为 **AD-2.29：迁移 `SysPrintConfig` 到 SYS 持久化实体包，并补 Mapper 与打印配置接口回归**。
+AD-2.29 已闭环：`SysPrintConfig` 已移至 SYS 持久化实体包，Mapper、服务接口/实现、Controller 和打印服务
+均已使用本地类型；固定 ID=1 的 Mapper 读写及配置接口回归均通过。真实打印机/钱箱动作仍为既有人工环境验收项，
+下一最小任务须由债务清单重新盘点后确定。

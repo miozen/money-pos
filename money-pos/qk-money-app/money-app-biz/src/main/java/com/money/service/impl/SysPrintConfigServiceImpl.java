@@ -1,7 +1,7 @@
 package com.money.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.money.entity.SysPrintConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 import com.money.mapper.SysPrintConfigMapper;
 import com.money.service.SysPrintConfigService;
 import lombok.RequiredArgsConstructor;

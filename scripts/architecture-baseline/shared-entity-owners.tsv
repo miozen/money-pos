@@ -10,7 +10,6 @@ PosCouponRule	ums
 PosMemberCoupon	ums
 PosSkuLevelPrice	gms
 SysBrandConfig	sys
-SysPrintConfig	sys
 SysStrategy	sys
 UmsMember	ums
 UmsMemberBrandLevel	ums

@@ -1,4 +1,4 @@
-package com.money.entity;
+package com.money.feature.sys.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

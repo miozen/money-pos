@@ -1,7 +1,7 @@
 package com.money.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.money.entity.SysPrintConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 
 /**
  * 小票动态配置 Service

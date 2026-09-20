@@ -6,7 +6,7 @@ import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
-import com.money.entity.SysPrintConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.SysDictDetailMapper;
 import com.money.mapper.SysPrintConfigMapper;

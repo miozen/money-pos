@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.SysPrintConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
