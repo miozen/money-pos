@@ -7,7 +7,7 @@ import com.money.dto.pos.SettleResultVO;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.entity.OmsOrder;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import lombok.Data;
 
 import java.util.List;

@@ -1628,3 +1628,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Its Mapper, domain service, checkout, refund, order-query and legacy printing consumers are all TRADE-owned. Controllers and external reports use DTOs or existing snapshots; no production cross-Feature Entity/Mapper or resource FQCN dependency exists, so the physical move requires no new compatibility contract.
 - `OmsOrder` remains deferred as the wider transaction aggregate/report source, and `UmsMember` remains deferred for its profile, asset, import, checkout, FIN/HOME and public-management surface. AD-2.55 must retain detail cost/category/brand snapshots, atomic partial-refund guards, inventory timing, table/Flyway and all established compatibility behavior.
 - Next: AD-2.55 TRADE order-detail Entity physical-ownership migration.
+
+### Completed: AD-2.55 TRADE Order-Detail Entity Physical-Ownership Migration
+
+- Moved `OmsOrderDetail` from `money-app-api: com.money.entity` to `feature.trade.infrastructure.persistence.entity`; updated its legacy Mapper, TRADE detail service, checkout, refund and order-query consumers, plus affected FIN/HOME/member-rank/checkout fixtures.
+- Added `OmsOrderDetailMapperIntegrationTest`, covering the TRADE-local `BaseEntity` mapping and ID, every persisted order/item/price/cost/coupon/refund/tenant/brand/category snapshot field, update and deletion.
+- Retained duplicate-checkout recovery, stock deduction/restoration timing, `refundGoodsAtomically` quantity guard and `REFUNDED` transition, partial/full refund behavior, order DTO, printing/report query semantics, table/Flyway and transaction boundaries.
+- Registry is 2; shared Feature imports are 25, owner-local uses 25, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.56 twenty-eighth shared-Entity slice selection.

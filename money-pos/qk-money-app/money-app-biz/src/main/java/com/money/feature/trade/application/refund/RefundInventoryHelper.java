@@ -1,7 +1,7 @@
 package com.money.feature.trade.application.checkout.refund;
 
 import com.money.constant.BizErrorStatus;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.feature.trade.application.boundary.facade.GoodsStockFacade;
 import com.money.feature.trade.application.boundary.facade.dto.RefundStockLine;

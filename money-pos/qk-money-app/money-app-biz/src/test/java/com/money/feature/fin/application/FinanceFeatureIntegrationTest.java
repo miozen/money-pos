@@ -28,7 +28,7 @@ import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.entity.OmsOrder;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;

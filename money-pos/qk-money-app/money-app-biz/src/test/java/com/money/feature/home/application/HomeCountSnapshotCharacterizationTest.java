@@ -15,7 +15,7 @@ import com.money.dto.Home.TrendChartVO;
 import com.money.dto.Home.BrandPieVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.entity.OmsOrder;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
 import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;

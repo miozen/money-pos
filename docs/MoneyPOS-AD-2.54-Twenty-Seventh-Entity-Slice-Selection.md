@@ -44,3 +44,9 @@ Feature Entity 泄露、且无需先引入新契约的最小物理归属切片�
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.55 的生产改造。
+
+## AD-2.55 实施结果
+
+`OmsOrderDetail` 已迁至 `feature.trade.infrastructure.persistence.entity`。遗留 Mapper、TRADE 明细服务、
+结账、退款、订单查询和受影响测试均已使用本地 Entity；新增 TRADE Mapper CRUD 回归覆盖 BaseEntity/ID、
+全部明细快照字段、更新和删除。结账重复请求、库存、原子退货守卫、订单 DTO、报表、表/Flyway 与事务语义未变。

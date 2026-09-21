@@ -1,7 +1,7 @@
 package com.money.feature.trade.application.checkout;
 
 import com.money.contract.goods.CheckoutGoodsSnapshot;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.trade.application.boundary.facade.GoodsStockFacade;
 import com.money.feature.trade.application.boundary.facade.dto.SaleStockLine;
 import com.money.feature.trade.application.boundary.facade.dto.SaleStockRequest;

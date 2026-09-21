@@ -2,7 +2,7 @@ package com.money.feature.trade.domain.order;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.money.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
 import lombok.RequiredArgsConstructor;

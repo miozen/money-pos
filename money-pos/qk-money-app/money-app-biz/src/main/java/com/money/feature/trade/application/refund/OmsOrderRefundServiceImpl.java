@@ -7,6 +7,7 @@ import com.money.constant.OrderStatusEnum;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
 import com.money.entity.*;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.*;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
 import com.money.feature.trade.application.refund.OmsOrderRefundService;
