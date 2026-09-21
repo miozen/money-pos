@@ -24,7 +24,7 @@ import com.money.dto.Finance.FinanceDataVO.FinanceDashboardVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.PerformanceReportVO;
 import com.money.dto.OmsOrder.OmsSalesDataVO.SalesDashboardVO;
 import com.money.dto.OmsOrder.OrderCountVO;
-import com.money.entity.GmsInventoryDoc;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.entity.GmsBrand;
 import com.money.entity.GmsGoodsCategory;
 import com.money.entity.OmsOrder;

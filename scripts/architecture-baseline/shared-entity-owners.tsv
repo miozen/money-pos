@@ -2,7 +2,6 @@
 GmsBrand	gms
 GmsGoods	gms
 GmsGoodsCategory	gms
-GmsInventoryDoc	gms
 GmsStockLog	gms
 OmsOrder	trade
 OmsOrderDetail	trade

@@ -1486,3 +1486,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.31 will retain explicit `gms_inventory_doc`, `BaseEntity`, the historical assigned-ID/auto-increment coexistence, all fields, `uk_doc_no`, Mapper scan root, inventory document/cost/detail/log transactions, TRADE stock-command behavior and FIN aggregation semantics. It will add direct Mapper persistence coverage and retain GMS inventory, checkout/refund and finance snapshot regressions.
 - `SysBrandConfig` and `SysStrategy` remain deferred because GMS still directly consumes their SYS configuration/strategy Entities; remaining GMS, UMS and TRADE candidates retain wider algorithms, asset workflows, public compatibility or transaction surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.31 GMS inventory-document Entity physical-ownership migration.
+
+### Completed: AD-2.31 GMS Inventory-Document Entity Physical-Ownership Migration
+
+- Moved `GmsInventoryDoc` from `money-app-api: com.money.entity` to `feature.gms.infrastructure.persistence.entity`. Updated only the legacy `GmsInventoryDocMapper`, the four GMS-owned inventory/financial-snapshot consumers and affected test imports; Mapper package and scan root remain unchanged.
+- Added `GmsInventoryDocMapperIntegrationTest`, covering the GMS-local Entity's assigned ID, explicit `gms_inventory_doc` mapping, all persisted document fields, inherited audit fields and summary-field update. Existing GMS inbound-document, TRADE checkout/refund and FIN daily-document/waterfall-snapshot integration regressions now use the local type.
+- Retained `BaseEntity`, the historical assigned-ID/AUTO_INCREMENT coexistence, `uk_doc_no`, every field, inventory/cost/detail/log transaction behavior, TRADE stock-command behavior, FIN Entity-free snapshot contracts, routes, DTOs, table and Flyway. No API copy or old FQCN remains.
+- Registry fell 15→14; shared Feature import files fell 62→60 and owner-local uses fell 95→91. Cross-owner bridges (6) and wildcard baseline (3) are unchanged. Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.32 sixteenth shared-Entity slice selection.

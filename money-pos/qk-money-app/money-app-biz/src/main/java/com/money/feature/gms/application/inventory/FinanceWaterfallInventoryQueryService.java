@@ -3,7 +3,7 @@ package com.money.feature.gms.application.inventory;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.contract.goods.FinanceWaterfallInventoryQuery;
 import com.money.contract.goods.FinanceWaterfallProcurementSnapshot;
-import com.money.entity.GmsInventoryDoc;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.mapper.GmsInventoryDocMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

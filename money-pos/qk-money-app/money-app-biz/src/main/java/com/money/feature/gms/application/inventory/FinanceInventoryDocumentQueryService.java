@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.InventoryDocTypeEnum;
 import com.money.contract.goods.FinanceInventoryDocumentQuery;
 import com.money.contract.goods.FinanceInventoryDocumentSnapshot;
-import com.money.entity.GmsInventoryDoc;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.mapper.GmsInventoryDocMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

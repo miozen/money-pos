@@ -16,6 +16,7 @@ import com.money.feature.trade.infrastructure.persistence.mapper.OmsOrderLogMapp
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.GmsGoodsComboMapper;
 import com.money.mapper.GmsInventoryDocMapper;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderPayMapper;
@@ -144,8 +145,8 @@ class CheckoutIntegrationTest {
                 .asString()
                 .contains("\"action\":\"SETTLE_SUCCESS\"");
         assertThat(inventoryDocMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
-                        .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
+                        .eq(GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
     }
 
 
@@ -426,8 +427,8 @@ class CheckoutIntegrationTest {
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                     .eq(OmsOrder::getOrderNo, orderNo));
-            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
-                    .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + orderNo));
+            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
+                    .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo));
             umsMemberMapper.deleteById(member.getId());
             gmsGoodsMapper.deleteById(goods.getId());
         }
@@ -464,8 +465,8 @@ class CheckoutIntegrationTest {
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                     .eq(OmsOrder::getOrderNo, orderNo));
-            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
-                    .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + orderNo));
+            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
+                    .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo));
             umsMemberMapper.deleteById(member.getId());
             gmsGoodsMapper.deleteById(goods.getId());
         }
@@ -592,8 +593,8 @@ class CheckoutIntegrationTest {
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
             omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                     .eq(OmsOrder::getOrderNo, orderNo));
-            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.entity.GmsInventoryDoc>()
-                    .eq(com.money.entity.GmsInventoryDoc::getDocNo, "XS-" + orderNo));
+            inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
+                    .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo));
         }
     }
 }
