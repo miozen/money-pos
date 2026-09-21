@@ -6,7 +6,7 @@ import com.money.dto.Home.HomeChartsVO;
 import com.money.dto.Home.MemberBarVO;
 import com.money.entity.GmsBrand;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.feature.home.application.HomeService;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;

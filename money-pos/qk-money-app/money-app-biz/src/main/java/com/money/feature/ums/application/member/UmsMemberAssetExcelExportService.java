@@ -6,7 +6,7 @@ import com.money.contract.member.MemberCouponCountQuery;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
 import lombok.RequiredArgsConstructor;

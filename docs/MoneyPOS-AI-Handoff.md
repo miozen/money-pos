@@ -66,22 +66,23 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 60 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
+均为 0；共享 `com.money.entity` import 当前为 59 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.35
+## 当前任务：AD-2.36
 
-**迁移 UMS `UmsMemberBrandLevel` 到持久化实体包。**
+**选择第十八个共享 Entity 物理归属迁移切片。**
 
-先完整阅读 `MoneyPOS-AD-2.34-Seventeenth-Entity-Slice-Selection.md`。已固定的任务边界：
+先完整阅读实施台账、债务清单，并重新盘点余下 12 个已登记共享 Entity 的实际生产消费面、跨域契约、资源 FQCN
+和可回归行为。选择任务的固定边界：
 
-- 只移动 `UmsMemberBrandLevel`，更新遗留 Mapper、五个 UMS 矩阵/快照/Excel 消费者及受影响测试；不得移动 Mapper、Controller、DTO、其他 Entity、扫描根或跨域契约。
-- 保持显式 `ums_member_brand_level`、AUTO ID、字段、唯一键、审计时间、租户、聚合 SQL、会员矩阵写入、Excel、结账/POS/HOME 快照、路由/DTO、表/Flyway 不变。
-- 必须补 Mapper、会员导入、HOME 分布、Excel、结账与 POS 快照回归。当前所有权登记为 13，Feature 共享 Entity import 为 59 个文件、owner-local uses 为 84、跨所有者桥为 6、通配符基线为 3；预期迁移后前三项为 12、55、79，均为报告型指标，最终以实际扫描为准。
+- 只发布 AD-2.36 的选择设计，固定唯一后续迁移编号、所有者、生产/测试消费者、契约和回归面；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
+- 不得为减少报告指标而扩大 additions-only 基线；不得改变 HTTP、表/Flyway、唯一键、业务事务或既有公式。
+- AD-2.35 后当前所有权登记为 12，Feature 共享 Entity import 为 59 个文件、owner-local uses 为 79、跨所有者桥为 6、通配符基线为 3；五个迁移消费者仍各自使用其他共享 Entity，故 import 文件计数未下降。均为审计指标，最终以实际扫描为准。
 
 ## 后续编号顺序
 
-AD-2.35 完成后，重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
+AD-2.36 只能重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
 当前报告数量直接设为失败规则。
 
 ## Java 与设计约束

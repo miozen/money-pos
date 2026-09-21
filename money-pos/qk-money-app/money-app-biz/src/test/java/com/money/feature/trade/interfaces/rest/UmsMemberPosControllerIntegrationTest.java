@@ -4,7 +4,7 @@ import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
 import com.money.dto.pos.PosMemberVO;
 import com.money.entity.GmsBrand;
 import com.money.entity.PosCouponRule;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.support.TradeFixture;

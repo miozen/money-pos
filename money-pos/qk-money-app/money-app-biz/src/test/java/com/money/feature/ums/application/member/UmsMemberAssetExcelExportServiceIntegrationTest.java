@@ -4,7 +4,7 @@ import com.money.entity.GmsBrand;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.contract.member.MemberCouponCountQuery;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.PosMemberCouponMapper;

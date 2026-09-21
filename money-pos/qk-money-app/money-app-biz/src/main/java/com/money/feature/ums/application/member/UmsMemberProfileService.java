@@ -13,7 +13,7 @@ import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.contract.goods.BrandNameQuery;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;

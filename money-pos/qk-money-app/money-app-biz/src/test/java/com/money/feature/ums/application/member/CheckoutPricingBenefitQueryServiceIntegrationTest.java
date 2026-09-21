@@ -4,7 +4,7 @@ import com.money.contract.member.CheckoutPricingBenefitQuery;
 import com.money.contract.member.CheckoutPricingBenefitSnapshot;
 import com.money.entity.PosCouponRule;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;

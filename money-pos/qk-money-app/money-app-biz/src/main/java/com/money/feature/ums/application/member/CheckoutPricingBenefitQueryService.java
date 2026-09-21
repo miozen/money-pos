@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.CheckoutPricingBenefitQuery;
 import com.money.contract.member.CheckoutPricingBenefitSnapshot;
 import com.money.entity.PosCouponRule;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.PosCouponRuleMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import lombok.RequiredArgsConstructor;

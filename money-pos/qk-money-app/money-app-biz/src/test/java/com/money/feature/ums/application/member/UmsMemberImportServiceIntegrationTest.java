@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.GmsBrand;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.SysDictDetailMapper;
