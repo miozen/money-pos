@@ -1621,3 +1621,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added UMS Mapper CRUD plus management pagination/JSON/card-pack coverage, and retained checkout pricing, member POS and checkout regressions. Table, seed, AUTO ID, filters/order, Flyway and transaction semantics remain unchanged.
 - Removed the retired TRADE-to-UMS bridges. Registry is 3; shared Feature imports are 29, owner-local uses 33, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.54 twenty-seventh shared-Entity slice selection.
+
+### Completed: AD-2.54 Twenty-Seventh Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.54-Twenty-Seventh-Entity-Slice-Selection.md` after re-auditing the three remaining registered shared Entity types. It selects TRADE `OmsOrderDetail` as the sole AD-2.55 migration target.
+- Its Mapper, domain service, checkout, refund, order-query and legacy printing consumers are all TRADE-owned. Controllers and external reports use DTOs or existing snapshots; no production cross-Feature Entity/Mapper or resource FQCN dependency exists, so the physical move requires no new compatibility contract.
+- `OmsOrder` remains deferred as the wider transaction aggregate/report source, and `UmsMember` remains deferred for its profile, asset, import, checkout, FIN/HOME and public-management surface. AD-2.55 must retain detail cost/category/brand snapshots, atomic partial-refund guards, inventory timing, table/Flyway and all established compatibility behavior.
+- Next: AD-2.55 TRADE order-detail Entity physical-ownership migration.
