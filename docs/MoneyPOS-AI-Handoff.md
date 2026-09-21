@@ -73,14 +73,14 @@
 
 **迁移 GMS `GmsStockLog` 到持久化实体包。**
 
-先完整阅读实施台账、债务清单，并重新盘点余下 11 个已登记共享 Entity 的实际生产消费面、跨域契约、资源 FQCN 和可回归行为。
+先完整阅读实施台账、债务清单，并重新盘点余下 6 个已登记共享 Entity 的实际生产消费面、跨域契约、资源 FQCN 和可回归行为。
 
 - 只发布 AD-2.38 的选择设计；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
-- 当前所有权登记为 11；以迁移后的扫描实测为下一选择基线，桥与通配符不得扩大。
+- 当前所有权登记为 6；以迁移后的扫描实测为下一选择基线，桥与通配符不得扩大。
 
 ## 后续编号顺序
 
-AD-2.38 只能重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
+AD-2.48 只能重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
 当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
@@ -100,6 +100,15 @@ test_db_user=$(perl -ne 'print "$1\n" if /username: \$\{MONEY_DB_USERNAME:([^}]*
 test_db_password=$(perl -ne 'print "$1\n" if /password: \$\{MONEY_DB_PASSWORD:([^}]*)\}/' qk-money-app/money-app-biz/src/main/resources/application-dev.yml)
 MONEY_TEST_DB_URL='jdbc:mysql://127.0.0.1:3306/money_pos_test?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai' MONEY_TEST_DB_USERNAME="$test_db_user" MONEY_TEST_DB_PASSWORD="$test_db_password" MONEY_TEST_DB_NAME='money_pos_test' mvn -q test
 ```
+
+### 测试配置与权限防错规则
+
+- 上述命令是唯一认可的隔离数据库回归入口：凭据只能从 `application-dev.yml` 中既有的
+  `MONEY_DB_*` 默认值提取；项目并不存在 `.env.test`，不得假设、创建或读取它。
+- 运行前只可做非敏感预检：提取的用户名必须非空，且 `MONEY_TEST_DB_URL` 必须指向
+  `127.0.0.1:3306/money_pos_test`。不得输出密码、改用 MySQL 系统维护账号，或把测试指向开发库。
+- 若普通沙箱报 `Operation not permitted` / 本机 3306 连接受限，应使用**同一条命令、同一凭据来源、同一
+  `money_pos_test` URL**申请受控本机执行；这属于环境权限限制，不得以替换配置来源规避。
 
 AD-3.4.1 优先增加并执行相关 GMS/POS 集成回归，再执行上述全量测试。随后：
 

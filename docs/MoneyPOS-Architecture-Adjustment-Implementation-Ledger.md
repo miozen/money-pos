@@ -1575,5 +1575,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Moved `SysStrategy` from `money-app-api: com.money.entity` to `feature.sys.infrastructure.persistence.entity`. The SYS Mapper, service, controller and FIN strategy query use the SYS-local Entity.
 - Replaced the former GMS-to-SYS persistence-Entity/Mapper dependency with the API-neutral `TurnoverStrategyQuery` and immutable `TurnoverStrategySnapshot`; GMS turnover now consumes only this read contract.
 - Added `SysStrategyMapperIntegrationTest`, covering generated ID, every persisted strategy threshold/day/tenant field, readback, update and deletion. The GMS turnover unit test now mocks the query contract rather than a SYS Mapper.
-- Removed the retired GMS-to-SYS `SysStrategy` bridge from the architecture baseline and updated the scan fixtures to a remaining registered SYS Entity. Full isolated `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 7; shared imports 36; owner-local uses 41; bridges 5 and wildcard baseline 3.
+- Removed the retired GMS-to-SYS `SysStrategy` bridge from the architecture baseline and updated the scan fixtures to a remaining registered SYS Entity. Full isolated `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 6; shared imports 36; owner-local uses 41; bridges 5 and wildcard baseline 3.
 - Next: AD-2.48 twenty-fourth shared-Entity slice selection.
+
+### Completed: AD-2.48 Twenty-Fourth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.48-Twenty-Fourth-Entity-Slice-Selection.md` after re-auditing all six remaining shared Entity types. It selects SYS `SysBrandConfig` as the sole AD-2.49 migration target.
+- The selection requires a narrow Entity-free brand coupon-policy query for GMS Excel import and the legacy POS facade before moving the SYS Entity; this removes the existing GMS-to-SYS Entity bridge without broadening routes, tables, DTOs or transactions.
+- Next: AD-2.49 SYS brand-config Entity physical-ownership migration.
