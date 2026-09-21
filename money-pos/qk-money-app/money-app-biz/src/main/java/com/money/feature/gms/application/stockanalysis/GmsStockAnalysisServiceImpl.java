@@ -3,7 +3,7 @@ package com.money.feature.gms.application.stockanalysis;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.dto.GmsGoods.GmsStockDataVO.StockAnalysisReportVO;
 import com.money.entity.GmsGoods;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.mapper.GmsStockLogMapper;
 import com.money.feature.gms.application.product.GmsGoodsService;
 import lombok.RequiredArgsConstructor;

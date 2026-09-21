@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.inventory.GmsInventoryOrderDTO;
 import com.money.dto.inventory.GmsInventoryOrderDetailDTO;
 import com.money.entity.GmsGoods;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrder;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrderDetail;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsInventoryOrderDetailMapper;

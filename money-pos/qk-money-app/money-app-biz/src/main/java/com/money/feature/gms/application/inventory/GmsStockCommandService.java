@@ -9,7 +9,7 @@ import com.money.contract.goods.SaleStockCommandHandler;
 import com.money.contract.goods.StockMutationLine;
 import com.money.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDocItem;
 import com.money.mapper.GmsGoodsComboMapper;

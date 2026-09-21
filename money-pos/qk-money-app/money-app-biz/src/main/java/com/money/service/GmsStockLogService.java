@@ -1,7 +1,7 @@
 package com.money.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 
 /**
  * 库存日志服务接口

@@ -1,7 +1,7 @@
 package com.money.controller;
 
 import com.money.dto.GmsGoods.GmsStockLogQueryDTO;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.feature.gms.application.inventory.GmsStockLogQueryService;
 import com.money.web.vo.PageVO;
 import io.swagger.v3.oas.annotations.Operation;

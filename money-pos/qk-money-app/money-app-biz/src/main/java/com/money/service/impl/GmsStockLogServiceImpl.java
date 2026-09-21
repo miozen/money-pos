@@ -1,7 +1,7 @@
 package com.money.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.mapper.GmsStockLogMapper;
 import com.money.service.GmsStockLogService;
 import org.springframework.stereotype.Service;

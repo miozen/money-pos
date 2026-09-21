@@ -1,7 +1,7 @@
 package com.money.feature.gms.application.inventory;
 
 import com.money.dto.GmsGoods.GmsStockLogQueryDTO;
-import com.money.entity.GmsStockLog;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.mapper.GmsStockLogMapper;
 import com.money.web.vo.PageVO;
 import org.junit.jupiter.api.AfterEach;
