@@ -41,13 +41,10 @@ run_case() {
   fi
 }
 
-write_java 'com/money/feature/ums/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.PosCouponRule;\nclass OwnerLocal { PosCouponRule rule; }'
+write_java 'com/money/feature/ums/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.UmsMember;\nclass OwnerLocal { UmsMember member; }'
 run_case owner_local 0 'Shared Entity additions-only gate passed.'
 
-write_java 'com/money/feature/trade/application/coupon/CouponRuleManagementService.java' $'package fixture;\nimport com.money.entity.PosCouponRule;\nclass CouponRuleManagementService { PosCouponRule rule; }'
-run_case existing_bridge 0 'Documented cross-owner compatibility bridges: 1'
-
-write_java 'com/money/feature/trade/application/NewCrossOwner.java' $'package fixture;\nimport com.money.entity.PosCouponRule;\nclass NewCrossOwner { PosCouponRule rule; }'
+write_java 'com/money/feature/trade/application/NewCrossOwner.java' $'package fixture;\nimport com.money.entity.UmsMember;\nclass NewCrossOwner { UmsMember member; }'
 run_case new_cross_owner 1 'new cross-owner Entity: trade → ums'
 rm -f "$fixture_source/com/money/feature/trade/application/NewCrossOwner.java"
 

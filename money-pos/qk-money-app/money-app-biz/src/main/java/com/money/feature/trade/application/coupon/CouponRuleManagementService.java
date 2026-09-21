@@ -1,23 +1,24 @@
 package com.money.feature.trade.application.coupon;
 
-import com.money.entity.PosCouponRule;
+import com.money.contract.member.CouponRuleManagementCommand;
+import com.money.contract.member.CouponRuleManagementSnapshot;
+import com.money.contract.member.MemberCouponRuleSnapshot;
 import com.money.web.vo.PageVO;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 满减券规则管理与会员卡包查询的应用服务边界。
  */
 public interface CouponRuleManagementService {
 
-    PageVO<PosCouponRule> list(Integer current, Integer size, String name);
+    PageVO<CouponRuleManagementSnapshot> list(Integer current, Integer size, String name);
 
-    void add(PosCouponRule rule);
+    void add(CouponRuleManagementCommand command);
 
-    void update(PosCouponRule rule);
+    void update(CouponRuleManagementCommand command);
 
     void delete(List<Long> ids);
 
-    List<Map<String, Object>> getMemberCoupons(Long memberId);
+    List<MemberCouponRuleSnapshot> getMemberCoupons(Long memberId);
 }

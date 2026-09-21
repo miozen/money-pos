@@ -50,3 +50,11 @@
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.53 的生产改造。
+
+## AD-2.53 实施结果
+
+`PosCouponRule` 已迁至 `feature.ums.infrastructure.persistence.entity`。新增 API 中立的
+`CouponRuleManagementQuery`、`CouponRuleManagementCommandHandler` 及请求/响应/卡包快照；UMS 负责
+实现查询、增删改与事务，遗留 TRADE 服务仅委托该契约，`/pos/couponRule` 的路由和 JSON 字段保持不变。
+UMS Mapper CRUD、规则管理的分页/JSON/卡包、结账优惠与会员 POS 既有回归均覆盖；表、种子、Flyway、
+筛选排序和事务语义未变。

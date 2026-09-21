@@ -2,7 +2,7 @@ package com.money.feature.ums.application.member;
 
 import com.money.contract.member.CheckoutPricingBenefitQuery;
 import com.money.contract.member.CheckoutPricingBenefitSnapshot;
-import com.money.entity.PosCouponRule;
+import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.UmsMemberBrandLevelMapper;

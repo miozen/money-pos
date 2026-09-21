@@ -1613,3 +1613,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - The UMS Mapper and member/card-pack/checkout benefit queries own the rule persistence. The only non-owner surface is the legacy TRADE rule-management service, whose Entity signatures are also exposed by `/pos/couponRule`; AD-2.53 must first replace that exposure with an API-neutral UMS command/query contract.
 - Orders and order details remain deferred as the TRADE transaction aggregate, and `UmsMember` remains deferred for its broad profile, asset, import, checkout, FIN/HOME and public-management surface. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.53 UMS coupon-rule Entity physical-ownership migration.
+
+### Completed: AD-2.53 UMS Coupon-Rule Entity Physical-Ownership Migration
+
+- Moved `PosCouponRule` from `money-app-api: com.money.entity` to `feature.ums.infrastructure.persistence.entity`; updated its legacy Mapper, UMS member benefit and checkout pricing consumers, and affected test fixtures.
+- Added API-neutral coupon-rule management query and command contracts with immutable management/card-pack snapshots. UMS now owns pagination, card-pack assembly and transactional writes; the legacy TRADE service delegates only to those contracts, and `/pos/couponRule` retains its routes and JSON fields without exposing the persistence Entity.
+- Added UMS Mapper CRUD plus management pagination/JSON/card-pack coverage, and retained checkout pricing, member POS and checkout regressions. Table, seed, AUTO ID, filters/order, Flyway and transaction semantics remain unchanged.
+- Removed the retired TRADE-to-UMS bridges. Registry is 3; shared Feature imports are 29, owner-local uses 33, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.54 twenty-seventh shared-Entity slice selection.

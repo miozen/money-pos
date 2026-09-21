@@ -3,7 +3,7 @@ package com.money.feature.trade.interfaces.rest;
 import com.money.feature.trade.application.pos.dto.CouponRuleSummary;
 import com.money.dto.pos.PosMemberVO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
-import com.money.entity.PosCouponRule;
+import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;

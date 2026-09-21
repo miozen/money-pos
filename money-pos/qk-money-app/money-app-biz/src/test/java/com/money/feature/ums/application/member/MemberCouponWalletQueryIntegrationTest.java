@@ -2,7 +2,7 @@ package com.money.feature.ums.application.member;
 
 import com.money.contract.member.MemberCouponCountQuery;
 import com.money.contract.member.MemberCouponWalletQuery;
-import com.money.entity.PosCouponRule;
+import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.entity.UmsMember;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;

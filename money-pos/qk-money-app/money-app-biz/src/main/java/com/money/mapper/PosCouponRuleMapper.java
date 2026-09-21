@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.PosCouponRule;
+import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

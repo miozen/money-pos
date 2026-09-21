@@ -1,9 +1,11 @@
 package com.money.controller;
 
-import com.money.entity.PosCouponRule;
+import com.money.contract.member.CouponRuleManagementCommand;
+import com.money.contract.member.CouponRuleManagementSnapshot;
 import com.money.entity.UmsMember;
 import com.money.support.TradeFixture;
 import com.money.web.vo.PageVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +21,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,6 +34,8 @@ class PosCouponRuleControllerIntegrationTest {
 
     @Autowired
     private TradeFixture tradeFixture;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -50,9 +53,9 @@ class PosCouponRuleControllerIntegrationTest {
     }
 
     @Test
-    void managesRulesAndReturnsUnusedMemberCouponCounts() {
+    void managesRulesAndReturnsUnusedMemberCouponCounts() throws Exception {
         String suffix = Long.toString(System.nanoTime(), 36);
-        PosCouponRule rule = new PosCouponRule();
+        CouponRuleManagementCommand rule = new CouponRuleManagementCommand();
         rule.setName("managed-" + suffix);
         rule.setThresholdAmount(new BigDecimal("30.00"));
         rule.setDiscountAmount(new BigDecimal("8.00"));
@@ -60,8 +63,11 @@ class PosCouponRuleControllerIntegrationTest {
         rule.setTenantId("0");
         posCouponRuleController.add(rule);
 
-        PageVO<PosCouponRule> page = posCouponRuleController.list(1, 10, rule.getName());
-        assertThat(page.getRecords()).extracting(PosCouponRule::getId).contains(rule.getId());
+        PageVO<CouponRuleManagementSnapshot> page = posCouponRuleController.list(1, 10, rule.getName());
+        assertThat(page.getRecords()).extracting(CouponRuleManagementSnapshot::getId).contains(rule.getId());
+        assertThat(objectMapper.writeValueAsString(page.getRecords().get(0)))
+                .contains("\"id\"", "\"name\"", "\"thresholdAmount\"", "\"discountAmount\"",
+                        "\"status\"", "\"createBy\"", "\"createTime\"", "\"updateTime\"", "\"tenantId\"");
 
         rule.setStatus(0);
         posCouponRuleController.update(rule);
@@ -71,12 +77,14 @@ class PosCouponRuleControllerIntegrationTest {
         UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
         tradeFixture.issueCoupon(member.getId(), rule.getId());
         tradeFixture.issueCoupon(member.getId(), rule.getId());
-        List<Map<String, Object>> memberCoupons = posCouponRuleController.getMemberCoupons(member.getId());
+        List<com.money.contract.member.MemberCouponRuleSnapshot> memberCoupons = posCouponRuleController.getMemberCoupons(member.getId());
         assertThat(memberCoupons).anySatisfy(coupon -> {
-            assertThat(coupon.get("ruleId")).isEqualTo(rule.getId());
-            assertThat(coupon.get("ownedCount")).isEqualTo(2L);
-            assertThat((BigDecimal) coupon.get("thresholdAmount")).isEqualByComparingTo("30.00");
+            assertThat(coupon.getRuleId()).isEqualTo(rule.getId());
+            assertThat(coupon.getOwnedCount()).isEqualTo(2L);
+            assertThat(coupon.getThresholdAmount()).isEqualByComparingTo("30.00");
         });
+        assertThat(objectMapper.writeValueAsString(memberCoupons))
+                .contains("\"ruleId\"", "\"name\"", "\"thresholdAmount\"", "\"discountAmount\"", "\"ownedCount\"");
 
         posCouponRuleController.delete(List.of(rule.getId()));
         assertThat(posCouponRuleController.list(1, 10, rule.getName()).getRecords()).isEmpty();
