@@ -1559,3 +1559,8 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Selected GMS `GmsStockLog` as the sole AD-2.41 target; its inventory write/query/analysis, legacy Mapper/service and Controller are GMS-local.
 - AD-2.41 retains AUTO ID, stock/cost snapshots, transaction and pagination/JSON behavior, table/Flyway and existing regressions; it adds Mapper CRUD coverage.
 - Next: AD-2.41 GMS stock-log Entity physical-ownership migration.
+
+### Completed: AD-2.41 GMS Stock-Log Entity Physical-Ownership Migration
+
+- Added `GmsStockLogMapperIntegrationTest` for the GMS-local ledger Entity's AUTO ID, quantity/cost/asset snapshots, order/tenant fields, update and deletion.
+- Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 9; shared imports 50; owner-local uses 61; bridges 6 and wildcard baseline 3.

@@ -78,7 +78,7 @@
 | AD-2.38 | 第十九个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsBrand`，确认本域 Mapper、品牌服务/名称选择查询、Excel 消费者及无生产跨域 Entity 外泄。见 `MoneyPOS-AD-2.38-Nineteenth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；保留 BaseEntity/ID、logo 事务、商品数、快照、表/Flyway。 |
 | AD-2.39 | GMS 商品品牌 Entity 物理归属迁移 | 已关闭 | 已将 `GmsBrand` 移至 GMS 持久化实体包，更新 Mapper、本域消费者和受影响测试，并补 Mapper CRUD 回归。 | Mapper/Controller/DTO、跨域契约、表名、BaseEntity/ID、logo 事务、商品数、快照、表/Flyway 未改；所有权登记降至 10。 |
 | AD-2.40 | 第二十个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `GmsStockLog`，确认库存命令、查询、分析、遗留服务/Controller 均为本域使用。见 `MoneyPOS-AD-2.40-Twentieth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；保留库存/成本流水、分页 JSON、表/Flyway。 |
-| AD-2.41 | GMS 库存流水 Entity 物理归属迁移 | 待实施 | 将 `GmsStockLog` 移至 GMS 持久化实体包并补 Mapper、库存命令/查询/分析与 Controller 回归。 | 不改库存事务、流水公式、路由/JSON、表/Flyway 或跨域契约。 |
+| AD-2.41 | GMS 库存流水 Entity 物理归属迁移 | 已关闭 | 已将 `GmsStockLog` 移至 GMS 持久化实体包，并补 Mapper CRUD、库存命令/查询/分析与 Controller 回归。 | 库存事务、流水公式、路由/JSON、表/Flyway 与跨域契约未改；所有权登记降至 9。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
