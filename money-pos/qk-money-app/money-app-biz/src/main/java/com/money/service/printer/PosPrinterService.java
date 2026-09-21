@@ -1,13 +1,12 @@
 package com.money.service.printer;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.member.MemberCouponCountQuery;
 import com.money.dto.Finance.FinanceDataVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
-import com.money.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
 import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
-import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.SysDictDetailMapper;
 import com.money.mapper.SysPrintConfigMapper;
 import com.money.util.EscPosUtil;
@@ -31,7 +30,7 @@ public class PosPrinterService {
 
     private final SysPrintConfigMapper sysPrintConfigMapper;
     private final SysDictDetailMapper sysDictDetailMapper;
-    private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberCouponCountQuery memberCouponCountQuery;
 
     public void printReceiptAndOpenDrawer(OrderDetailVO orderVO) {
         try {
@@ -134,11 +133,9 @@ public class PosPrinterService {
                         writeText(bos, "会员券余额: " + fmt(orderVO.getMemberInfo().getCoupon()) + "\n");
                     }
                     if (orderVO.getMemberId() != null) {
-                        Long vCount = posMemberCouponMapper.selectCount(
-                                new LambdaQueryWrapper<PosMemberCoupon>()
-                                        .eq(PosMemberCoupon::getMemberId, orderVO.getMemberId())
-                                        .eq(PosMemberCoupon::getStatus, "UNUSED")
-                        );
+                        Long vCount = memberCouponCountQuery.countUnusedCouponsByMemberIds(
+                                java.util.Collections.singletonList(orderVO.getMemberId()))
+                                .get(orderVO.getMemberId());
                         if (vCount != null && vCount > 0) {
                             writeText(bos, "满减券余量: " + vCount + " 张\n");
                         }

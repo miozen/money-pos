@@ -1,7 +1,7 @@
 package com.money.feature.ums.application.member;
 
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
-import com.money.entity.PosMemberCoupon;
+import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;

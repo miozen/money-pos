@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.contract.member.MemberRefundCommand;
 import com.money.contract.member.MemberRefundCommandHandler;
-import com.money.entity.PosMemberCoupon;
+import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.mapper.PosMemberCouponMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

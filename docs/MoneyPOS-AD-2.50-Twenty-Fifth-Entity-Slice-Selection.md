@@ -48,3 +48,10 @@
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.51 的生产改造。
+
+## AD-2.51 实施结果
+
+`PosMemberCoupon` 已迁至 `feature.ums.infrastructure.persistence.entity`。UMS 现通过
+`MemberCouponCountQuery` 与新增的 `MemberCouponWalletQuery` 提供不可变的未使用券计数快照；
+TRADE 券规则管理和遗留小票服务不再导入券 Entity 或 Mapper。发券、FIFO 核销、退款恢复、充值红冲、
+卡包、表/Flyway 和事务语义未变。

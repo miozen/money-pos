@@ -3,28 +3,26 @@ package com.money.feature.trade.application.coupon;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.money.contract.member.MemberCouponWalletQuery;
 import com.money.entity.PosCouponRule;
-import com.money.entity.PosMemberCoupon;
 import com.money.mapper.PosCouponRuleMapper;
-import com.money.mapper.PosMemberCouponMapper;
 import com.money.util.PageUtil;
 import com.money.web.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CouponRuleManagementServiceImpl implements CouponRuleManagementService {
 
     private final PosCouponRuleMapper posCouponRuleMapper;
-    private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberCouponWalletQuery memberCouponWalletQuery;
 
     @Override
     public PageVO<PosCouponRule> list(Integer current, Integer size, String name) {
@@ -55,16 +53,8 @@ public class CouponRuleManagementServiceImpl implements CouponRuleManagementServ
 
     @Override
     public List<Map<String, Object>> getMemberCoupons(Long memberId) {
-        LambdaQueryWrapper<PosMemberCoupon> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(PosMemberCoupon::getMemberId, memberId)
-                .eq(PosMemberCoupon::getStatus, "UNUSED");
-        List<PosMemberCoupon> coupons = posMemberCouponMapper.selectList(wrapper);
-        if (coupons == null || coupons.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Map<Long, Long> ruleCountMap = coupons.stream()
-                .collect(Collectors.groupingBy(PosMemberCoupon::getRuleId, Collectors.counting()));
+        Map<Long, Long> ruleCountMap = memberCouponWalletQuery.countUnusedCouponsByRuleId(memberId);
+        if (ruleCountMap.isEmpty()) return new java.util.ArrayList<>();
         List<PosCouponRule> rules = posCouponRuleMapper.selectBatchIds(ruleCountMap.keySet());
         List<Map<String, Object>> result = new ArrayList<>();
         for (PosCouponRule rule : rules) {

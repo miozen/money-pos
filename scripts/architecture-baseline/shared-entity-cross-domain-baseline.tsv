@@ -1,5 +1,3 @@
 # source Feature<TAB>Entity owner<TAB>relative source path<TAB>Entity<TAB>import form
 trade	ums	com/money/feature/trade/application/coupon/CouponRuleManagementService.java	PosCouponRule	single
 trade	ums	com/money/feature/trade/application/coupon/CouponRuleManagementServiceImpl.java	PosCouponRule	single
-trade	ums	com/money/feature/trade/application/coupon/CouponRuleManagementServiceImpl.java	PosMemberCoupon	single
-trade	ums	com/money/feature/trade/application/coupon/MemberCouponCountQueryService.java	PosMemberCoupon	single

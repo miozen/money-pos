@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.constant.CouponStatusEnum;
 import com.money.contract.member.MemberSettlementCommand;
 import com.money.contract.member.MemberSettlementCommandHandler;
-import com.money.entity.PosMemberCoupon;
+import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;

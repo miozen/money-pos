@@ -1,9 +1,10 @@
-package com.money.entity;
+package com.money.feature.ums.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -13,7 +14,7 @@ public class PosMemberCoupon {
     private Long id;
     private Long memberId;
     private Long ruleId;
-    private String status; // UNUSED, USED, EXPIRED
+    private String status;
     private String orderNo;
     private LocalDateTime getTime;
     private LocalDateTime useTime;

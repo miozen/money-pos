@@ -1598,3 +1598,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - The member-coupon asset is UMS-owned. TRADE uses it only for unused-coupon counts by member/rule; the legacy printer only needs the unused count. AD-2.51 will replace those reads with an API-neutral wallet/count query before moving the Entity.
 - Orders, order details, coupon rules and members remain deferred for their core transaction, public JSON, compatibility or broad workflow surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.51 UMS member-coupon Entity physical-ownership migration.
+
+### Completed: AD-2.51 UMS Member-Coupon Entity Physical-Ownership Migration
+
+- Moved `PosMemberCoupon` from `money-app-api: com.money.entity` to `feature.ums.infrastructure.persistence.entity`; updated its Mapper, UMS asset/import/profile/recharge consumers and affected tests.
+- Moved the existing batch unused-count contract implementation into UMS and added `MemberCouponWalletQuery` for immutable rule-to-unused-count snapshots. TRADE coupon management and the legacy printer now consume contracts rather than the UMS Entity or Mapper.
+- Added UMS Mapper CRUD and wallet/count query regressions; retained checkout/refund, coupon-rule card-pack and member-asset export coverage. AUTO ID, table/indexes, FIFO and concurrent consumption guard, refund restoration, recharge behavior, routes, DTOs, Flyway and transaction boundaries remain unchanged.
+- Removed the two retired TRADE-to-UMS Entity bridges. Registry is 4; shared Feature imports are 33, owner-local uses 35, documented bridges 2 and wildcard paths 2. Isolated full regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.52 twenty-sixth shared-Entity slice selection.

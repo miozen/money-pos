@@ -6,7 +6,7 @@ import com.money.contract.member.PosCouponRuleSnapshot;
 import com.money.contract.member.PosMemberBenefitQuery;
 import com.money.contract.member.PosMemberBenefitSnapshot;
 import com.money.entity.PosCouponRule;
-import com.money.entity.PosMemberCoupon;
+import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.mapper.PosCouponRuleMapper;
 import com.money.mapper.PosMemberCouponMapper;
 import lombok.RequiredArgsConstructor;
