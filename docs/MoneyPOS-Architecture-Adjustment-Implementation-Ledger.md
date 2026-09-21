@@ -1510,3 +1510,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained all fields and null/default behavior, price-matrix merge/delete behavior, Excel import/export, checkout/POS Entity-free snapshots, the Excel manager's wildcard import and existing SYS bridge, routes, DTOs, table and Flyway. No API copy or old FQCN remains.
 - Registry fell 14→13; shared Feature import files fell 60→59 and owner-local uses fell 91→84. Cross-owner bridges (6) and wildcard baseline (3) are unchanged. Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.34 seventeenth shared-Entity slice selection.
+
+### Completed: AD-2.34 Seventeenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.34-Seventeenth-Entity-Slice-Selection.md`. It re-audits all 13 remaining registered shared Entities and selects UMS `UmsMemberBrandLevel` as the sole AD-2.35 migration target.
+- Production Entity use is one legacy Mapper plus five UMS-local member-matrix, import, Excel and Entity-free profile/checkout-snapshot consumers. The Mapper's HOME distribution query returns aggregation Maps and TRADE has no production Entity/Mapper import; its test fixture is not a production contract.
+- AD-2.35 will retain explicit `ums_member_brand_level`, AUTO ID, every field, `uk_member_brand`, audit/tenant columns, the Mapper's orphan/deleted-member filtering SQL, matrix delete-and-save/import-merge behavior, Excel and HOME/checkout/POS snapshot contracts. It will add Mapper CRUD coverage and retain existing UMS/TRADE integration regressions. Registry is expected to fall 13→12, shared-import files 59→55 and owner-local uses 84→79; bridges (6) and wildcard baseline (3) must not expand.
+- GMS stock/catalog, SYS bridge, UMS asset/coupon/member and TRADE order candidates remain deferred for wider HTTP, transaction, compatibility or cross-owner surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.35 UMS member-brand-level Entity physical-ownership migration.

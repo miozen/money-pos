@@ -19,6 +19,33 @@ $wslScript | wsl.exe -d Ubuntu -- bash -s
 
 简单的无变量只读命令可以直接使用 `wsl.exe -d Ubuntu -- bash -lc 'cd ... && git status -sb'`。只要命令含有上述 Bash 语法，就必须通过 here-string 的标准输入执行 `bash -s`，不得将其作为 `bash -lc` 的命令行参数。若报错来自 `ParserError`、PowerShell 或 Windows 路径，先修正外层封装；不得误报为 WSL、Maven 或数据库失败，也不得重复消耗测试执行。
 
+### GitHub SSH-over-443 与网络节点排障
+
+本仓库维持 SSH 远端 `git@github.com:miozen/money-pos.git`。受限网络下，WSL 的 `~/.ssh/config` 应将 GitHub
+SSH 显式路由到 GitHub 的 443 端口：
+
+```sshconfig
+Host github.com
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+```
+
+开始接力或推送异常时，先在**实际执行 Git 的同一 WSL 终端和同一代理节点**检查：
+
+```bash
+ssh -T -o ConnectTimeout=10 git@github.com
+git push origin dev
+git fetch origin
+git status -sb
+```
+
+`ssh -T` 出现认证成功提示、而 `git push` 在 `kex_exchange_identification` 或连接重置处失败，通常是当前
+代理节点/网络路径问题，不是提交、分支或密钥问题。切换到可用节点后重试上述命令；不要改写历史、切换 HTTPS
+或重复创建提交。自动工具宿主与交互 WSL 的网络路径可能不同，只有实际 Git 命令所在终端的成功推送与
+`ahead=0`/`behind=0` 才能作为接力闭环证据。
+
 
 ## 强制的编号任务闭环
 

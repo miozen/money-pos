@@ -71,7 +71,8 @@
 | AD-2.31 | GMS 库存单据主表 Entity 物理归属迁移 | 已关闭 | 已将 `GmsInventoryDoc` 移至 GMS 持久化实体包，更新遗留 Mapper、四个 GMS 消费者和受影响测试，并补 Mapper、库存单据、结账/退款与财务快照回归。 | Mapper/Controller/DTO、跨域契约、显式表名、BaseEntity/ID 行为、库存事务、快照口径、表/Flyway/唯一键未改；所有权登记降至 14，Feature 共享 import 降至 60。 |
 | AD-2.32 | 第十六个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 GMS `PosSkuLevelPrice`，并确认遗留 Mapper、七个本域商品价格/快照/Excel 消费者、无生产跨域 Entity 外泄与必补 Mapper/商品/Excel/POS 快照回归。见 `MoneyPOS-AD-2.32-Sixteenth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；保留 AUTO ID、价格矩阵合并、既有通配符及 SYS 桥、快照口径、表/Flyway/索引。 |
 | AD-2.33 | GMS 商品等级价格 Entity 物理归属迁移 | 已关闭 | 已将 `PosSkuLevelPrice` 移至 GMS 持久化实体包，更新 Mapper、七个本域商品消费者及受影响测试，并补 Mapper、价格矩阵、Excel、结账与 POS 快照回归。 | Mapper/Controller/DTO、跨域契约、显式表名、AUTO ID、价格矩阵合并、通配符/SYS 桥、快照口径、表/Flyway/索引未改；所有权登记降至 13，Feature 共享 import 降至 59。 |
-| AD-2.34 | 第十七个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点余下 13 个已登记共享 Entity 的生产消费者、跨域契约与回归面，选择唯一下一迁移切片并形成设计文档。 | 只做选择和边界设计；不得迁移 Entity、扩大 additions-only 基线、改变 HTTP/表/Flyway/事务或预先实施下一切片。 |
+| AD-2.34 | 第十七个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 UMS `UmsMemberBrandLevel`，并确认遗留 Mapper、五个 UMS 矩阵/快照/Excel 消费者、无生产跨域 Entity 外泄与必补 Mapper/导入/HOME/结账/POS 回归。见 `MoneyPOS-AD-2.34-Seventeenth-Entity-Slice-Selection.md`。 | 不在选择任务中移动 Entity；保留 AUTO ID、唯一键、聚合 SQL、会员矩阵写入、快照口径、表/Flyway。 |
+| AD-2.35 | UMS 会员品牌等级 Entity 物理归属迁移 | 待实施 | 将 `UmsMemberBrandLevel` 移至 UMS 持久化实体包，更新 Mapper、五个 UMS 消费者和受影响测试，并补 Mapper、会员导入、HOME、Excel、结账与 POS 快照回归。 | 不移动 Mapper/Controller/DTO 或跨域契约；不改表名、AUTO ID、唯一键、聚合 SQL、会员矩阵语义、表/Flyway。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -91,10 +92,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.34**：重新盘点并选择第十七个共享 Entity 物理归属迁移切片。
+1. **AD-2.35**：迁移 UMS `UmsMemberBrandLevel` 到持久化实体包，并补会员矩阵、HOME、Excel、结账与 POS 快照回归。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.34：第十七个共享 Entity 物理归属迁移切片选择。**
+**AD-2.35：UMS 会员品牌等级 Entity 物理归属迁移。**
