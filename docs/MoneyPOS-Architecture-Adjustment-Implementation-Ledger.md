@@ -1553,3 +1553,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Moved `GmsBrand` from `money-app-api: com.money.entity` to `feature.gms.infrastructure.persistence.entity`; updated the legacy Mapper, GMS brand/name/selection/Excel consumers and affected local test fixtures.
 - Added `GmsBrandMapperIntegrationTest` for the local `BaseEntity` mapping, generated assigned ID, all brand fields, audit readback, update and deletion. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace check passed.
 - Registry fell 11→10; scan reports shared Feature imports 55→52 and owner-local uses 72→67. Bridges (6) and wildcard baseline (3) remain unchanged. Next: AD-2.40 twentieth shared-Entity slice selection.
+
+### Completed: AD-2.40 Twentieth Shared-Entity Physical-Ownership Slice Selection
+
+- Selected GMS `GmsStockLog` as the sole AD-2.41 target; its inventory write/query/analysis, legacy Mapper/service and Controller are GMS-local.
+- AD-2.41 retains AUTO ID, stock/cost snapshots, transaction and pagination/JSON behavior, table/Flyway and existing regressions; it adds Mapper CRUD coverage.
+- Next: AD-2.41 GMS stock-log Entity physical-ownership migration.
