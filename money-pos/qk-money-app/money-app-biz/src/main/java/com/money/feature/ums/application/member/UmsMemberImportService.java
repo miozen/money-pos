@@ -11,7 +11,7 @@ import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
-import com.money.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberLogMapper;

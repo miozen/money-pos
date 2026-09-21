@@ -7,7 +7,7 @@ import com.money.contract.member.MemberSettlementCommand;
 import com.money.contract.member.MemberSettlementCommandHandler;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;

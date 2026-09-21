@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.dto.Ums.RechargeDTO;
 import com.money.entity.PosMemberCoupon;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberLogMapper;

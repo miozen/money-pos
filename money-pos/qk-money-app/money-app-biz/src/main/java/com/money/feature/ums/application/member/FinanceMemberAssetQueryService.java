@@ -7,7 +7,7 @@ import com.money.contract.member.FinanceMemberAssetQuery;
 import com.money.contract.member.FinanceMemberRechargeSnapshot;
 import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
 import com.money.entity.UmsMember;
-import com.money.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
 import lombok.RequiredArgsConstructor;

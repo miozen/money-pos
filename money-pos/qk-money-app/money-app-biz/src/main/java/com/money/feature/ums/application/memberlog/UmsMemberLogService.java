@@ -1,7 +1,7 @@
 package com.money.feature.ums.application.memberlog;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.money.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.web.vo.PageVO;
 import com.money.dto.UmsMember.UmsMemberLogQueryDTO;
 import com.money.dto.UmsMember.UmsMemberLogVO;
