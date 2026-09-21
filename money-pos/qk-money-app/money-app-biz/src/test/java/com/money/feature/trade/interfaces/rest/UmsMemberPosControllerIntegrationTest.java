@@ -74,7 +74,7 @@ class UmsMemberPosControllerIntegrationTest {
     @Test
     void posSearchReturnsMemberSnapshotWithBalanceAndBrandLevels() {
         String suffix = Long.toString(System.nanoTime(), 36);
-        com.money.entity.UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("18.00"));
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("18.00"));
         PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("20.00"), new BigDecimal("5.00"));
         tradeFixture.issueCoupon(member.getId(), rule.getId());
         GmsBrand brand = new GmsBrand();

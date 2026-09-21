@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.dto.Ums.RechargeDTO;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.mapper.PosMemberCouponMapper;

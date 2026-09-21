@@ -41,12 +41,12 @@ run_case() {
   fi
 }
 
-write_java 'com/money/feature/ums/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.UmsMember;\nclass OwnerLocal { UmsMember member; }'
+write_java 'com/money/feature/trade/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.OmsOrder;\nclass OwnerLocal { OmsOrder order; }'
 run_case owner_local 0 'Shared Entity additions-only gate passed.'
 
-write_java 'com/money/feature/trade/application/NewCrossOwner.java' $'package fixture;\nimport com.money.entity.UmsMember;\nclass NewCrossOwner { UmsMember member; }'
-run_case new_cross_owner 1 'new cross-owner Entity: trade → ums'
-rm -f "$fixture_source/com/money/feature/trade/application/NewCrossOwner.java"
+write_java 'com/money/feature/gms/application/NewCrossOwner.java' $'package fixture;\nimport com.money.entity.OmsOrder;\nclass NewCrossOwner { OmsOrder order; }'
+run_case new_cross_owner 1 'new cross-owner Entity: gms → trade'
+rm -f "$fixture_source/com/money/feature/gms/application/NewCrossOwner.java"
 
 write_java 'com/money/feature/gms/application/NewWildcard.java' $'package fixture;\nimport com.money.entity.*;\nclass NewWildcard { GmsGoods goods; }'
 run_case new_wildcard 1 'new wildcard Entity import: gms → unknown'

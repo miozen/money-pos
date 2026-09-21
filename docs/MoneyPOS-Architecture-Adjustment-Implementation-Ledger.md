@@ -1643,3 +1643,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - UMS owns every production Entity/Mapper consumer: profile, import, asset, log, recharge, checkout/POS and FIN/HOME query implementations. Public member routes already use DTO/VO, and TRADE/FIN/HOME use existing Entity-free contracts, so no new compatibility bridge is needed.
 - `OmsOrder` remains deferred as the wider TRADE transaction aggregate and report source. AD-2.57 must retain member archive, asset, recharge/reversal, checkout/refund, coupon/log, POS/rank and FIN/HOME behavior, including existing table/Flyway and transaction semantics.
 - Next: AD-2.57 UMS member Entity physical-ownership migration.
+
+### Completed: AD-2.57 UMS Member Entity Physical-Ownership Migration
+
+- Moved `UmsMember` from `money-app-api: com.money.entity` to `feature.ums.infrastructure.persistence.entity`; updated its legacy Mapper, UMS profile/import/asset/log/recharge/query consumers, and affected test fixtures.
+- Added `UmsMemberMapperIntegrationTest`, covering the UMS-local `BaseEntity` mapping and ID, every persisted archive/contact/asset/visit/delete/tenant/level field, update and deletion.
+- Retained member routes/DTO/VO, logical-delete scope, import, asset export, recharge/reversal, atomic balance operations, checkout/refund, coupon/log, POS/rank and FIN/HOME snapshot behavior, table/Flyway and transaction boundaries.
+- Registry is 1; shared Feature imports are 12, owner-local uses 12, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.58 twenty-ninth shared-Entity slice selection.

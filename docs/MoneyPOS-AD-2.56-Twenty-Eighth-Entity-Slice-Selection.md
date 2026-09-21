@@ -42,3 +42,10 @@ POS/结账档案和 FIN/HOME 读模型实现均在 UMS 内；`/ums/member` 接�
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.57 的生产改造。
+
+## AD-2.57 实施结果
+
+`UmsMember` 已迁至 `feature.ums.infrastructure.persistence.entity`。遗留 Mapper、UMS 档案、导入、资产、
+日志、充值、查询和受影响测试/夹具均已使用本地 Entity；新增 UMS Mapper CRUD 回归覆盖 BaseEntity/ID、
+全部档案与资产字段、更新和删除。会员路由/DTO/VO、逻辑删除、导入、资产、充值红冲、结账退款、券/日志、
+POS/排行、FIN/HOME、表/Flyway 和事务语义未变。

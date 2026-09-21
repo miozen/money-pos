@@ -41,7 +41,7 @@
 
 ## 当前基线与已完成架构工作
 
-接力前已同步基线是 **`eb7bc90 feat(ad-2.55): migrate order detail entity`**；AD-2.56 已在本地完成并待提交/推送。此前的相邻架构提交见 `git log --oneline`。
+接力前已同步基线是 **`427b30e docs(ad-2.56): select member migration`**；AD-2.57 已在本地完成并待提交/推送。此前的相邻架构提交见 `git log --oneline`。
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -65,23 +65,21 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 25 个 Feature 文件，所有权登记为 2、跨域桥为 0、通配符路径为 2；文件总数仍为报告型债务。`--check-new`
+均为 0；共享 `com.money.entity` import 当前为 12 个 Feature 文件，所有权登记为 1、跨域桥为 0、通配符路径为 2；文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.57
+## 当前任务：AD-2.58
 
-**UMS `UmsMember` Entity 物理归属迁移。**
+**重新盘点最后一个共享 Entity `OmsOrder`，选择迁移实施边界。**
 
-先完整阅读实施台账、债务清单和 `MoneyPOS-AD-2.56-Twenty-Eighth-Entity-Slice-Selection.md`。将
-`UmsMember` 迁入 UMS 持久化边界，更新 Mapper、档案、导入、资产、日志、充值、查询、Controller 和测试。
+先完整阅读实施台账、债务清单，并重新盘点 `OmsOrder` 的生产消费面、跨域契约、资源 FQCN 与可回归行为。
 
-- 保持会员路由/DTO/VO、逻辑删除、导入、资产 Excel、充值/红冲、余额原子扣减、结账/退款、券/日志、POS/排行与 FIN/HOME 快照；不得改变表/Flyway、事务边界或业务公式。
-- 新增 UMS 本地 Mapper CRUD 回归，并保留会员管理、导入、资产、充值、结账/退款、POS、排行和 FIN/HOME 回归。
-- 以 AD-2.55 后扫描实测为基线：共享 Feature import 25、所有权登记 2、跨域桥 0、通配符路径 2；完成后预期登记 1，桥和通配符不得扩大。
+- 仅发布选择设计；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
+- 以 AD-2.57 后扫描实测为选择基线：共享 Feature import 12、所有权登记 1、跨域桥 0、通配符路径 2；桥与通配符不得扩大。
 
 ## 后续编号顺序
 
-AD-2.57 是唯一允许开始的迁移切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
+AD-2.58 只能重新盘点并选择最后一个迁移切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

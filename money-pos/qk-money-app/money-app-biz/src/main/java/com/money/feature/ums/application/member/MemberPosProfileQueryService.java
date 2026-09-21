@@ -3,7 +3,7 @@ package com.money.feature.ums.application.member;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.MemberPosProfileQuery;
 import com.money.contract.member.MemberPosProfileSnapshot;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;

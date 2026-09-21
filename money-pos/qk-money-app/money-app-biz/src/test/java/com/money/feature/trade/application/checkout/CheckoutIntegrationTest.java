@@ -7,7 +7,7 @@ import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
 import com.money.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;

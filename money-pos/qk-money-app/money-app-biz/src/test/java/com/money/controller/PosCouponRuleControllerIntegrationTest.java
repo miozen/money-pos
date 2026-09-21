@@ -2,7 +2,7 @@ package com.money.controller;
 
 import com.money.contract.member.CouponRuleManagementCommand;
 import com.money.contract.member.CouponRuleManagementSnapshot;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.support.TradeFixture;
 import com.money.web.vo.PageVO;
 import com.fasterxml.jackson.databind.ObjectMapper;

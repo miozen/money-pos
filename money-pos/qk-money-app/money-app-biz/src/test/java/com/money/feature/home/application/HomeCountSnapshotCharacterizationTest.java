@@ -249,7 +249,7 @@ class HomeCountSnapshotCharacterizationTest {
     void dailySnapshotUsesUmsOwnedNewMemberCount() {
         LocalDate today = LocalDate.now();
         int before = homeDailyMemberQuery.countNewMembers(today);
-        com.money.entity.UmsMember member = tradeFixture.createMember("home" + (System.nanoTime() % 1_000_000),
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = tradeFixture.createMember("home" + (System.nanoTime() % 1_000_000),
                 BigDecimal.ZERO);
         member.setCreateTime(today.atTime(12, 0));
         umsMemberMapper.updateById(member);

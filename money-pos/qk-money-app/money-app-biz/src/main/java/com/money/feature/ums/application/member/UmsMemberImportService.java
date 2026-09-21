@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.mapper.PosMemberCouponMapper;

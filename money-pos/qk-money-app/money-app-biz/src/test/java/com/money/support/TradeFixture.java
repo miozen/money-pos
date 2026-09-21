@@ -3,7 +3,7 @@ package com.money.support;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.mapper.GmsGoodsMapper;

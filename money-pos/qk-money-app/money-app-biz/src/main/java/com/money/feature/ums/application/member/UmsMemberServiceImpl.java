@@ -7,7 +7,7 @@ import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.dto.UmsMember.MemberRankVO;
 import com.money.dto.UmsMember.MemberGoodsRankVO;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.application.memberasset.UmsMemberAssetService;
 import com.money.feature.ums.application.memberasset.UmsMemberRechargeService;
 import com.money.mapper.UmsMemberMapper;

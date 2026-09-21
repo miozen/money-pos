@@ -2,7 +2,7 @@ package com.money.feature.ums.application.member;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.HomeDailyMemberQuery;
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.mapper.UmsMemberMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

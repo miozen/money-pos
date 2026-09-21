@@ -1,6 +1,6 @@
 package com.money.feature.ums.application.member;
 
-import com.money.entity.UmsMember;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.web.vo.PageVO;
 import com.money.dto.UmsMember.UmsMemberDTO;
