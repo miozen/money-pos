@@ -41,7 +41,7 @@ run_case() {
   fi
 }
 
-write_java 'com/money/feature/gms/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.GmsGoods;\nclass OwnerLocal { GmsGoods goods; }'
+write_java 'com/money/feature/sys/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.SysStrategy;\nclass OwnerLocal { SysStrategy strategy; }'
 run_case owner_local 0 'Shared Entity additions-only gate passed.'
 
 write_java 'com/money/feature/trade/application/coupon/CouponRuleManagementService.java' $'package fixture;\nimport com.money.entity.PosCouponRule;\nclass CouponRuleManagementService { PosCouponRule rule; }'

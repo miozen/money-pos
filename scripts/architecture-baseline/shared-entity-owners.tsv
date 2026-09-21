@@ -1,5 +1,4 @@
 # Entity simple name<TAB>owning Feature
-GmsGoods	gms
 OmsOrder	trade
 OmsOrderDetail	trade
 PosCouponRule	ums

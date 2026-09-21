@@ -3,7 +3,7 @@ package com.money.feature.gms.application.inventory;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDocItem;

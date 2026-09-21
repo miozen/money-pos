@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.dto.GmsGoods.GmsGoodsDTO;
 import com.money.dto.GmsGoods.GmsGoodsQueryDTO;
 import com.money.dto.GmsGoods.GmsGoodsVO;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.web.vo.PageVO;
 import org.springframework.web.multipart.MultipartFile;
 

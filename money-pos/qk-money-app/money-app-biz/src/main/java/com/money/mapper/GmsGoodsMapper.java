@@ -1,7 +1,7 @@
 package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 

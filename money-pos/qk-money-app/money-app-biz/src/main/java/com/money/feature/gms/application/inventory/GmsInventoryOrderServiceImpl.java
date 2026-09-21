@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.money.dto.inventory.GmsInventoryOrderDTO;
 import com.money.dto.inventory.GmsInventoryOrderDetailDTO;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrderDetail;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryOrder;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsStockLog;

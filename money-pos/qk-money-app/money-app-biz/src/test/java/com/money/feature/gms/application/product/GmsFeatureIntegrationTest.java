@@ -8,7 +8,7 @@ import com.money.dto.GmsGoods.GmsGoodsComboDTO;
 import com.money.dto.GmsGoods.GmsGoodsDTO;
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;

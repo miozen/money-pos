@@ -3,7 +3,7 @@ package com.money.feature.gms.application.product;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.CheckoutGoodsQuery;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;

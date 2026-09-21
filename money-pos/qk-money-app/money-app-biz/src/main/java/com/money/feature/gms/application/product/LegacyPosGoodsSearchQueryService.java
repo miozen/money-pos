@@ -3,7 +3,7 @@ package com.money.feature.gms.application.product;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.LegacyPosGoodsSearchQuery;
 import com.money.contract.goods.LegacyPosGoodsSearchSnapshot;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.mapper.GmsGoodsMapper;
 import lombok.RequiredArgsConstructor;

@@ -3,7 +3,7 @@ package com.money.feature.trade.application.checkout;
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
 import com.money.constant.BizErrorStatus;
-import com.money.entity.GmsGoods;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
 import com.money.entity.OmsOrder;
 import com.money.entity.OmsOrderDetail;
