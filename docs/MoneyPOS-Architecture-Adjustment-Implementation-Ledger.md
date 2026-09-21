@@ -1636,3 +1636,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained duplicate-checkout recovery, stock deduction/restoration timing, `refundGoodsAtomically` quantity guard and `REFUNDED` transition, partial/full refund behavior, order DTO, printing/report query semantics, table/Flyway and transaction boundaries.
 - Registry is 2; shared Feature imports are 25, owner-local uses 25, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.56 twenty-eighth shared-Entity slice selection.
+
+### Completed: AD-2.56 Twenty-Eighth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.56-Twenty-Eighth-Entity-Slice-Selection.md` after re-auditing the two remaining registered shared Entity types. It selects UMS `UmsMember` as the sole AD-2.57 migration target.
+- UMS owns every production Entity/Mapper consumer: profile, import, asset, log, recharge, checkout/POS and FIN/HOME query implementations. Public member routes already use DTO/VO, and TRADE/FIN/HOME use existing Entity-free contracts, so no new compatibility bridge is needed.
+- `OmsOrder` remains deferred as the wider TRADE transaction aggregate and report source. AD-2.57 must retain member archive, asset, recharge/reversal, checkout/refund, coupon/log, POS/rank and FIN/HOME behavior, including existing table/Flyway and transaction semantics.
+- Next: AD-2.57 UMS member Entity physical-ownership migration.
