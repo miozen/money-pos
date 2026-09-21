@@ -2,7 +2,7 @@ package com.money.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.SysBrandConfig.BrandPricingPolicy;
-import com.money.entity.SysBrandConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysBrandConfig;
 import com.money.mapper.SysBrandConfigMapper;
 import com.money.service.SysBrandConfigService;
 import lombok.RequiredArgsConstructor;

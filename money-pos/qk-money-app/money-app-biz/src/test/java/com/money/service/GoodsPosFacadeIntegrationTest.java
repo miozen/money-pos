@@ -4,7 +4,7 @@ import com.money.contract.goods.LegacyPosGoodsSearchQuery;
 import com.money.dto.GmsGoods.GmsGoodsVO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
-import com.money.entity.SysBrandConfig;
+import com.money.feature.sys.infrastructure.persistence.entity.SysBrandConfig;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.SysBrandConfigMapper;
@@ -103,6 +103,29 @@ class GoodsPosFacadeIntegrationTest {
             assertThat(vo.getLevelPrices()).containsEntry("VIP", new BigDecimal("8.50"));
             assertThat(vo.getLevelCoupons()).containsEntry("VIP", BigDecimal.ZERO);
         });
+    }
+
+    @Test
+    void legacySearchKeepsCouponsOnlyWhenBrandPolicyIsEnabledAndDefaultsMissingPolicyToOff() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        Long enabledBrandId = 3000L + Math.abs(System.nanoTime() % 100000L);
+        Long missingBrandId = enabledBrandId + 1;
+        GmsGoods enabledGoods = createGoods(suffix, "enabled-" + suffix, "enabled-name-" + suffix,
+                "enabled-mn-" + suffix, "SALE", enabledBrandId);
+        GmsGoods missingGoods = createGoods(suffix, "missing-" + suffix, "missing-name-" + suffix,
+                "missing-mn-" + suffix, "SALE", missingBrandId);
+        addPrice(enabledGoods.getId(), "VIP", new BigDecimal("8.50"), new BigDecimal("2.00"));
+        addPrice(missingGoods.getId(), "VIP", new BigDecimal("8.50"), new BigDecimal("2.00"));
+        SysBrandConfig enabledConfig = new SysBrandConfig();
+        enabledConfig.setBrand(String.valueOf(enabledBrandId));
+        enabledConfig.setCouponEnabled(true);
+        enabledConfig.setTenantId(0L);
+        brandConfigMapper.insert(enabledConfig);
+
+        assertThat(goodsPosFacade.posSearchGoods(enabledGoods.getBarcode())).singleElement()
+                .satisfies(vo -> assertThat(vo.getLevelCoupons()).containsEntry("VIP", new BigDecimal("2.00")));
+        assertThat(goodsPosFacade.posSearchGoods(missingGoods.getBarcode())).singleElement()
+                .satisfies(vo -> assertThat(vo.getLevelCoupons()).containsEntry("VIP", BigDecimal.ZERO));
     }
 
     private GmsGoods createGoods(String suffix, String barcode, String name, String mnemonicCode, String status, Long brandId) {

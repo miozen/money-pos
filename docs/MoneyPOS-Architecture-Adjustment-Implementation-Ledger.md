@@ -1583,3 +1583,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Published `MoneyPOS-AD-2.48-Twenty-Fourth-Entity-Slice-Selection.md` after re-auditing all six remaining shared Entity types. It selects SYS `SysBrandConfig` as the sole AD-2.49 migration target.
 - The selection requires a narrow Entity-free brand coupon-policy query for GMS Excel import and the legacy POS facade before moving the SYS Entity; this removes the existing GMS-to-SYS Entity bridge without broadening routes, tables, DTOs or transactions.
 - Next: AD-2.49 SYS brand-config Entity physical-ownership migration.
+
+### Completed: AD-2.49 SYS Brand-Config Entity Physical-Ownership Migration
+
+- Moved `SysBrandConfig` from `money-app-api: com.money.entity` to `feature.sys.infrastructure.persistence.entity`; updated the legacy Mapper, SYS configuration service and affected tests.
+- Added the API-neutral `BrandCouponPolicyQuery`. Its SYS implementation returns immutable brand-to-coupon-enabled snapshots, so the legacy POS facade and GMS Excel import no longer import the SYS Entity or Mapper.
+- Added SYS Mapper CRUD, POS enabled/disabled/missing-policy, and GMS Excel enabled/disabled-brand import regressions. Retained `sys_brand_config`, AUTO ID, tenant/audit fields, brand update-or-insert, POS coupon sanitization, Excel price/coupon semantics, routes, DTOs, Flyway and transaction boundaries.
+- Removed the retired GMS-to-SYS bridge and wildcard baseline. Registry is 5; shared Feature imports are 35, owner-local uses 41, documented bridges 4 and wildcard paths 2. Isolated full regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.50 twenty-fifth shared-Entity slice selection.

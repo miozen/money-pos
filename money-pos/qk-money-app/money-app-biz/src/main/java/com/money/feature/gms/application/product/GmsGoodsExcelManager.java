@@ -5,13 +5,12 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.money.entity.*;
+import com.money.contract.system.BrandCouponPolicyQuery;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.mapper.PosSkuLevelPriceMapper;
-import com.money.mapper.SysBrandConfigMapper;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;
 import com.money.service.SysDictDetailService;
@@ -36,7 +35,7 @@ public class GmsGoodsExcelManager {
     private final GmsGoodsCategoryService gmsGoodsCategoryService;
     private final GmsBrandService gmsBrandService;
     private final SysDictDetailService sysDictDetailService;
-    private final SysBrandConfigMapper sysBrandConfigMapper;
+    private final BrandCouponPolicyQuery brandCouponPolicyQuery;
     private final PosSkuLevelPriceMapper posSkuLevelPriceMapper;
 
     @SneakyThrows
@@ -53,13 +52,7 @@ public class GmsGoodsExcelManager {
         Map<String, String> dictReverseMap = sysDictDetailService.getValueToCnDescMap("memberType").entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (k1, k2) -> k1));
 
-        List<SysBrandConfig> brandConfigs = sysBrandConfigMapper.selectList(new LambdaQueryWrapper<>());
-        Map<String, Boolean> brandDualTrackRadar = new HashMap<>();
-        if (brandConfigs != null) {
-            for (SysBrandConfig config : brandConfigs) {
-                if (config.getCouponEnabled() != null) brandDualTrackRadar.put(config.getBrand(), config.getCouponEnabled());
-            }
-        }
+        Map<String, Boolean> brandDualTrackRadar = brandCouponPolicyQuery.findAllCouponEnabledByBrand();
 
         List<GmsGoods> parsedGoodsList = new ArrayList<>();
         Map<String, Map<String, BigDecimal>> skuLevelPriceMap = new HashMap<>();

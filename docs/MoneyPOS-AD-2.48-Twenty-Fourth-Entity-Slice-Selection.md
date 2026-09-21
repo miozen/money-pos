@@ -38,3 +38,10 @@
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.49 的生产改造。
+
+## AD-2.49 实施结果
+
+`SysBrandConfig` 已迁至 `feature.sys.infrastructure.persistence.entity`。新增 API 中立的
+`BrandCouponPolicyQuery`，由 SYS 实现为不可变的品牌券策略快照；遗留 POS 和 GMS Excel 导入均已改为
+消费该契约，不再导入 SYS Entity 或 Mapper。SYS Mapper CRUD、POS 启用/关闭/缺失策略和 Excel
+启用/关闭品牌导入回归均已覆盖；路由、DTO、表/Flyway、配置保存与事务语义未变。

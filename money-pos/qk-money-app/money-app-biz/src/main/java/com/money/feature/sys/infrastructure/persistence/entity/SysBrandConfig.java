@@ -1,17 +1,14 @@
-package com.money.entity;
+package com.money.feature.sys.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
-/**
- * <p>
- * 品牌定价策略配置表
- * </p>
- */
+/** 品牌定价策略配置表。 */
 @Data
 @TableName("sys_brand_config")
 @Schema(description = "品牌定价策略配置表")

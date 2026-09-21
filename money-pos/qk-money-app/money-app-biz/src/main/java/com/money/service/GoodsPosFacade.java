@@ -2,10 +2,8 @@ package com.money.service;
 
 import com.money.contract.goods.LegacyPosGoodsSearchQuery;
 import com.money.contract.goods.LegacyPosGoodsSearchSnapshot;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.system.BrandCouponPolicyQuery;
 import com.money.dto.GmsGoods.GmsGoodsVO;
-import com.money.entity.SysBrandConfig;
-import com.money.mapper.SysBrandConfigMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,7 @@ import java.util.stream.Collectors;
 public class GoodsPosFacade {
 
     private final LegacyPosGoodsSearchQuery legacyPosGoodsSearchQuery;
-    private final SysBrandConfigMapper sysBrandConfigMapper;
+    private final BrandCouponPolicyQuery brandCouponPolicyQuery;
 
     /**
      * 核心：POS 收银台全能搜索与策略清洗
@@ -39,17 +37,8 @@ public class GoodsPosFacade {
         // 1. 提取品牌ID，批量拉取品牌定价策略网
         List<Long> brandIds = goodsList.stream().map(LegacyPosGoodsSearchSnapshot::getBrandId)
                 .filter(Objects::nonNull).distinct().collect(Collectors.toList());
-        Map<String, Boolean> brandCouponStrategyMap = new HashMap<>();
-
-        if (!brandIds.isEmpty()) {
-            List<SysBrandConfig> configs = sysBrandConfigMapper.selectList(
-                    new LambdaQueryWrapper<SysBrandConfig>()
-                            .in(SysBrandConfig::getBrand, brandIds.stream().map(String::valueOf).collect(Collectors.toList()))
-            );
-            for (SysBrandConfig config : configs) {
-                brandCouponStrategyMap.put(config.getBrand(), config.getCouponEnabled() != null ? config.getCouponEnabled() : false);
-            }
-        }
+        Map<String, Boolean> brandCouponStrategyMap = brandCouponPolicyQuery.findCouponEnabledByBrands(
+                brandIds.stream().map(String::valueOf).collect(Collectors.toList()));
 
         // 2. 组装吐给收银台的视图 (VO)，并执行绝对严格的清洗
         return goodsList.stream().map(goods -> {

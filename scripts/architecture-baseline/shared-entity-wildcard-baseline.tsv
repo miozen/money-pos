@@ -1,4 +1,3 @@
 # relative source path
-com/money/feature/gms/application/product/GmsGoodsExcelManager.java
 com/money/feature/trade/application/orderquery/OmsOrderServiceImpl.java
 com/money/feature/trade/application/refund/OmsOrderRefundServiceImpl.java

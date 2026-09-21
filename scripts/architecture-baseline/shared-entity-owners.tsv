@@ -3,5 +3,4 @@ OmsOrder	trade
 OmsOrderDetail	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
-SysBrandConfig	sys
 UmsMember	ums
