@@ -1502,3 +1502,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.33 will retain explicit `pos_sku_level_price`, AUTO ID, all fields, null/default behavior, the legacy Mapper scan root, price-matrix merge/delete semantics, Excel output, checkout and POS snapshot contracts. It will add Mapper CRUD coverage and retain existing product, Excel and legacy POS regressions. Registry is expected to fall 14→13, shared-import files 60→59 and owner-local uses 91→84; bridges (6) and wildcard baseline (3) must not expand.
 - GMS stock/log/catalog candidates remain deferred for HTTP or algorithmic surfaces; SYS candidates retain GMS bridges; UMS candidates retain member-asset workflows; TRADE orders retain core transaction and compatibility surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.33 GMS SKU-level-price Entity physical-ownership migration.
+
+### Completed: AD-2.33 GMS SKU-Level-Price Entity Physical-Ownership Migration
+
+- Moved `PosSkuLevelPrice` from `money-app-api: com.money.entity` to `feature.gms.infrastructure.persistence.entity`. Updated only the legacy Mapper, six explicit GMS product consumers, the existing GMS Excel-manager wildcard consumer and affected test imports; Mapper package and scan root remain unchanged.
+- Added `PosSkuLevelPriceMapperIntegrationTest`, covering the GMS-local Entity's AUTO ID, explicit `pos_sku_level_price` mapping, every persisted price-matrix field, update and deletion. Existing GMS product, Excel, checkout and legacy POS snapshot regressions now use the local type.
+- Retained all fields and null/default behavior, price-matrix merge/delete behavior, Excel import/export, checkout/POS Entity-free snapshots, the Excel manager's wildcard import and existing SYS bridge, routes, DTOs, table and Flyway. No API copy or old FQCN remains.
+- Registry fell 14→13; shared Feature import files fell 60→59 and owner-local uses fell 91→84. Cross-owner bridges (6) and wildcard baseline (3) are unchanged. Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace validation passed.
+- Next: AD-2.34 seventeenth shared-Entity slice selection.

@@ -3,7 +3,7 @@ package com.money.service;
 import com.money.contract.goods.LegacyPosGoodsSearchQuery;
 import com.money.dto.GmsGoods.GmsGoodsVO;
 import com.money.entity.GmsGoods;
-import com.money.entity.PosSkuLevelPrice;
+import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.entity.SysBrandConfig;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.mapper.PosSkuLevelPriceMapper;

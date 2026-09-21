@@ -5,7 +5,7 @@ import com.money.contract.goods.CheckoutGoodsQuery;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.entity.GmsGoods;
 import com.money.entity.GmsGoodsCategory;
-import com.money.entity.PosSkuLevelPrice;
+import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.mapper.GmsGoodsMapper;
 import lombok.RequiredArgsConstructor;

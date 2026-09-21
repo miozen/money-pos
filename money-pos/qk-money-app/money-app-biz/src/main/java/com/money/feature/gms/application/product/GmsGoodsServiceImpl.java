@@ -12,7 +12,7 @@ import com.money.dto.GmsGoods.GmsGoodsQueryDTO;
 import com.money.dto.GmsGoods.GmsGoodsVO;
 import com.money.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
-import com.money.entity.PosSkuLevelPrice;
+import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.mapper.GmsGoodsMapper;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;

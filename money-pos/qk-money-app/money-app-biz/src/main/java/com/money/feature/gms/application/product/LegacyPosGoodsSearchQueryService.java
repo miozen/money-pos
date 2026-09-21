@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.LegacyPosGoodsSearchQuery;
 import com.money.contract.goods.LegacyPosGoodsSearchSnapshot;
 import com.money.entity.GmsGoods;
-import com.money.entity.PosSkuLevelPrice;
+import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.mapper.GmsGoodsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

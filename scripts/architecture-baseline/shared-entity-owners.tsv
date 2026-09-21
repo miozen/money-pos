@@ -7,7 +7,6 @@ OmsOrder	trade
 OmsOrderDetail	trade
 PosCouponRule	ums
 PosMemberCoupon	ums
-PosSkuLevelPrice	gms
 SysBrandConfig	sys
 SysStrategy	sys
 UmsMember	ums
