@@ -1,6 +1,6 @@
 package com.money.service.impl;
 
-import com.money.entity.SysStrategy;
+import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
 import com.money.mapper.SysStrategyMapper;
 import com.money.service.SysStrategyService;
 import lombok.RequiredArgsConstructor;

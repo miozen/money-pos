@@ -4,11 +4,11 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.TurnoverDataVO.*;
-import com.money.entity.SysStrategy;
+import com.money.contract.system.TurnoverStrategyQuery;
+import com.money.contract.system.TurnoverStrategySnapshot;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsTurnoverWarningSnapshot;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverMapper;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverWarningSnapshotMapper; // 🌟 新增的快照 Mapper
-import com.money.mapper.SysStrategyMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class GmsTurnoverServiceImpl implements GmsTurnoverService {
 
     private final GmsTurnoverMapper gmsTurnoverMapper;
-    private final SysStrategyMapper sysStrategyMapper;
+    private final TurnoverStrategyQuery turnoverStrategyQuery;
     private final GmsTurnoverWarningSnapshotMapper snapshotMapper; // 🌟 注入快照库
 
     @Override
@@ -34,14 +34,14 @@ public class GmsTurnoverServiceImpl implements GmsTurnoverService {
         List<WarningItemVO> replenishList = new ArrayList<>();
         List<WarningItemVO> deadStockList = new ArrayList<>();
 
-        SysStrategy strategy = sysStrategyMapper.getGlobalStrategy();
+        TurnoverStrategySnapshot strategy = turnoverStrategyQuery.getTurnoverStrategy();
         int leadTimeDays = 3;
         int targetStockDays = 14;
         int deadStockThreshold = 60;
 
         if (strategy != null) {
-            if (strategy.getTurnoverLeadTime() != null) leadTimeDays = strategy.getTurnoverLeadTime();
-            if (strategy.getTurnoverTargetDays() != null) targetStockDays = strategy.getTurnoverTargetDays();
+            if (strategy.getLeadTimeDays() != null) leadTimeDays = strategy.getLeadTimeDays();
+            if (strategy.getTargetStockDays() != null) targetStockDays = strategy.getTargetStockDays();
             if (strategy.getDeadStockDays() != null) deadStockThreshold = strategy.getDeadStockDays();
         }
 

@@ -1,6 +1,6 @@
 package com.money.controller;
 
-import com.money.entity.SysStrategy;
+import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
 import com.money.service.SysStrategyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

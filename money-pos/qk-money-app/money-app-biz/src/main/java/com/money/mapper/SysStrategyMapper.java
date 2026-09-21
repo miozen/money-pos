@@ -2,7 +2,7 @@ package com.money.mapper;
 
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.money.entity.SysStrategy;
+import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 

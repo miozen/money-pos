@@ -2,7 +2,7 @@ package com.money.service;
 
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.contract.system.FinanceTrafficStrategySnapshot;
-import com.money.entity.SysStrategy;
+import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
 import com.money.mapper.SysStrategyMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

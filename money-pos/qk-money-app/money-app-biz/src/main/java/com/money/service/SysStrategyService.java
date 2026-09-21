@@ -1,6 +1,6 @@
 package com.money.service;
 
-import com.money.entity.SysStrategy;
+import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
 
 /**
  * 全局经营策略的应用服务边界。
