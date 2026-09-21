@@ -9,7 +9,7 @@ import com.money.dto.GmsGoods.GmsGoodsDTO;
 import com.money.dto.GmsGoods.InventoryDocRequestDTO;
 import com.money.entity.GmsBrand;
 import com.money.entity.GmsGoods;
-import com.money.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;

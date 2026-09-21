@@ -7,7 +7,7 @@ import com.money.web.exception.BaseException;
 import com.money.dto.GmsGoodsCategory.GmsGoodsCategoryDTO;
 import com.money.dto.SelectVO;
 import com.money.dto.TreeNodeVO;
-import com.money.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;

@@ -1,7 +1,7 @@
 package com.money.feature.gms.application.catalog;
 
 import com.money.contract.goods.GoodsCategoryNameQuery;
-import com.money.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -69,19 +69,18 @@
 均为 0；共享 `com.money.entity` import 当前为 59 个 Feature 文件，文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.37
+## 当前任务：AD-2.38
 
-**迁移 GMS `GmsGoodsCategory` 到持久化实体包。**
+**选择第十九个共享 Entity 物理归属迁移切片。**
 
-先完整阅读 `MoneyPOS-AD-2.36-Eighteenth-Entity-Slice-Selection.md`。已固定的任务边界：
+先完整阅读实施台账、债务清单，并重新盘点余下 11 个已登记共享 Entity 的实际生产消费面、跨域契约、资源 FQCN 和可回归行为。
 
-- 只移动 `GmsGoodsCategory`，更新本域 Mapper、分类服务/名称查询、商品结账/Excel 消费者及受影响测试；不得移动 Mapper、Controller、DTO、其他 Entity、扫描根或跨域契约。
-- 保持显式 `gms_goods_category`、`BaseEntity`/ID、字段、审计/租户、图标事务、树/删除守卫、商品数、名称查询、Excel、结账/FIN 快照、路由/DTO、表/Flyway 不变。
-- 必须补 Mapper、分类树/守卫、商品 Excel、结账与 FIN 分类名称快照回归。当前所有权登记为 12，Feature 共享 Entity import 为 59 个文件、owner-local uses 为 79、跨所有者桥为 6、通配符基线为 3；预期迁移后前三项为 11、56、73，均为报告型指标，最终以实际扫描为准。
+- 只发布 AD-2.38 的选择设计；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
+- 当前所有权登记为 11；以迁移后的扫描实测为下一选择基线，桥与通配符不得扩大。
 
 ## 后续编号顺序
 
-AD-2.37 完成后，重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
+AD-2.38 只能重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约；不能把
 当前报告数量直接设为失败规则。
 
 ## Java 与设计约束

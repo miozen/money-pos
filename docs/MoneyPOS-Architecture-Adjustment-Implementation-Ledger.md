@@ -1534,3 +1534,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.37 will retain explicit `gms_goods_category`, `BaseEntity` and its existing ID behavior, every field/audit/tenant rule, icon upload transaction hooks, duplicate/child/goods delete guards, tree/recursive traversal, atomic goods count, Excel behavior and Entity-free checkout/FIN contracts. It will add Mapper CRUD coverage and retain category-tree/guard, Excel, checkout and FIN name regressions.
 - Brand/goods/stock candidates remain deferred for wider controller, catalog, inventory-command or legacy surfaces; SYS candidates retain GMS bridges; UMS member/coupon candidates retain assets, transactions or TRADE bridges; TRADE orders retain core transaction/print/report surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
 - Next: AD-2.37 GMS goods-category Entity physical-ownership migration.
+
+### Completed: AD-2.37 GMS Goods-Category Entity Physical-Ownership Migration
+
+- Moved `GmsGoodsCategory` from `money-app-api: com.money.entity` to `feature.gms.infrastructure.persistence.entity`; updated the existing GMS Mapper, category services/name query, checkout/Excel consumers and test fixtures.
+- Added `GmsGoodsCategoryMapperIntegrationTest`, covering the GMS-local Entity's inherited assigned ID/audit fields, explicit table mapping, category fields, update and deletion. Category, Excel, checkout and FIN regressions retain their existing Entity-free contracts.
+- Retained `BaseEntity`, table/Flyway, icon transaction hooks, tree/delete guards, goods count, routes, DTOs and snapshots. No API copy or old FQCN remains; registry fell 12→11.
+- Next: AD-2.38 nineteenth shared-Entity slice selection.

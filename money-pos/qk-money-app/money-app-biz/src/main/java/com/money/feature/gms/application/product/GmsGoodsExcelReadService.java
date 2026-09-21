@@ -3,7 +3,7 @@ package com.money.feature.gms.application.product;
 import com.alibaba.excel.EasyExcel;
 import com.money.entity.GmsBrand;
 import com.money.entity.GmsGoods;
-import com.money.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.feature.gms.application.catalog.GmsBrandService;
 import com.money.feature.gms.application.catalog.GmsGoodsCategoryService;

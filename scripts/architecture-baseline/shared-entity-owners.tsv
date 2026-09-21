@@ -1,7 +1,6 @@
 # Entity simple name<TAB>owning Feature
 GmsBrand	gms
 GmsGoods	gms
-GmsGoodsCategory	gms
 GmsStockLog	gms
 OmsOrder	trade
 OmsOrderDetail	trade

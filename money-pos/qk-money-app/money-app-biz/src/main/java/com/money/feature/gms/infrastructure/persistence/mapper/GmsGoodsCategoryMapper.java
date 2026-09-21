@@ -1,6 +1,6 @@
 package com.money.feature.gms.infrastructure.persistence.mapper;
 
-import com.money.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
