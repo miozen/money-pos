@@ -1541,3 +1541,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added `GmsGoodsCategoryMapperIntegrationTest`, covering the GMS-local Entity's inherited assigned ID/audit fields, explicit table mapping, category fields, update and deletion. Category, Excel, checkout and FIN regressions retain their existing Entity-free contracts.
 - Retained `BaseEntity`, table/Flyway, icon transaction hooks, tree/delete guards, goods count, routes, DTOs and snapshots. No API copy or old FQCN remains; registry fell 12→11.
 - Next: AD-2.38 nineteenth shared-Entity slice selection.
+
+### Completed: AD-2.38 Nineteenth Shared-Entity Physical-Ownership Slice Selection
+
+- Selected GMS `GmsBrand` as the sole AD-2.39 migration target. Its Mapper, brand service and name/selection queries are GMS-local; external consumers use DTO/VO or existing Entity-free snapshots.
+- AD-2.39 retains `BaseEntity`, `gms_brand`, assigned ID, Flyway seeds, logo transaction hooks, pagination/selectors, goods count, Excel and external snapshots; it adds Mapper CRUD coverage.
+- Next: AD-2.39 GMS brand Entity physical-ownership migration.
