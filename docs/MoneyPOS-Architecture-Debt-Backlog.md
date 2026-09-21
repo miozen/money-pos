@@ -81,6 +81,8 @@
 | AD-2.41 | GMS 库存流水 Entity 物理归属迁移 | 已关闭 | 已将 `GmsStockLog` 移至 GMS 持久化实体包，并补 Mapper CRUD、库存命令/查询/分析与 Controller 回归。 | 库存事务、流水公式、路由/JSON、表/Flyway 与跨域契约未改；所有权登记降至 9。 |
 | AD-2.48 | 第二十四个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已选择 SYS `SysBrandConfig`，并设计 POS 与 GMS Excel 所需的只读品牌券策略契约。 | 见 `MoneyPOS-AD-2.48-Twenty-Fourth-Entity-Slice-Selection.md`。 |
 | AD-2.49 | SYS 品牌配置 Entity 物理归属迁移 | 已关闭 | 已将 `SysBrandConfig` 移至 SYS 持久化实体包；POS 与 GMS Excel 改用 Entity-free 品牌券策略查询。 | 保持配置保存、POS 券清零、Excel 动态券列、路由、表/Flyway 与事务语义；所有权登记降至 5。 |
+| AD-2.50 | 第二十五个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已重新盘点余下五个共享 Entity，并选择 UMS `PosMemberCoupon`。 | 见 `MoneyPOS-AD-2.50-Twenty-Fifth-Entity-Slice-Selection.md`；选择任务不改生产代码。 |
+| AD-2.51 | UMS 会员满减券 Entity 物理归属迁移 | 待实施 | 先以会员券钱包/计数读契约替换 TRADE 与打印的 Entity 读取，再迁移 Entity。 | 保留发券、FIFO 核销、退款恢复、充值红冲、卡包、打印、表/Flyway 与事务语义。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -100,10 +102,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.50**：重新盘点剩余五个共享 Entity，并选择唯一下一迁移切片。
+1. **AD-2.51**：迁移 UMS `PosMemberCoupon` 到持久化实体包。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.50：第二十五个共享 Entity 物理归属迁移切片选择。**
+**AD-2.51：UMS 会员满减券 Entity 物理归属迁移。**

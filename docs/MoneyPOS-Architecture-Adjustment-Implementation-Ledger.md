@@ -1591,3 +1591,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added SYS Mapper CRUD, POS enabled/disabled/missing-policy, and GMS Excel enabled/disabled-brand import regressions. Retained `sys_brand_config`, AUTO ID, tenant/audit fields, brand update-or-insert, POS coupon sanitization, Excel price/coupon semantics, routes, DTOs, Flyway and transaction boundaries.
 - Removed the retired GMS-to-SYS bridge and wildcard baseline. Registry is 5; shared Feature imports are 35, owner-local uses 41, documented bridges 4 and wildcard paths 2. Isolated full regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.50 twenty-fifth shared-Entity slice selection.
+
+### Completed: AD-2.50 Twenty-Fifth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.50-Twenty-Fifth-Entity-Slice-Selection.md` after re-auditing the five remaining registered shared Entity types. It selects UMS `PosMemberCoupon` as the sole AD-2.51 migration target.
+- The member-coupon asset is UMS-owned. TRADE uses it only for unused-coupon counts by member/rule; the legacy printer only needs the unused count. AD-2.51 will replace those reads with an API-neutral wallet/count query before moving the Entity.
+- Orders, order details, coupon rules and members remain deferred for their core transaction, public JSON, compatibility or broad workflow surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.51 UMS member-coupon Entity physical-ownership migration.

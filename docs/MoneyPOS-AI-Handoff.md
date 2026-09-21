@@ -41,7 +41,7 @@
 
 ## 当前基线与已完成架构工作
 
-接力前已同步基线是 **`95cc968 docs(ad-2.48): select brand config migration`**；AD-2.49 已在本地完成并待提交/推送。此前的相邻架构提交见 `git log --oneline`。
+接力前已同步基线是 **`4bc0c98 refactor(ad-2.49): localize brand config entity`**；本次任务闭环 AD-2.50 的选择设计。此前的相邻架构提交见 `git log --oneline`。
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -68,18 +68,18 @@
 均为 0；共享 `com.money.entity` import 当前为 35 个 Feature 文件，所有权登记为 5、跨域桥为 4、通配符路径为 2；文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.50
+## 当前任务：AD-2.51
 
-**重新盘点余下五个共享 Entity，并选择唯一的下一迁移切片。**
+**迁移 UMS `PosMemberCoupon` 到持久化实体包。**
 
-先完整阅读实施台账、债务清单，并重新盘点 `OmsOrder`、`OmsOrderDetail`、`PosCouponRule`、`PosMemberCoupon` 与 `UmsMember` 的生产消费面、跨域契约、资源 FQCN 和可回归行为。
+先完整阅读 AD-2.50 选择设计、实施台账与债务清单。
 
-- 仅发布选择设计；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
-- 以 AD-2.49 后扫描实测为选择基线，桥与通配符不得扩大。
+- 先以 API 中立的会员券钱包/计数查询契约替换 TRADE 与打印的 Entity 读取，再移动 Entity。
+- 保留发券、FIFO 核销、退款恢复、充值红冲、卡包与打印语义；迁移后登记应从 5 降至 4，TRADE→UMS 的两条券 Entity 桥应移除。
 
 ## 后续编号顺序
 
-AD-2.50 只能重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
+AD-2.51 完成后，下一轮必须重新盘点并选择下一个切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 
