@@ -1547,3 +1547,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Selected GMS `GmsBrand` as the sole AD-2.39 migration target. Its Mapper, brand service and name/selection queries are GMS-local; external consumers use DTO/VO or existing Entity-free snapshots.
 - AD-2.39 retains `BaseEntity`, `gms_brand`, assigned ID, Flyway seeds, logo transaction hooks, pagination/selectors, goods count, Excel and external snapshots; it adds Mapper CRUD coverage.
 - Next: AD-2.39 GMS brand Entity physical-ownership migration.
+
+### Completed: AD-2.39 GMS Brand Entity Physical-Ownership Migration
+
+- Moved `GmsBrand` from `money-app-api: com.money.entity` to `feature.gms.infrastructure.persistence.entity`; updated the legacy Mapper, GMS brand/name/selection/Excel consumers and affected local test fixtures.
+- Added `GmsBrandMapperIntegrationTest` for the local `BaseEntity` mapping, generated assigned ID, all brand fields, audit readback, update and deletion. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace check passed.
+- Registry fell 11→10; scan reports shared Feature imports 55→52 and owner-local uses 72→67. Bridges (6) and wildcard baseline (3) remain unchanged. Next: AD-2.40 twentieth shared-Entity slice selection.
