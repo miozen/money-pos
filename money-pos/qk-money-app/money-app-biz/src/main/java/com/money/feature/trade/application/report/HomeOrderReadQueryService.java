@@ -11,7 +11,7 @@ import com.money.contract.trade.HomeSalesTrendSnapshot;
 import com.money.dto.OmsOrder.AnalysisAtomicDataDTO;
 import com.money.dto.Home.BrandPieVO;
 import com.money.dto.Home.TrendChartVO;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.mapper.OmsOrderAnalysisMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;

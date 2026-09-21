@@ -1,7 +1,7 @@
 package com.money.feature.trade.application.checkout;
 
 import com.money.contract.member.MemberCheckoutSnapshot;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.application.boundary.facade.MemberAssetFacade;
 import com.money.feature.trade.application.boundary.facade.dto.MemberAssetConsumeRequest;
 import lombok.RequiredArgsConstructor;

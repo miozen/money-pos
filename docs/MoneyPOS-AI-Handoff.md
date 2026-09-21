@@ -41,7 +41,8 @@
 
 ## 当前基线与已完成架构工作
 
-接力前已同步基线是 **`f9c596d feat(ad-2.57): migrate member entity`**；AD-2.58 为本地选择任务，完成后须提交并推送。此前的相邻架构提交见 `git log --oneline`。
+接力前必须使用最新已推送的 `dev`；AD-2.59 将最后一个共享 Entity `OmsOrder` 迁入 TRADE 后，AD-2
+共享 Entity 物理归属已关闭。此前的相邻架构提交见 `git log --oneline`。
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -65,21 +66,22 @@
   基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
-均为 0；共享 `com.money.entity` import 当前为 12 个 Feature 文件，所有权登记为 1、跨域桥为 0、通配符路径为 2；文件总数仍为报告型债务。`--check-new`
-现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
+均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
+持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：AD-2.59
+## 当前任务：AD-4
 
-**迁移最后一个共享 Entity TRADE `OmsOrder` 至本地持久化边界。**
+**Maven 物理模块化重新评估。**
 
-先完整阅读实施台账、债务清单和 `MoneyPOS-AD-2.58-Twenty-Ninth-Entity-Slice-Selection.md`，再实施。
+先完整阅读实施台账、债务清单及阶段 5 模块化决策资料，盘点 GMS/UMS/TRADE 的实体、契约、依赖环、候选
+模块独立 `test-compile` 价值和 Spring 装配影响；先形成设计/可行性结论，未经独立实施授权不得拆分 Maven 模块。
 
-- 移动 `OmsOrder`、更新 TRADE 内 Mapper/结账/退款/订单查询/报表投影及受影响测试；不得迁移其他 Entity、Controller、DTO、扫描根或跨域契约。
-- 以 AD-2.58 的实测基线为起点：共享 Feature import 12、所有权登记 1、跨域桥 0、通配符路径 2；迁移后登记、共享 import 与通配符应收敛为 0，桥不得扩大。
+- AD-2 已清零：共享 Feature import、所有权登记、跨域桥和通配符路径均为 0；不得为模块化而重新暴露 Entity 或扩大跨域依赖。
+- 当前 Maven 结构仍是 `money-app-biz` 单体业务模块。候选拆分须证明收益大于 Spring 扫描、Mapper、测试和循环依赖风险。
 
 ## 后续编号顺序
 
-AD-2.59 是最后一个共享 Entity 物理归属迁移；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
+AD-4 先做重新评估/设计；只有结论支持且用户授权后才单独编号实施。AD-5 与 AD-6 仍为后续独立任务。
 
 ## Java 与设计约束
 

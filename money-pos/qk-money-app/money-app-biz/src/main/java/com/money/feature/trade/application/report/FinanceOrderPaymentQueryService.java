@@ -9,7 +9,7 @@ import com.money.contract.trade.FinanceOrderPaymentQuery;
 import com.money.contract.trade.FinancePaymentSummarySnapshot;
 import com.money.contract.trade.FinanceRefundBaseSnapshot;
 import com.money.contract.trade.FinanceTodayAssetOrderMetricsSnapshot;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
 import lombok.RequiredArgsConstructor;

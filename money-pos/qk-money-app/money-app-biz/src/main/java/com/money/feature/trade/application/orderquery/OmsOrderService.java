@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsOrderVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.web.vo.PageVO;
 
 /**

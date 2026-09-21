@@ -1659,3 +1659,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.59 must preserve order snapshots, payment validation/idempotency, partial/full refund state and amount transitions, public routes/DTOs, reporting formulas, table/Flyway and transaction boundaries. The two existing TRADE wildcard imports are to be narrowed during the move, not expanded.
 - No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task. Baseline remains registry 1; shared imports 12; owner-local uses 12; bridges 0 and wildcard paths 2.
 - Next: AD-2.59 TRADE main-order Entity physical-ownership migration.
+
+### Completed: AD-2.59 TRADE Main-Order Entity Physical-Ownership Migration
+
+- Moved `OmsOrder` from `money-app-api: com.money.entity` to `feature.trade.infrastructure.persistence.entity`; updated the legacy Mapper, TRADE checkout/refund/order-query/report consumers and affected FIN/HOME/UMS test fixtures.
+- Added `OmsOrderMapperIntegrationTest`, covering the TRADE-local `BaseEntity` mapping and ID, every persisted member/contact/pricing/coupon/payment/refund/tenant snapshot field, update and deletion.
+- Retained payment amount validation, duplicate-checkout recovery, inventory/member-asset/payment ordering, partial/full refund amount and status transitions, `/oms-order` DTO/VO and printing, FIN/HOME/member-rank projections, table/Flyway and transaction boundaries. The two retired TRADE wildcard imports now use explicit local imports.
+- Removed the final ownership and wildcard baseline entries; scan fixtures now prove a retired shared Entity is unregistered. Registry, shared Feature imports, owner-local uses, documented bridges and wildcard paths are all 0. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
+- AD-2 shared Entity physical ownership is closed. Next: AD-4 Maven physical modularization reassessment/design.

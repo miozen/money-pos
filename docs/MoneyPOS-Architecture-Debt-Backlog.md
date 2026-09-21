@@ -34,7 +34,7 @@
 | AD-1.1 | `DecisionEngine` 写入行为盘点与特征化 | **已关闭** | 已盘点 `compensateSnapshots(7)`、`generateDailySnapshot(today)`、查询后 update/insert、告警均值读取的调用时序及竞争窗口。见 `MoneyPOS-AD-1.1-DecisionEngine-Write-Characterization.md`。 | 已增加顺序重复读取及七日补偿边界特征测试；唯一索引、无锁/版本的并发窗口已记录，未改变数据库或 HTTP 路由。 |
 | AD-1.2 | HOME 快照命令模型设计 | **已关闭** | 已确定 HOME 内部 assembler/command/writer/query 分离、已有唯一键上的原子 insert-if-absent/upsert，以及分阶段 GET 去写迁移。见 `MoneyPOS-AD-1.2-Home-Snapshot-Command-Design.md`。 | 不新增 Flyway；最终刷新策略会改变数据新鲜度，保留为用户授权点。 |
 | AD-1.3 | HOME 写入边界实施与验收 | **已关闭** | AD-1.3a 已实施命令提取与原子写入；AD-1.3b 已采用启动即刷新、每五分钟定时刷新和并发闸门，GET 已纯读。见 `MoneyPOS-AD-1.3a-Home-Snapshot-Command-Implementation.md`、`MoneyPOS-AD-1.3b-Home-Scheduled-Snapshot-Refresh.md`。 | HOME 控制器、快照补偿、并发/重复请求、全量测试与架构门禁。 |
-| **AD-2** | 共享 Entity 物理归属收敛 | **实施中** | 将目前逻辑归属已明确、但仍放在共享 `com.money.entity` 的类型逐个迁到所有者持久化边界或以所有者 DTO 替代跨域暴露。 | 当前 73 个 Feature 文件 import 共享 Entity 只是报告指标，不可按数量机械迁移。 |
+| **AD-2** | 共享 Entity 物理归属收敛 | **已关闭** | 已将已登记共享 `com.money.entity` 类型逐个迁到所有者持久化边界；跨域读取均以所有者 DTO/快照契约收敛。 | 登记、共享 Feature Entity import、跨域桥和通配符路径均为 0；扫描继续阻止新增未登记 Entity 或通配符。 |
 | AD-2.1 | 共享 Entity 消费者再盘点与首切片选择 | 已关闭 | 已按当前源码区分本域持久化、跨域泄露和兼容桥，并选定 TRADE `OmsRefundIdempotent`。见 `MoneyPOS-AD-2.1-Shared-Entity-Consumer-Inventory.md`。 | 已复核 Mapper XML、序列化、事务和跨域调用面；扫描继续报告，不机械阻断。 |
 | AD-2.2 | 首个 Entity 物理归属迁移 | 已关闭 | 已将 TRADE `OmsRefundIdempotent` 移至所有者持久化 entity 包，并更新 Mapper/guard 导入。 | 未改表/Flyway/外部 API；重复/完整/部分退款和全量回归通过。 |
 | AD-2.3 | Entity 跨域门禁升级 | 已关闭 | 已设计以 Entity 所有权、精确兼容桥基线及通配符实际类型审计阻止**新增跨域** Entity 契约。见 `MoneyPOS-AD-2.3-Shared-Entity-Additions-Only-Gate-Design.md`。 | 不把全部剩余共享 Entity import 直接设为失败规则；实施须独立切片。 |
@@ -90,14 +90,14 @@
 | AD-2.56 | 第二十八个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已重新盘点余下两个共享 Entity，并选择 UMS `UmsMember`。 | 见 `MoneyPOS-AD-2.56-Twenty-Eighth-Entity-Slice-Selection.md`；选择任务不改生产代码。 |
 | AD-2.57 | UMS 会员 Entity 物理归属迁移 | 已关闭 | 已将 `UmsMember` 迁入 UMS 持久化边界，更新同域 Mapper、档案、导入、资产、日志、充值、查询和测试。 | 保持会员管理/资产/结账/退款/POS/排行/FIN-HOME、表/Flyway 与事务；所有权登记降至 1，桥保持 0。 |
 | AD-2.58 | 第二十九个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已重新盘点最后一个共享 Entity，并选择 TRADE `OmsOrder`。 | 见 `MoneyPOS-AD-2.58-Twenty-Ninth-Entity-Slice-Selection.md`；选择任务不改生产代码。 |
-| AD-2.59 | TRADE 主订单 Entity 物理归属迁移 | 待实施 | 将最后一个共享 Entity `OmsOrder` 迁入 TRADE 持久化边界。 | 保持结账/退款/订单查询/打印/FIN-HOME-UMS 读模型、表/Flyway 与事务；登记册清零且不新增桥。 |
+| AD-2.59 | TRADE 主订单 Entity 物理归属迁移 | 已关闭 | 已将最后一个共享 Entity `OmsOrder` 迁入 TRADE 持久化边界，更新 Mapper、本域工作流、报表投影和测试。 | 保持结账/退款/订单查询/打印/FIN-HOME-UMS 读模型、表/Flyway 与事务；登记、桥和通配符均清零。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
 | AD-3.3 | SYS 字典实体读取收敛 | **已关闭** | TRADE/GMS/UMS 已改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail` 或直接使用其 Mapper。见 `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
 | AD-3.4 | GMS→POS 商品搜索快照设计 | **已关闭** | 已确认既有 `PosGoodsCatalogQuery` 与兼容路由口径不同，并设计独立的 GMS 所有者快照。见 `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`。 | 固定旧路由字段、未分组 SQL 的实际状态口径、原样助记码匹配及 SYS 策略边界。 |
 | AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 已关闭 | GMS 通过独立 Entity-free 快照提供遗留 POS 搜索；`GoodsPosFacade` 仅组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；已回归非 `SALE` 的条码/名称、助记码、原样小写关键字、空关键字、价格矩阵及策略关券。 |
-| **AD-4** | Maven 物理模块化重新评估 | **受前置条件约束** | 未来再评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前结论仍为“暂不拆分”。 | 必须先满足 Entity-free 契约、无 UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证；见阶段 5 决策。 |
+| **AD-4** | Maven 物理模块化重新评估 | **待设计** | 重新评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前尚未授权实施拆分。 | AD-2 已清零；仍须审计 Entity-free 契约、UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证。 |
 | **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
 | **AD-6** | Java 17 源码基线升级评估 | **待设计** | 评估从 Maven Java 8 编译目标升级的收益、依赖兼容和发布风险。 | 独立于 P2/Entity 迁移；未完成前，主模块继续保持 Java 8 源码语法。 |
 
@@ -110,10 +110,9 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.59**：迁移最后一个共享 Entity `OmsOrder` 至 TRADE 持久化边界。
-2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
-3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
+1. **AD-4**：在 AD-2 清零后重新评估 Maven 物理模块化，先形成独立设计/可行性结论。
+2. **AD-5** 与 **AD-6** 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.59：TRADE 主订单 Entity 物理归属迁移。**
+**AD-4：Maven 物理模块化重新评估。**

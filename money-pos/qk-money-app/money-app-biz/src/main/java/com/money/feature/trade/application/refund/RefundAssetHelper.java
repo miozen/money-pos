@@ -1,7 +1,7 @@
 package com.money.feature.trade.application.checkout.refund;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
 import com.money.mapper.OmsOrderPayMapper;
 import com.money.feature.trade.application.boundary.facade.MemberAssetFacade;

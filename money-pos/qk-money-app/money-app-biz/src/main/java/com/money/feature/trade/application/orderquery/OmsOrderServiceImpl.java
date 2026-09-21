@@ -13,7 +13,7 @@ import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsOrderVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
-import com.money.entity.*;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;

@@ -2,7 +2,7 @@ package com.money.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.money.dto.OmsOrder.OmsSalesDataVO;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;

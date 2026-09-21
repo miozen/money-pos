@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.constant.BizErrorStatus;
 import com.money.constant.OrderStatusEnum;
 import com.money.dto.OmsOrder.ReturnGoodsDTO;
-import com.money.entity.*;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.*;

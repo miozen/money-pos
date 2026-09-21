@@ -2,7 +2,7 @@ package com.money.feature.ums.interfaces.rest;
 
 import com.money.dto.UmsMember.MemberRankVO;
 import com.money.dto.UmsMember.MemberGoodsRankVO;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.application.member.UmsMemberService;

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.money.constant.OrderStatusEnum;
 import com.money.contract.trade.FinanceWaterfallOrderQuery;
 import com.money.contract.trade.FinanceWaterfallOrderSnapshot;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.mapper.OmsOrderMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

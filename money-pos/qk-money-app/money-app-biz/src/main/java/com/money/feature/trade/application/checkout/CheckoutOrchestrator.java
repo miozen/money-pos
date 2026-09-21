@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
 import lombok.RequiredArgsConstructor;

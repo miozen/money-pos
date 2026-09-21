@@ -7,7 +7,7 @@ import com.money.contract.goods.CheckoutGoodsSnapshot;
 import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.pos.PricingItemResult;
 import com.money.dto.pos.PricingResult;
-import com.money.entity.OmsOrder;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;

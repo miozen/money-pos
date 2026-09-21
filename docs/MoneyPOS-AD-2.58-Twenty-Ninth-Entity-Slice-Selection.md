@@ -53,3 +53,13 @@ TRADE 结账、FIN 报表、HOME 快照和 UMS 会员排行；它们只是测试
 ## 非目标
 
 本选择不移动任何 Entity、Mapper、Service、Controller、DTO 或扫描根；不执行 AD-2.59 的生产改造。
+
+## AD-2.59 实施结果
+
+`OmsOrder` 已迁至 `feature.trade.infrastructure.persistence.entity`。遗留 Mapper、TRADE 结账、退款、
+订单查询以及 FIN/HOME 报表投影和受影响测试夹具均已使用本地 Entity；两个 TRADE 旧通配符 import 已收敛为
+明确本地 import。新增 TRADE Mapper CRUD 回归覆盖 BaseEntity/ID、全部主订单快照字段、更新和删除。
+
+结账金额校验与幂等恢复、库存/会员资产/支付时序、部分和整单退款金额及状态转换、`/oms-order` DTO/VO、打印、
+FIN/HOME/会员排行读模型、表/Flyway 和事务语义均未改变。所有权登记、共享 Feature Entity import、跨域桥与
+通配符路径均已降至 0。
