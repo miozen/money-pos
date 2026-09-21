@@ -1494,3 +1494,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained `BaseEntity`, the historical assigned-ID/AUTO_INCREMENT coexistence, `uk_doc_no`, every field, inventory/cost/detail/log transaction behavior, TRADE stock-command behavior, FIN Entity-free snapshot contracts, routes, DTOs, table and Flyway. No API copy or old FQCN remains.
 - Registry fell 15→14; shared Feature import files fell 62→60 and owner-local uses fell 95→91. Cross-owner bridges (6) and wildcard baseline (3) are unchanged. Targeted and full isolated `money_pos_test` suites, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.32 sixteenth shared-Entity slice selection.
+
+### Completed: AD-2.32 Sixteenth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.32-Sixteenth-Entity-Slice-Selection.md`. It re-audits all 14 remaining registered shared Entities and selects GMS `PosSkuLevelPrice` as the sole AD-2.33 migration target.
+- Production use is the legacy Mapper plus seven GMS-local price-matrix, product, Excel and Entity-free goods-snapshot consumers. The retained `GmsGoodsExcelManager` wildcard is a pre-existing GMS/SYS baseline; it will receive a GMS-local explicit price Entity import without changing that wildcard or its SYS bridge. No Controller, API DTO, resource FQCN, other Maven module or cross-Feature production code consumes the Entity.
+- AD-2.33 will retain explicit `pos_sku_level_price`, AUTO ID, all fields, null/default behavior, the legacy Mapper scan root, price-matrix merge/delete semantics, Excel output, checkout and POS snapshot contracts. It will add Mapper CRUD coverage and retain existing product, Excel and legacy POS regressions. Registry is expected to fall 14→13, shared-import files 60→59 and owner-local uses 91→84; bridges (6) and wildcard baseline (3) must not expand.
+- GMS stock/log/catalog candidates remain deferred for HTTP or algorithmic surfaces; SYS candidates retain GMS bridges; UMS candidates retain member-asset workflows; TRADE orders retain core transaction and compatibility surfaces. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.33 GMS SKU-level-price Entity physical-ownership migration.
