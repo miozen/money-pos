@@ -1560,6 +1560,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - AD-2.41 retains AUTO ID, stock/cost snapshots, transaction and pagination/JSON behavior, table/Flyway and existing regressions; it adds Mapper CRUD coverage.
 - Next: AD-2.41 GMS stock-log Entity physical-ownership migration.
 
+### Completed: AD-2.43 UMS Member-Log Entity Physical-Ownership Migration
+
+- Added `UmsMemberLogMapperIntegrationTest`, covering the UMS-local asset ledger's AUTO ID, balance snapshots, order/real-amount/member-history fields, tenant, update and deletion.
+- Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 8; shared imports 48; owner-local uses 53; bridges 6 and wildcard baseline 3 remain unchanged.
+
 ### Completed: AD-2.41 GMS Stock-Log Entity Physical-Ownership Migration
 
 - Added `GmsStockLogMapperIntegrationTest` for the GMS-local ledger Entity's AUTO ID, quantity/cost/asset snapshots, order/tenant fields, update and deletion.
