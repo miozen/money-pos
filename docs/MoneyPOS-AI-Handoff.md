@@ -41,7 +41,7 @@
 
 ## 当前基线与已完成架构工作
 
-接力前已同步基线是 **`427b30e docs(ad-2.56): select member migration`**；AD-2.57 已在本地完成并待提交/推送。此前的相邻架构提交见 `git log --oneline`。
+接力前已同步基线是 **`f9c596d feat(ad-2.57): migrate member entity`**；AD-2.58 为本地选择任务，完成后须提交并推送。此前的相邻架构提交见 `git log --oneline`。
 
 | 提交 | 已闭环事项 |
 | --- | --- |
@@ -68,18 +68,18 @@
 均为 0；共享 `com.money.entity` import 当前为 12 个 Feature 文件，所有权登记为 1、跨域桥为 0、通配符路径为 2；文件总数仍为报告型债务。`--check-new`
 现已阻止新增非所有者/未登记 Entity 与新通配符，但不按该总数失败。
 
-## 当前任务：AD-2.58
+## 当前任务：AD-2.59
 
-**重新盘点最后一个共享 Entity `OmsOrder`，选择迁移实施边界。**
+**迁移最后一个共享 Entity TRADE `OmsOrder` 至本地持久化边界。**
 
-先完整阅读实施台账、债务清单，并重新盘点 `OmsOrder` 的生产消费面、跨域契约、资源 FQCN 与可回归行为。
+先完整阅读实施台账、债务清单和 `MoneyPOS-AD-2.58-Twenty-Ninth-Entity-Slice-Selection.md`，再实施。
 
-- 仅发布选择设计；不得移动 Entity、Mapper、Controller、DTO、扫描根或跨域契约。
-- 以 AD-2.57 后扫描实测为选择基线：共享 Feature import 12、所有权登记 1、跨域桥 0、通配符路径 2；桥与通配符不得扩大。
+- 移动 `OmsOrder`、更新 TRADE 内 Mapper/结账/退款/订单查询/报表投影及受影响测试；不得迁移其他 Entity、Controller、DTO、扫描根或跨域契约。
+- 以 AD-2.58 的实测基线为起点：共享 Feature import 12、所有权登记 1、跨域桥 0、通配符路径 2；迁移后登记、共享 import 与通配符应收敛为 0，桥不得扩大。
 
 ## 后续编号顺序
 
-AD-2.58 只能重新盘点并选择最后一个迁移切片；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
+AD-2.59 是最后一个共享 Entity 物理归属迁移；门禁仅阻止新引入的、已分类非所有者 Entity 契约，不能把当前报告数量直接设为失败规则。
 
 ## Java 与设计约束
 

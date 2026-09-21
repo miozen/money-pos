@@ -89,7 +89,8 @@
 | AD-2.55 | TRADE 订单明细 Entity 物理归属迁移 | 已关闭 | 已将 `OmsOrderDetail` 迁入 TRADE 持久化边界，更新本域 Mapper、结账、退款、查询与受影响测试。 | 保持结账/退款/库存/订单详情/打印/报表语义、表/Flyway 与事务；所有权登记降至 2，桥保持 0。 |
 | AD-2.56 | 第二十八个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已重新盘点余下两个共享 Entity，并选择 UMS `UmsMember`。 | 见 `MoneyPOS-AD-2.56-Twenty-Eighth-Entity-Slice-Selection.md`；选择任务不改生产代码。 |
 | AD-2.57 | UMS 会员 Entity 物理归属迁移 | 已关闭 | 已将 `UmsMember` 迁入 UMS 持久化边界，更新同域 Mapper、档案、导入、资产、日志、充值、查询和测试。 | 保持会员管理/资产/结账/退款/POS/排行/FIN-HOME、表/Flyway 与事务；所有权登记降至 1，桥保持 0。 |
-| AD-2.58 | 第二十九个共享 Entity 物理归属迁移切片选择 | 待实施 | 重新盘点最后一个共享 Entity `OmsOrder`，选择其最小迁移实施边界。 | 选择任务不得移动 Entity 或扩大当前两个通配符路径。 |
+| AD-2.58 | 第二十九个共享 Entity 物理归属迁移切片选择 | 已关闭 | 已重新盘点最后一个共享 Entity，并选择 TRADE `OmsOrder`。 | 见 `MoneyPOS-AD-2.58-Twenty-Ninth-Entity-Slice-Selection.md`；选择任务不改生产代码。 |
+| AD-2.59 | TRADE 主订单 Entity 物理归属迁移 | 待实施 | 将最后一个共享 Entity `OmsOrder` 迁入 TRADE 持久化边界。 | 保持结账/退款/订单查询/打印/FIN-HOME-UMS 读模型、表/Flyway 与事务；登记册清零且不新增桥。 |
 | **AD-3** | API/实现类型泄露复核 | **已关闭** | 已清除已盘点的跨 Feature 服务签名、Controller/DTO 实现类型及 GMS→POS 通用商品实体查询泄露。 | AD-3.1～AD-3.4.1 已完成；新增泄露须另行编号。 |
 | AD-3.1 | 会员画像实现类型泄露 | **已关闭** | `UmsMemberService.getTop20Goods()` / `UmsMemberController` 已改为 API 顶层 `MemberGoodsRankVO`，不再暴露 `UmsMemberServiceImpl` 嵌套类型。 | 保持排行榜路由与 `goodsName`、`buyCount` 字段，并已补接口回归。 |
 | AD-3.2 | 现存跨域 `IService<Entity>` 再审计 | **已关闭** | 已盘点 20 个接口：无 UMS/TRADE 跨域调用，发现 SYS 字典实体读取及 GMS→POS 商品通用查询两处真实风险。见 `MoneyPOS-AD-3.2-IService-Entity-Call-Audit.md`。 | 调用矩阵已固化；不为包名整洁批量改造。 |
@@ -109,10 +110,10 @@
 
 ## 推荐执行顺序
 
-1. **AD-2.58**：重新盘点最后一个共享 Entity `OmsOrder`，选择迁移实施边界。
+1. **AD-2.59**：迁移最后一个共享 Entity `OmsOrder` 至 TRADE 持久化边界。
 2. 依赖 AD-2 结果实施门禁；随后才讨论 AD-4 的物理模块化。
 3. AD-5 与 AD-6 分别需要工程治理和平台升级的独立授权。
 
 ## 当前下一最小任务
 
-**AD-2.58：第二十九个共享 Entity 物理归属迁移切片选择。**
+**AD-2.59：TRADE 主订单 Entity 物理归属迁移。**

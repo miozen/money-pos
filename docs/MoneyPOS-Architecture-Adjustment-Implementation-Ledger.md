@@ -1651,3 +1651,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained member routes/DTO/VO, logical-delete scope, import, asset export, recharge/reversal, atomic balance operations, checkout/refund, coupon/log, POS/rank and FIN/HOME snapshot behavior, table/Flyway and transaction boundaries.
 - Registry is 1; shared Feature imports are 12, owner-local uses 12, documented bridges 0 and wildcard paths 2. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.58 twenty-ninth shared-Entity slice selection.
+
+### Completed: AD-2.58 Twenty-Ninth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.58-Twenty-Ninth-Entity-Slice-Selection.md` after re-auditing the final registered shared Entity. It selects TRADE `OmsOrder` as the sole AD-2.59 migration target.
+- Every production Entity/Mapper consumer is TRADE-owned: checkout, refund, order query and TRADE-owned FIN/HOME projections. `/oms-order` already exposes DTO/VO, while FIN/HOME and UMS consume existing snapshots/contracts rather than the Entity or Mapper; no new compatibility bridge is required.
+- AD-2.59 must preserve order snapshots, payment validation/idempotency, partial/full refund state and amount transitions, public routes/DTOs, reporting formulas, table/Flyway and transaction boundaries. The two existing TRADE wildcard imports are to be narrowed during the move, not expanded.
+- No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task. Baseline remains registry 1; shared imports 12; owner-local uses 12; bridges 0 and wildcard paths 2.
+- Next: AD-2.59 TRADE main-order Entity physical-ownership migration.
