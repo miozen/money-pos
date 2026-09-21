@@ -1,7 +1,7 @@
 package com.money.feature.gms.application.catalog;
 
 import com.money.dto.SelectVO;
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.web.vo.PageVO;
 import com.money.dto.GmsBrand.GmsBrandDTO;

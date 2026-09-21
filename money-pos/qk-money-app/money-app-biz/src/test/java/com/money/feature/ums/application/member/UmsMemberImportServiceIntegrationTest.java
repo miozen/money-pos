@@ -1,7 +1,7 @@
 package com.money.feature.ums.application.member;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.entity.SysDictDetail;
 import com.money.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;

@@ -1,6 +1,6 @@
 package com.money.feature.ums.application.member;
 
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.entity.SysDictDetail;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.SysDictDetailMapper;

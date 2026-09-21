@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.mapper.GmsBrandMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

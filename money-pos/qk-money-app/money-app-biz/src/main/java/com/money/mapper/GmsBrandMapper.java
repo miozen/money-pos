@@ -1,6 +1,6 @@
 package com.money.mapper;
 
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

@@ -10,7 +10,7 @@ import com.money.dto.GmsBrand.GmsBrandDTO;
 import com.money.dto.GmsBrand.GmsBrandQueryDTO;
 import com.money.dto.GmsBrand.GmsBrandVO;
 import com.money.dto.SelectVO;
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.mapper.GmsBrandMapper;
 import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;

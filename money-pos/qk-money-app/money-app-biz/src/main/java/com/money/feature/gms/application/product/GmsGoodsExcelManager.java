@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.entity.*;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.mapper.PosSkuLevelPriceMapper;
 import com.money.mapper.SysBrandConfigMapper;
 import com.money.feature.gms.application.catalog.GmsBrandService;

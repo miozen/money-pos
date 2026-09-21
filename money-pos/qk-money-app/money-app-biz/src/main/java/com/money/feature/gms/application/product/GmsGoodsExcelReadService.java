@@ -1,7 +1,7 @@
 package com.money.feature.gms.application.product;
 
 import com.alibaba.excel.EasyExcel;
-import com.money.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.gms.infrastructure.persistence.entity.PosSkuLevelPrice;
