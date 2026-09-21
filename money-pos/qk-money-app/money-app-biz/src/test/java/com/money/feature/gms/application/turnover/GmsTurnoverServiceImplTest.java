@@ -2,9 +2,9 @@ package com.money.feature.gms.application.turnover;
 
 import com.money.dto.GmsGoods.TurnoverDataVO.TurnoverDashboardVO;
 import com.money.dto.GmsGoods.TurnoverDataVO.WarningItemVO;
+import com.money.contract.system.TurnoverStrategyQuery;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverMapper;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverWarningSnapshotMapper;
-import com.money.mapper.SysStrategyMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -18,7 +18,7 @@ class GmsTurnoverServiceImplTest {
     @Test
     void snapshotPersistenceFailureDoesNotBlockWarningResponse() {
         GmsTurnoverMapper turnoverMapper = mock(GmsTurnoverMapper.class);
-        SysStrategyMapper strategyMapper = mock(SysStrategyMapper.class);
+        TurnoverStrategyQuery strategyQuery = mock(TurnoverStrategyQuery.class);
         GmsTurnoverWarningSnapshotMapper snapshotMapper = mock(GmsTurnoverWarningSnapshotMapper.class);
         WarningItemVO replenish = new WarningItemVO();
         replenish.setGoodsId(1L);
@@ -29,7 +29,7 @@ class GmsTurnoverServiceImplTest {
         when(turnoverMapper.scanAllGoodsTurnover()).thenReturn(Collections.singletonList(replenish));
         when(snapshotMapper.selectOne(org.mockito.ArgumentMatchers.any())).thenThrow(new RuntimeException("snapshot unavailable"));
 
-        TurnoverDashboardVO dashboard = new GmsTurnoverServiceImpl(turnoverMapper, strategyMapper, snapshotMapper)
+        TurnoverDashboardVO dashboard = new GmsTurnoverServiceImpl(turnoverMapper, strategyQuery, snapshotMapper)
                 .getTurnoverWarnings();
 
         assertThat(dashboard.getReplenishList()).singleElement().extracting(WarningItemVO::getGoodsName)

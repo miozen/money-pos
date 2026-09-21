@@ -1,5 +1,4 @@
 # source Feature<TAB>Entity owner<TAB>relative source path<TAB>Entity<TAB>import form
-gms	sys	com/money/feature/gms/application/turnover/GmsTurnoverServiceImpl.java	SysStrategy	single
 gms	sys	com/money/feature/gms/application/product/GmsGoodsExcelManager.java	SysBrandConfig	wildcard
 trade	ums	com/money/feature/trade/application/coupon/CouponRuleManagementService.java	PosCouponRule	single
 trade	ums	com/money/feature/trade/application/coupon/CouponRuleManagementServiceImpl.java	PosCouponRule	single

@@ -41,7 +41,7 @@ run_case() {
   fi
 }
 
-write_java 'com/money/feature/sys/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.SysStrategy;\nclass OwnerLocal { SysStrategy strategy; }'
+write_java 'com/money/feature/sys/application/OwnerLocal.java' $'package fixture;\nimport com.money.entity.SysBrandConfig;\nclass OwnerLocal { SysBrandConfig config; }'
 run_case owner_local 0 'Shared Entity additions-only gate passed.'
 
 write_java 'com/money/feature/trade/application/coupon/CouponRuleManagementService.java' $'package fixture;\nimport com.money.entity.PosCouponRule;\nclass CouponRuleManagementService { PosCouponRule rule; }'
@@ -58,8 +58,8 @@ rm -f "$fixture_source/com/money/feature/gms/application/NewWildcard.java"
 write_java 'com/money/feature/gms/application/product/GmsGoodsExcelManager.java' $'package fixture;\nimport com.money.entity.*;\nclass GmsGoodsExcelManager { SysBrandConfig config; }'
 run_case existing_wildcard_bridge 0 'Documented cross-owner compatibility bridges: 2'
 
-write_java 'com/money/feature/gms/application/product/GmsGoodsExcelManager.java' $'package fixture;\nimport com.money.entity.*;\nclass GmsGoodsExcelManager { SysStrategy strategy; }'
-run_case wildcard_new_cross_owner 1 'new cross-owner Entity: gms → sys'
+write_java 'com/money/feature/gms/application/product/GmsGoodsExcelManager.java' $'package fixture;\nimport com.money.entity.*;\nclass GmsGoodsExcelManager { PosCouponRule rule; }'
+run_case wildcard_new_cross_owner 1 'new cross-owner Entity: gms → ums'
 
 write_java 'com/money/feature/gms/application/UnknownEntityUse.java' $'package fixture;\nimport com.money.entity.UnknownEntity;\nclass UnknownEntityUse { UnknownEntity value; }'
 run_case unregistered_entity 1 'unregistered Entity: gms → unknown'

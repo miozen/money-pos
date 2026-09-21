@@ -1569,3 +1569,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 
 - Added `GmsStockLogMapperIntegrationTest` for the GMS-local ledger Entity's AUTO ID, quantity/cost/asset snapshots, order/tenant fields, update and deletion.
 - Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 9; shared imports 50; owner-local uses 61; bridges 6 and wildcard baseline 3.
+
+### Completed: AD-2.47 SYS Strategy Entity Physical-Ownership Migration
+
+- Moved `SysStrategy` from `money-app-api: com.money.entity` to `feature.sys.infrastructure.persistence.entity`. The SYS Mapper, service, controller and FIN strategy query use the SYS-local Entity.
+- Replaced the former GMS-to-SYS persistence-Entity/Mapper dependency with the API-neutral `TurnoverStrategyQuery` and immutable `TurnoverStrategySnapshot`; GMS turnover now consumes only this read contract.
+- Added `SysStrategyMapperIntegrationTest`, covering generated ID, every persisted strategy threshold/day/tenant field, readback, update and deletion. The GMS turnover unit test now mocks the query contract rather than a SYS Mapper.
+- Removed the retired GMS-to-SYS `SysStrategy` bridge from the architecture baseline and updated the scan fixtures to a remaining registered SYS Entity. Full isolated `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed. Registry is 7; shared imports 36; owner-local uses 41; bridges 5 and wildcard baseline 3.
+- Next: AD-2.48 twenty-fourth shared-Entity slice selection.
