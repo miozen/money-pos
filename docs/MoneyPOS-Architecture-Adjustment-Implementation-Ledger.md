@@ -1606,3 +1606,10 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Added UMS Mapper CRUD and wallet/count query regressions; retained checkout/refund, coupon-rule card-pack and member-asset export coverage. AUTO ID, table/indexes, FIFO and concurrent consumption guard, refund restoration, recharge behavior, routes, DTOs, Flyway and transaction boundaries remain unchanged.
 - Removed the two retired TRADE-to-UMS Entity bridges. Registry is 4; shared Feature imports are 33, owner-local uses 35, documented bridges 2 and wildcard paths 2. Isolated full regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - Next: AD-2.52 twenty-sixth shared-Entity slice selection.
+
+### Completed: AD-2.52 Twenty-Sixth Shared-Entity Physical-Ownership Slice Selection
+
+- Published `MoneyPOS-AD-2.52-Twenty-Sixth-Entity-Slice-Selection.md` after re-auditing the four remaining registered shared Entity types. It selects UMS `PosCouponRule` as the sole AD-2.53 migration target.
+- The UMS Mapper and member/card-pack/checkout benefit queries own the rule persistence. The only non-owner surface is the legacy TRADE rule-management service, whose Entity signatures are also exposed by `/pos/couponRule`; AD-2.53 must first replace that exposure with an API-neutral UMS command/query contract.
+- Orders and order details remain deferred as the TRADE transaction aggregate, and `UmsMember` remains deferred for its broad profile, asset, import, checkout, FIN/HOME and public-management surface. No production source, scanner baseline, route, DTO, table, Flyway, Mapper or transaction changed in this selection task.
+- Next: AD-2.53 UMS coupon-rule Entity physical-ownership migration.
