@@ -23,6 +23,9 @@ public enum OrderStatusEnum {
     /** 已取消 (未支付直接作废的订单) */
     CLOSED("已取消");
 
+    /** Historical full-refund code. It is readable but never written by current workflows. */
+    public static final String LEGACY_RETURN = "RETURN";
+
     private final String desc;
 
     OrderStatusEnum(String desc) {
@@ -38,6 +41,7 @@ public enum OrderStatusEnum {
      */
     public static String getFallbackDesc(String statusCode) {
         if (statusCode == null) return "-";
+        if (LEGACY_RETURN.equals(statusCode)) return REFUNDED.getDesc();
         for (OrderStatusEnum status : values()) {
             if (status.name().equals(statusCode)) {
                 return status.getDesc();
@@ -50,6 +54,6 @@ public enum OrderStatusEnum {
      * 🌟 核心引擎：定义“经营有效集”
      */
     public static List<String> getValidFinancialStatus() {
-        return Arrays.asList(PAID.name(), PARTIAL_REFUNDED.name(), REFUNDED.name());
+        return Arrays.asList(PAID.name(), PARTIAL_REFUNDED.name(), REFUNDED.name(), LEGACY_RETURN);
     }
 }

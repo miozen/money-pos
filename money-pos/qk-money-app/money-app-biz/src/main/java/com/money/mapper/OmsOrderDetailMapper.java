@@ -32,7 +32,7 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
             "SUM(IFNULL(final_sales_amount, pay_amount)) AS sales, " +
             "SUM(IFNULL(final_sales_amount, pay_amount) - IFNULL(cost_amount, 0)) AS profit " +
             "FROM oms_order " +
-            "WHERE status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "WHERE status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "<if test='startTime != null'> AND create_time &gt;= #{startTime} </if> " +
             "<if test='endTime != null'> AND create_time &lt; #{endTime} </if> " +
             "GROUP BY DATE(create_time), DATE_FORMAT(create_time, '%m-%d') " +
@@ -46,7 +46,7 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
             "FROM oms_order_detail ood " +
             "LEFT JOIN gms_brand gb ON ood.brand_id = gb.id " +
             "JOIN oms_order o ON ood.order_no = o.order_no " +
-            "WHERE ood.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "WHERE ood.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "<if test='startTime != null'> AND o.create_time &gt;= #{startTime} </if> " +
             "<if test='endTime != null'> AND o.create_time &lt; #{endTime} </if> " +
             "GROUP BY gb.id, gb.name " +
@@ -60,7 +60,7 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
             "SUM((d.goods_price - IFNULL(d.purchase_price, 0)) * (d.quantity - IFNULL(d.return_quantity, 0))) AS totalProfit " +
             "FROM oms_order_detail d " +
             "JOIN oms_order o ON o.order_no = d.order_no " +
-            "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "AND o.create_time >= #{startTime} " +
             "GROUP BY d.goods_id, d.goods_name " +
             "HAVING totalQuantity > 0 " +
@@ -77,7 +77,7 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
             "IFNULL(SUM(CASE WHEN ood.quantity > 0 THEN (ood.coupon / ood.quantity) * (ood.quantity - IFNULL(ood.return_quantity, 0)) ELSE 0 END), 0) AS couponConsumption " +
             "FROM oms_order_detail ood " +
             "JOIN oms_order o ON ood.order_no = o.order_no " +
-            "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "WHERE o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "  AND o.create_time &gt;= #{startTime} AND o.create_time &lt;= #{endTime} " +
             "<if test='cashierName != null and cashierName != \"全部收银员\"'> " +
             "  AND o.create_by = #{cashierName} " +

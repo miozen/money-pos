@@ -59,7 +59,7 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
             "IFNULL(SUM(CASE WHEN pay_amount > final_sales_amount THEN pay_amount - final_sales_amount ELSE 0 END), 0) AS refundAmount " +
             "FROM oms_order " +
             "WHERE create_time &gt;= #{startTime} AND create_time &lt;= #{endTime} " +
-            "  AND status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "  AND status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "<if test='cashierName != null and cashierName != \"全部收银员\"'> " +
             "  AND create_by = #{cashierName} " +
             "</if>" +

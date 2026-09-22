@@ -29,7 +29,7 @@ public interface UmsMemberMapper extends BaseMapper<UmsMember> {
             "FROM oms_order_detail d " +
             "JOIN oms_order o ON d.order_no = o.order_no " +
             "WHERE o.member_id = #{memberId} " +
-            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "GROUP BY d.goods_id, d.goods_name " +
             "HAVING buyCount > 0 " +
             "ORDER BY buyCount DESC " +

@@ -21,11 +21,11 @@ public interface OmsOrderPayMapper extends BaseMapper<OmsOrderPay> {
             // 提取实收毛额（含找零）
             "SUM(IFNULL(p.original_amount, p.pay_amount)) AS totalAmount, " +
             // 🌟 核心排雷：提取真正的入账净额（扣除找零），并剔除全额退款的单子
-            "SUM(CASE WHEN o.status = 'REFUNDED' THEN 0 ELSE IFNULL(p.net_amount, p.pay_amount) END) AS netAmount " +
+            "SUM(CASE WHEN o.status IN ('REFUNDED', 'RETURN') THEN 0 ELSE IFNULL(p.net_amount, p.pay_amount) END) AS netAmount " +
             "FROM oms_order_pay p " +
             "JOIN oms_order o ON p.order_no = o.order_no " +
             "WHERE o.create_time >= #{startTime} AND o.create_time <= #{endTime} " +
-            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "GROUP BY DATE(o.create_time), p.pay_method_code, p.pay_tag")
     List<Map<String, Object>> getDailyPaySummary(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
@@ -37,11 +37,11 @@ public interface OmsOrderPayMapper extends BaseMapper<OmsOrderPay> {
             "p.pay_tag AS payTag, " +
             "SUM(IFNULL(p.original_amount, p.pay_amount)) AS totalAmount, " +
             // 🌟 核心排雷：这里决定了交接班打印小票上的现金总额，必须用 net_amount！
-            "SUM(CASE WHEN o.status = 'REFUNDED' THEN 0 ELSE IFNULL(p.net_amount, p.pay_amount) END) AS netAmount " +
+            "SUM(CASE WHEN o.status IN ('REFUNDED', 'RETURN') THEN 0 ELSE IFNULL(p.net_amount, p.pay_amount) END) AS netAmount " +
             "FROM oms_order_pay p " +
             "JOIN oms_order o ON p.order_no = o.order_no " +
             "WHERE o.create_time &gt;= #{startTime} AND o.create_time &lt;= #{endTime} " +
-            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "  AND o.status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "<if test='cashierName != null and cashierName != \"全部收银员\"'> " +
             "  AND o.create_by = #{cashierName} " +
             "</if>" +

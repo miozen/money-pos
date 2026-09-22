@@ -20,6 +20,7 @@
 - 新增 `V1.0.4__add_refunded_order_status_dictionary.sql`：对已存在的 `REFUNDED` 修正文案和排序；不存在时插入 `orderStatus/REFUNDED/已退单`。
 - 迁移不更新 `oms_order.status`，因此历史 `RETURN` 订单及其审计值原样保留。
 - 订单查询继续大小写无关地读取字典，保留 `order_status` 的空结果回退；移除临时排障 INFO 日志。未知状态仍告警并使用枚举兜底。
+- 经营有效集、支付净额、班次优惠/支付、订单/商品报表、审计退款计数与会员购买历史均把历史 `RETURN` 按全额退款处理；当前只计 `PAID`/`PARTIAL_REFUNDED` 的既有分析口径保持不变。
 - 不改变退款、库存、会员资产、统计公式、HTTP 接口或字典管理功能。
 
 ## 回归

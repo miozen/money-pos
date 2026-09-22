@@ -1727,5 +1727,5 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 ### Completed: Order Full-Refund Dictionary Compatibility Fix
 
 - Added Flyway `V1.0.4__add_refunded_order_status_dictionary.sql`. It seeds the canonical current-workflow value `orderStatus/REFUNDED/已退单`, or corrects its display metadata if the row already exists.
-- The migration intentionally leaves historical `oms_order.status = RETURN` rows unchanged. Both `RETURN` and `REFUNDED` display as “已退单”; new full-refund code continues to write only `REFUNDED`.
+- The migration intentionally leaves historical `oms_order.status = RETURN` rows unchanged. Both `RETURN` and `REFUNDED` display as “已退单”; new full-refund code continues to write only `REFUNDED`. Financial/reporting readers that already include full refunds now accept both codes and treat both as zero net payment; deliberately PAID/partial-only analysis remains unchanged.
 - Removed temporary high-volume dictionary diagnostics from TRADE order queries while retaining a warning and enum fallback for genuinely unknown codes. `OrderStatusDictionaryIntegrationTest` proves the Flyway-seeded map includes PAID, PARTIAL_REFUNDED, legacy RETURN and canonical REFUNDED.

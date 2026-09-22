@@ -215,9 +215,9 @@ class FinanceFeatureIntegrationTest {
         insertOrder(suffix + "-PAID", "PAID", new BigDecimal("20.00"), new BigDecimal("18.00"),
                 new BigDecimal("2.00"), new BigDecimal("1.00"), new BigDecimal("3.00"), new BigDecimal("4.00"));
         insertPayment(suffix + "-PAID", "CASH", null, new BigDecimal("18.00"));
-        insertOrder(suffix + "-REFUND", "REFUNDED", new BigDecimal("10.00"), BigDecimal.ZERO,
+        insertOrder(suffix + "-LEGACY-RETURN", "RETURN", new BigDecimal("10.00"), BigDecimal.ZERO,
                 BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
-        insertPayment(suffix + "-REFUND", "AGGREGATE", "WX", new BigDecimal("10.00"));
+        insertPayment(suffix + "-LEGACY-RETURN", "AGGREGATE", "WX", new BigDecimal("10.00"));
 
         FinanceDashboardVO dashboard = financeDashboardService.getDashboardData(today.toString());
         assertThat(dashboard.getTotalAmount()).isEqualByComparingTo(before.getTotalAmount().add(new BigDecimal("30.00")));

@@ -35,7 +35,7 @@ public interface OmsOrderAuditMapper {
             "  CASE WHEN (purchase_price IS NULL OR purchase_price &lt;= 0) THEN 1 ELSE 0 END AS isMissingCost " +
             "FROM oms_order_detail " +
             // 🌟 修复：统一标准状态集
-            "WHERE status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED') " +
+            "WHERE status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "  <if test='orderNo != null and orderNo != \"\"'> " +
             "    AND order_no = #{orderNo} " +
             "  </if> " +
@@ -55,7 +55,7 @@ public interface OmsOrderAuditMapper {
             "  create_by AS cashierName, " +
             "  COUNT(id) AS orderCount, " +
             "  SUM(IFNULL(manual_discount_amount, 0)) AS manualDiscountAmount, " +
-            "  SUM(CASE WHEN status IN ('PARTIAL_REFUNDED', 'REFUNDED') THEN 1 ELSE 0 END) AS refundCount " +
+            "  SUM(CASE WHEN status IN ('PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') THEN 1 ELSE 0 END) AS refundCount " +
             "FROM oms_order " +
             "WHERE create_time >= #{startTime} AND create_time <= #{endTime} " +
             "GROUP BY create_by")

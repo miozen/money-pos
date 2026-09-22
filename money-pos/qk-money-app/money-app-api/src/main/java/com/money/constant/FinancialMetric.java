@@ -7,7 +7,7 @@ package com.money.constant;
 public class FinancialMetric {
 
     // 1. 【状态红线】：经营有效状态集 (MyBatis 脚本片段)
-    public static final String VALID_STATUS_SQL = "'PAID', 'PARTIAL_REFUNDED', 'REFUNDED'";
+    public static final String VALID_STATUS_SQL = "'PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN'";
 
     // 2. 【金额红线】：净销售额真理公式 (Net Sales)
     // 逻辑：优先取 final_sales_amount，如果为空则取实付金额
