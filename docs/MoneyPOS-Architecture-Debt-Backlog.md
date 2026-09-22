@@ -98,7 +98,8 @@
 | AD-3.4 | GMS→POS 商品搜索快照设计 | **已关闭** | 已确认既有 `PosGoodsCatalogQuery` 与兼容路由口径不同，并设计独立的 GMS 所有者快照。见 `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`。 | 固定旧路由字段、未分组 SQL 的实际状态口径、原样助记码匹配及 SYS 策略边界。 |
 | AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 已关闭 | GMS 通过独立 Entity-free 快照提供遗留 POS 搜索；`GoodsPosFacade` 仅组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；已回归非 `SALE` 的条码/名称、助记码、原样小写关键字、空关键字、价格矩阵及策略关券。 |
 | **AD-4** | Maven 物理模块化重新评估 | **已关闭** | 已按当前源码重新评估，结论为继续维持单一 `money-app-biz` 业务模块，不实施拆分。 | 见 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`；源码边界已清零，但集中 Mapper、组合装配和测试独立性未证明拆分收益。 |
-| **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
+| **AD-5** | 架构门禁接入 CI 设计 | **已关闭** | 已设计独立 Linux additions-only 工作流、触发范围、最小权限、夹具和失败语义；未修改 CI 配置。 | 见 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`；现有 Windows EXE 发布工作流不变，CI 实施转入 AD-5.1。 |
+| **AD-5.1** | 架构门禁 CI 工作流实施 | **待实施** | 仅新增设计指定的 `.github/workflows/architecture-gate.yml`，以 `bash` 执行夹具和 `architecture-scan.sh --check-new`。 | 推送后须在 Actions 验证 dev push、PR、故意违规红灯和管理员可选的分支保护；不改 EXE 打包、Maven/Node、业务源码或扫描基线。 |
 | **AD-6** | Java 17 源码基线升级评估 | **待设计** | 评估从 Maven Java 8 编译目标升级的收益、依赖兼容和发布风险。 | 独立于 P2/Entity 迁移；未完成前，主模块继续保持 Java 8 源码语法。 |
 | **AD-7** | 运行时启动负担与无效能力盘点/裁剪设计 | **已关闭** | 已完成启动入口、主动任务、自动配置与前后端消费者盘点，建立 Windows 分段测量协议及候选分类；未删除源码或关闭功能。 | 见 `MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`；HOME 快照和 Electron 健康检查为待测量候选，裁剪实施须在 CI 门禁落地后另行编号授权。 |
 
@@ -111,7 +112,7 @@
 
 ## 推荐执行顺序
 
-1. **AD-5**：评估并设计架构门禁接入 CI；设计获批后，先独立实施门禁，为后续裁剪建立回归安全网。
+1. **AD-5.1**：实施独立 additions-only 架构门禁工作流，并在 Actions/PR 真实验证；为后续裁剪建立回归安全网。
 2. **AD-7 后续裁剪实施**：仅针对 AD-7 已证明无消费者、无条件加载需求且已具备回归覆盖的最小候选，另行编号和授权。
 3. **AD-6**：Java 17 源码基线升级评估，需独立的平台升级授权。
 4. **ENV-1**：Windows 打包版嵌入式 MariaDB 验收；应复用 AD-7 的启动测量口径，但不能以源码测试替代。
@@ -121,9 +122,10 @@ SQLite 已完成只读可行性评估，但用户当前决定不进入迁移计�
 
 ## 当前下一最小任务
 
-**AD-5：架构门禁接入 CI 设计。**
+**AD-5.1：架构门禁 CI 工作流实施。**
 
-先完整阅读实施台账、债务清单、`MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md` 与
-`MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`，盘点现有 CI、触发方式、失败策略、开发工作流和
-密钥/数据库边界；先形成设计，未经独立实施授权不得修改 CI 配置。CI 只能阻止新增违规，不得把历史报告型指标
-错误转为失败条件；AD-5 不夹带运行时裁剪或 Maven 拆分。
+
+实施前完整阅读 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`。只新增设计指定的 Linux 静态工作流，并用
+`bash` 显式运行夹具和 additions-only 扫描；不得修改既有 EXE 发布工作流、Maven/Node 构建、业务源码、扫描规则
+或所有权基线。推送后必须由用户在 GitHub Actions 上确认 dev push、PR 和故意违规分支的预期结果；分支保护由仓库
+管理员选择设置。

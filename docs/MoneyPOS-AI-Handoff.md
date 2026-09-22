@@ -70,20 +70,20 @@
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：AD-5
+## 当前任务：AD-5.1
 
-**架构门禁接入 CI 设计。**
+**架构门禁 CI 工作流实施。**
 
-先完整阅读实施台账、债务清单、`MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md` 和
-`MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`，盘点现有 CI、触发方式、失败策略、开发工作流和
-密钥/数据库边界；先形成设计，未经独立实施授权不得修改 CI 配置。
+先完整阅读实施台账、债务清单和 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`。仅新增独立 Linux 工作流，以
+`bash scripts/test-architecture-scan.sh` 和 `bash scripts/architecture-scan.sh --check-new` 运行夹具及门禁；不改
+现有 Windows EXE 发布工作流、Maven/Node 构建、扫描脚本/基线或业务源码。
 
-- `scripts/architecture-scan.sh --check-new` 当前稳定通过，Controller→Mapper、跨 Feature 实现/Mapper、`platform → feature`、共享 Entity import、登记、桥和通配符均为 0；CI 只能阻止新增违规，不得把历史报告型指标错误转为失败条件。
-- AD-4 已结论为暂不拆分；AD-7 已完成盘点/裁剪设计，HOME 快照/Electron 等待是待测量候选。不得在 AD-5 中夹带 Maven 拆分、运行时裁剪、SQLite 迁移或业务功能改动。
+- 新工作流应覆盖 `dev` push、目标为 `dev`/`main` 的 PR 及手动触发，使用只读 token、无数据库/密钥/构建下载；现有 `build-exe.yml` 仅维持 main 发布构建。
+- 推送后必须在 GitHub Actions 验证 dev push、PR 与故意违规的临时分支红灯；由管理员决定是否设置 `Architecture Gate / additions-only` 为 required status check。不得在 AD-5.1 夹带 Maven 拆分、运行时裁剪、SQLite 迁移或业务功能改动。
 
 ## 后续编号顺序
 
-AD-5 只做门禁接入设计；实现 CI 配置须独立授权。只有具备门禁和 AD-7 候选证据后，才为运行时裁剪实施另行编号。AD-6 仍为后续独立的平台升级评估任务。SQLite 当前不在计划内。
+AD-5 已完成设计；AD-5.1 是唯一可实施的下一最小任务。只有具备门禁和 AD-7 候选证据后，才为运行时裁剪实施另行编号。AD-6 仍为后续独立的平台升级评估任务。SQLite 当前不在计划内。
 
 ## Java 与设计约束
 
