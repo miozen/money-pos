@@ -21,6 +21,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - name: Install scan tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
       - name: Verify scan tools
         run: |
           bash --version

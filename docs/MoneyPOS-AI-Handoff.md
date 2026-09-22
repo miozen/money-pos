@@ -78,7 +78,8 @@
 `bash scripts/test-architecture-scan.sh` 和 `bash scripts/architecture-scan.sh --check-new` 运行夹具及门禁；不改
 现有 Windows EXE 发布工作流、Maven/Node 构建、扫描脚本/基线或业务源码。
 
-- 新工作流应覆盖 `dev` push、目标为 `dev`/`main` 的 PR 及手动触发，使用只读 token、无数据库/密钥/构建下载；现有 `build-exe.yml` 仅维持 main 发布构建。
+- 新工作流应覆盖 `dev` push、目标为 `dev`/`main` 的 PR 及手动触发，使用只读 token、无数据库/密钥；显式安装
+  `ripgrep` 后运行扫描，不下载应用 JRE/MariaDB 或执行应用构建。现有 `build-exe.yml` 仅维持 main 发布构建。
 - 推送后必须在 GitHub Actions 验证 dev push、PR 与故意违规的临时分支红灯；由管理员决定是否设置 `Architecture Gate / additions-only` 为 required status check。不得在 AD-5.1 夹带 Maven 拆分、运行时裁剪、SQLite 迁移或业务功能改动。
 
 ## 后续编号顺序

@@ -51,6 +51,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - name: Install scan tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
       - name: Verify scan tools
         run: |
           bash --version
@@ -95,6 +99,7 @@ jobs:
 
 - GitHub Actions 当前只存在发布工作流；仓库分支保护、PR 使用习惯和管理员权限无法从本地源码推断，故不在 AD-5
   擅自配置。
-- `ubuntu-latest` 的 Bash/Ripgrep 可用性在实施首跑时由显式工具检查确认；若缺失，应清晰失败而非静默降级扫描。
+- 首次远端执行确认 `ubuntu-latest` 未预装 `rg`；AD-5.1 因此显式通过 APT 安装 `ripgrep`，再输出版本。该下载仅为
+  门禁所需扫描工具，不下载应用 JRE/MariaDB、不构建发布产物，也不静默降级扫描。
 - 门禁保护的是架构新增回归，不测数据库、交易、启动性能或打包。这些风险继续由专项回归、ENV-1/ENV-2 和后续
   CI 测试环境设计承担。
