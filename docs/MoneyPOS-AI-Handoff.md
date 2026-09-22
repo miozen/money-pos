@@ -63,34 +63,36 @@
   单 JVM `AtomicBoolean` 防重入，失败保留上一份有效快照并记录日志。多实例部署尚无分布式锁，
   这是已记录的运行风险。
 - AD-3 已关闭：AD-3.1 至 AD-3.4.1 均已闭环；遗留实现类型与跨域通用实体查询风险已按当前盘点收敛。
-- AD-2（共享 Entity 物理归属）、AD-4（物理 Maven 拆分）均已关闭；AD-5（CI 门禁）、AD-6（Java 17
-  基线）和 AD-7（运行时启动负担与无效能力盘点）尚未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
+- AD-2（共享 Entity 物理归属）、AD-4（物理 Maven 拆分）、AD-5（CI 门禁）、AD-6（Java 17 基线评估）
+  和 AD-7（运行时启动负担与无效能力盘点）均已关闭；AD-6.1 的构建基线实施仍须用户单独授权，不能因评估
+  结论而擅自修改 POM。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：ENV-1
+## 当前任务：AD-6.1（待授权）
 
-**Windows 打包版嵌入式 MariaDB 与启动基线验收。**
+**主 reactor Java 17 构建基线实施。**
 
-先完整阅读实施台账、债务清单和 `MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`。在 Windows
-打包目录中，以随包 JRE/MariaDB 和代表性已有数据执行首次/重复启动、实例复用、端口冲突、关闭、health 和 Electron
-窗口验收，并记录 T0–T5 分段时间；不以 WSL 开发模式或源码测试冒充桌面启动数据。
+先完整阅读实施台账、债务清单和 `MoneyPOS-AD-6-Java17-Source-Baseline-Assessment.md`。只在用户明确授权后，
+按其中固定范围统一主 reactor 的 Java 17 编译契约并完成隔离回归、打包、门禁和 Windows 包复验；不得借此
+升级 Spring Boot、迁移 `javax`/`jakarta`、改业务源码或处理 `xxl-job-admin`。
 
 - AD-5.1 已关闭：`Architecture Gate / additions-only` 的正常 dev 运行通过；临时 PR 中的 Controller→Mapper
   违规按预期红灯，分支已删除。现有 EXE 发布工作流保持不变。
-- ENV-1 是启动裁剪的实际前置，不得在本任务夹带 Maven 拆分、运行时裁剪、SQLite 迁移或业务功能改动；硬件打印仍为 ENV-2。
+- ENV-1 的现有数据启动、health 和收银窗口已人工确认；首次初始化、端口冲突和关闭流程仍待环境验收。它是启动裁剪的实际前置，硬件打印仍为 ENV-2。
 
 ## 后续编号顺序
 
-AD-5 与 AD-5.1 均已闭环。ENV-1 测量完成后，只有具备门禁和 AD-7 候选收益证据时，才为运行时裁剪实施另行编号；否则转入 AD-6。SQLite 当前不在计划内。
+AD-5 与 AD-5.1、AD-6 均已闭环。AD-6.1 需要明确授权；ENV-1 完成后，只有具备门禁和 AD-7 候选收益证据时，才为运行时裁剪实施另行编号。SQLite 当前不在计划内。
 
 ## Java 与设计约束
 
-- 本机 JDK 为 17，但主 POM `java.version` / compiler source / target 仍为 **1.8**。
-- `money-app-api` 与主模块必须使用 Java 8 源码：普通类、`final` 字段、构造函数和 getter；禁止
-  `record`、文本块及其他较新语法。
+- Windows 随包 JRE、CI 与本机 JDK 均为 17；主 POM 仍暂时声明 Java 8，直至 AD-6.1 获授权实施。
+- 生产源码已存在 Java 9 集合工厂 API，故 Java 8 运行兼容承诺已失真。AD-6.1 后的最低运行/编译基线应为 Java 17，
+  但仍默认使用保守 Java 写法；不得因为基线升级顺带引入 `record` 或文本块。
+- Spring Boot 2.7 仍使用 `javax`；Java 17 基线不授权 `javax`/`jakarta` 迁移或 Boot 3 升级。
 - 不以“包名整洁”为理由批量改造；按数据所有者设计窄 DTO/查询契约，读模型和命令边界分开。
 - 未经独立任务授权，不改变 HTTP 路由、响应字段、表/Flyway、交易事务边界或既有业务公式。
 
