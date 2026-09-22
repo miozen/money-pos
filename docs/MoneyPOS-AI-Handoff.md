@@ -70,21 +70,22 @@
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：ENV-1 剩余环境验收
+## 当前状态：无进行中的获准改造任务
 
-**Windows 打包版嵌入式 MariaDB。**
+**启动优化已冻结；收银小票打印已验收。**
 
-既有数据安装已确认 health 为 UP、收银窗口可用；剩余仅为首次初始化、实例复用、端口冲突、关闭流程，以及按
-AD-7 的 T0–T5 口径记录启动分段。不得借此升级 Spring Boot、迁移 `javax`/`jakarta`、改业务源码或处理 `xxl-job-admin`。
+用户于 2026-09-22 确认 Windows 打包版重复启动约 15 秒可接受，明确决定不继续启动测量或优化。因此不得启动
+ENV-1 剩余测量、HOME 延后刷新、Electron 健康检查调整或“无效代码裁剪”。收银小票打印已实机通过；钱箱仅在门店实际启用时再单独确认。
 
 - AD-5.1 已关闭：`Architecture Gate / additions-only` 的正常 dev 运行通过；临时 PR 中的 Controller→Mapper
   违规按预期红灯，分支已删除。现有 EXE 发布工作流保持不变。
 - AD-6.1 已关闭：新 Windows EXE 安装包在 `D:\30\_Data\WANXIANG-POS\vana-pos` 使用 `D:\WanXiang\POS-Data` 的既有数据启动，health 为 UP，收银窗口可用。
-- ENV-1 的首次初始化、实例复用、端口冲突和关闭流程仍待环境验收。它是启动裁剪的实际前置，硬件打印仍为 ENV-2。
+- ENV-1 的首次初始化、实例复用、端口冲突和关闭流程已由用户冻结，不是待办或裁剪前置条件。
+- ENV-2 收银小票打印已通过；钱箱若启用仍需一次独立实机确认。
 
 ## 后续编号顺序
 
-AD-5、AD-5.1、AD-6 和 AD-6.1 均已闭环。ENV-1 完成后，只有具备门禁和 AD-7 候选收益证据时，才为运行时裁剪实施另行编号。SQLite 当前不在计划内。
+AD-5、AD-5.1、AD-6 和 AD-6.1 均已闭环。AD-7 的后续实施与 ENV-1 测量均已冻结；SQLite 当前不在计划内。任何新工作先以 `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` 为业务边界参考，完成盘点、编号并取得用户授权。
 
 ## Java 与设计约束
 
