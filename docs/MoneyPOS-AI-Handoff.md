@@ -70,20 +70,20 @@
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：AD-7
+## 当前任务：AD-5
 
-**运行时启动负担与无效能力盘点/裁剪设计。**
+**架构门禁接入 CI 设计。**
 
-先完整阅读实施台账、债务清单、运行时能力资料和 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`，
-建立可重复的启动分段测量、启动期 Bean/自动配置/主动任务清单及调用证据矩阵。先形成盘点和裁剪设计，未经独立
-实施授权不得移除依赖、关闭 Bean 或改变路由、数据库/Flyway、交易事务及硬件/备份行为。
+先完整阅读实施台账、债务清单、`MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md` 和
+`MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`，盘点现有 CI、触发方式、失败策略、开发工作流和
+密钥/数据库边界；先形成设计，未经独立实施授权不得修改 CI 配置。
 
-- HOME `ApplicationReadyEvent` 快照补偿/刷新是优先测量候选；支付字典校验、定时备份、WebSocket、邮件、Actuator、租户/国际化/时区和文件存储需按真实消费者与装配条件分类。静态引用少不构成删除证据。
-- AD-4 已结论为暂不拆分：当前 `money-app-biz` 继续作为单一业务模块；不得在 AD-7 中夹带 Maven 拆分、SQLite 迁移或业务功能删除。
+- `scripts/architecture-scan.sh --check-new` 当前稳定通过，Controller→Mapper、跨 Feature 实现/Mapper、`platform → feature`、共享 Entity import、登记、桥和通配符均为 0；CI 只能阻止新增违规，不得把历史报告型指标错误转为失败条件。
+- AD-4 已结论为暂不拆分；AD-7 已完成盘点/裁剪设计，HOME 快照/Electron 等待是待测量候选。不得在 AD-5 中夹带 Maven 拆分、运行时裁剪、SQLite 迁移或业务功能改动。
 
 ## 后续编号顺序
 
-AD-7 完成盘点/设计后，先执行 AD-5 门禁设计与获准的独立实施；只有具备门禁和候选证据后，才为裁剪实施另行编号。AD-6 仍为后续独立的平台升级评估任务。SQLite 当前不在计划内。
+AD-5 只做门禁接入设计；实现 CI 配置须独立授权。只有具备门禁和 AD-7 候选证据后，才为运行时裁剪实施另行编号。AD-6 仍为后续独立的平台升级评估任务。SQLite 当前不在计划内。
 
 ## Java 与设计约束
 
