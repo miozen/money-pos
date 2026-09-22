@@ -69,19 +69,19 @@
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：AD-4
+## 当前任务：AD-5
 
-**Maven 物理模块化重新评估。**
+**架构门禁接入 CI 设计。**
 
-先完整阅读实施台账、债务清单及阶段 5 模块化决策资料，盘点 GMS/UMS/TRADE 的实体、契约、依赖环、候选
-模块独立 `test-compile` 价值和 Spring 装配影响；先形成设计/可行性结论，未经独立实施授权不得拆分 Maven 模块。
+先完整阅读实施台账、债务清单和 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`，盘点现有
+CI、触发方式、失败策略、开发工作流和密钥/数据库边界；先形成设计，未经独立实施授权不得修改 CI 配置。
 
-- AD-2 已清零：共享 Feature import、所有权登记、跨域桥和通配符路径均为 0；不得为模块化而重新暴露 Entity 或扩大跨域依赖。
-- 当前 Maven 结构仍是 `money-app-biz` 单体业务模块。候选拆分须证明收益大于 Spring 扫描、Mapper、测试和循环依赖风险。
+- `scripts/architecture-scan.sh --check-new` 当前稳定通过，Controller→Mapper、跨 Feature 实现/Mapper、`platform → feature`、共享 Entity import、登记、桥和通配符均为 0；CI 只能阻止新增违规，不得把历史报告型指标错误转为失败条件。
+- AD-4 已结论为暂不拆分：当前 `money-app-biz` 继续作为单一业务模块；不得在 AD-5 中夹带 Maven 拆分或 Mapper 迁移。
 
 ## 后续编号顺序
 
-AD-4 先做重新评估/设计；只有结论支持且用户授权后才单独编号实施。AD-5 与 AD-6 仍为后续独立任务。
+AD-5 只做门禁接入设计；实现 CI 配置须独立授权。AD-6 仍为后续独立的平台升级评估任务。
 
 ## Java 与设计约束
 

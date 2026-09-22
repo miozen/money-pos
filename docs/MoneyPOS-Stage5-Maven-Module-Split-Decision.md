@@ -1,5 +1,10 @@
 # 阶段 5.3：Maven 模块拆分决策
 
+> 历史决策说明：本文记录 P1/P2/AD-2/AD-3 之前的证据。其“暂不拆分”结论仍然有效，但其中关于
+> UMS↔TRADE 直接源码循环和共享 Entity 的事实已被后续迁移替代。当前重新取证及三方案对比见
+> `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`；它以集中 Mapper、组合装配和测试
+> 独立性不足为主要延期理由。
+
 ## 决策
 
 **决定：暂不进行物理 Maven 模块拆分。**

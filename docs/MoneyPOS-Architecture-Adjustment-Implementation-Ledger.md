@@ -1667,3 +1667,11 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained payment amount validation, duplicate-checkout recovery, inventory/member-asset/payment ordering, partial/full refund amount and status transitions, `/oms-order` DTO/VO and printing, FIN/HOME/member-rank projections, table/Flyway and transaction boundaries. The two retired TRADE wildcard imports now use explicit local imports.
 - Removed the final ownership and wildcard baseline entries; scan fixtures now prove a retired shared Entity is unregistered. Registry, shared Feature imports, owner-local uses, documented bridges and wildcard paths are all 0. Isolated full `money_pos_test` regression, package, scan fixtures, additions-only gate and whitespace validation passed.
 - AD-2 shared Entity physical ownership is closed. Next: AD-4 Maven physical modularization reassessment/design.
+
+### Completed: AD-4 Maven Physical Modularization Reassessment
+
+- Published `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md` after a read-only post-AD-2 audit of Feature imports, 26 centralized legacy Mappers, transaction entry points, Spring/MyBatis/Flyway composition and test topology. No POM, source, Mapper, resource, route, table, Flyway or transaction changed.
+- The prior Stage-5 decision's direct UMS↔TRADE and shared-Entity evidence is obsolete: current direct production Feature imports, shared Entity imports, ownership entries, bridges and wildcard paths are all 0. API-neutral contracts now mediate the audited cross-domain scenarios.
+- Reassessment still defers splitting. `money-app-biz` owns the Boot entry point, Flyway classpath and hard-coded mapper scanning; 53 of 58 tests start the complete Spring Boot application, and checkout/refund use one transaction across TRADE orchestration plus GMS/UMS command handlers. No candidate has independent build/test value or a proven split-runtime assembly.
+- Compared maintaining the current module, Mapper-only physical cleanup and Feature Maven modules. Maintaining the current module is the recommended decision; Mapper cleanup is a separately authorized preparatory refactor only if a measured maintenance need emerges; Feature POM splitting is not approved.
+- Next: AD-5 architecture-gate CI integration design.

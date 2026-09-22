@@ -97,7 +97,7 @@
 | AD-3.3 | SYS 字典实体读取收敛 | **已关闭** | TRADE/GMS/UMS 已改用既有 `SysDictDetailService.getValueToCnDescMap()`，不再接收 `SysDictDetail` 或直接使用其 Mapper。见 `MoneyPOS-AD-3.3-Sys-Dictionary-Read-Contract-Migration.md`。 | 保持支付方式、订单状态、会员类型及 Excel 显示口径；SYS 管理端不动。 |
 | AD-3.4 | GMS→POS 商品搜索快照设计 | **已关闭** | 已确认既有 `PosGoodsCatalogQuery` 与兼容路由口径不同，并设计独立的 GMS 所有者快照。见 `MoneyPOS-AD-3.4-Gms-Pos-Goods-Search-Snapshot-Design.md`。 | 固定旧路由字段、未分组 SQL 的实际状态口径、原样助记码匹配及 SYS 策略边界。 |
 | AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 已关闭 | GMS 通过独立 Entity-free 快照提供遗留 POS 搜索；`GoodsPosFacade` 仅组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；已回归非 `SALE` 的条码/名称、助记码、原样小写关键字、空关键字、价格矩阵及策略关券。 |
-| **AD-4** | Maven 物理模块化重新评估 | **待设计** | 重新评估 GMS/UMS/TRADE 是否能从 `money-app-biz` 拆出；当前尚未授权实施拆分。 | AD-2 已清零；仍须审计 Entity-free 契约、UMS↔TRADE 循环、候选模块独立 `test-compile` 价值及 Spring 装配验证。 |
+| **AD-4** | Maven 物理模块化重新评估 | **已关闭** | 已按当前源码重新评估，结论为继续维持单一 `money-app-biz` 业务模块，不实施拆分。 | 见 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`；源码边界已清零，但集中 Mapper、组合装配和测试独立性未证明拆分收益。 |
 | **AD-5** | 架构门禁接入 CI | **待设计** | 把现有 `scripts/architecture-scan.sh --check-new` 纳入可重复的 CI/构建检查。 | 先确认现有 CI、失败策略与开发流程；不得把报告型共享 Entity 指标误接为阻断。 |
 | **AD-6** | Java 17 源码基线升级评估 | **待设计** | 评估从 Maven Java 8 编译目标升级的收益、依赖兼容和发布风险。 | 独立于 P2/Entity 迁移；未完成前，主模块继续保持 Java 8 源码语法。 |
 
@@ -110,9 +110,9 @@
 
 ## 推荐执行顺序
 
-1. **AD-4**：在 AD-2 清零后重新评估 Maven 物理模块化，先形成独立设计/可行性结论。
-2. **AD-5** 与 **AD-6** 分别需要工程治理和平台升级的独立授权。
+1. **AD-5**：评估并设计将稳定的 additions-only 架构门禁接入 CI。
+2. **AD-6**：Java 17 源码基线升级评估，需独立的平台升级授权。
 
 ## 当前下一最小任务
 
-**AD-4：Maven 物理模块化重新评估。**
+**AD-5：架构门禁接入 CI 设计。**
