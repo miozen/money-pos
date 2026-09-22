@@ -101,7 +101,7 @@
 | **AD-5** | 架构门禁接入 CI 设计 | **已关闭** | 已设计独立 Linux additions-only 工作流、触发范围、最小权限、夹具和失败语义；未修改 CI 配置。 | 见 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`；现有 Windows EXE 发布工作流不变，CI 实施转入 AD-5.1。 |
 | **AD-5.1** | 架构门禁 CI 工作流实施 | **已关闭** | 已新增独立 Linux 工作流，显式安装 `ripgrep` 后以 Bash 执行夹具和 `architecture-scan.sh --check-new`。 | `dev` 正常运行绿灯；临时 PR 的故意 Controller→Mapper 违规按预期红灯且分支已删除。见 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`；分支保护为管理员可选后续设置。 |
 | **AD-6** | Java 17 源码基线升级评估 | **已关闭** | 评估确认主 reactor 应统一为 Java 17：随包 JRE/CI 已为 17，而 class 52 产物已经调用 Java 9 `List.of`，Java 8 兼容声明失真。 | 见 `MoneyPOS-AD-6-Java17-Source-Baseline-Assessment.md`；不含 Boot 3/Jakarta 或依赖批量升级。 |
-| AD-6.1 | 主 reactor Java 17 构建基线实施 | **待实施（需单独授权）** | 以 `release=17`、受管编译器和最低 JDK 约束统一 POM/CI 构建契约，并完成完整回归与 Windows 包复验。 | 只改构建治理；不得夹带业务、数据库、Boot 3/Jakarta、XXL 或 Maven 拆分。 |
+| AD-6.1 | 主 reactor Java 17 构建基线实施 | **环境验收待办** | 已以 `release=17`、受管编译器与最低 JDK 约束统一主 reactor，并补齐两项 Mapper 测试鉴权夹具；本地完整回归、打包和门禁通过。 | 见 `MoneyPOS-AD-6.1-Java17-Build-Baseline-Implementation.md`；仍须 GitHub Windows EXE 构建及既有数据安装包人工复验。 |
 | **AD-7** | 运行时启动负担与无效能力盘点/裁剪设计 | **已关闭** | 已完成启动入口、主动任务、自动配置与前后端消费者盘点，建立 Windows 分段测量协议及候选分类；未删除源码或关闭功能。 | 见 `MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`；HOME 快照和 Electron 健康检查为待测量候选，裁剪实施须在 CI 门禁落地后另行编号授权。 |
 
 ## 环境验收待办（不是源码架构改造）
@@ -115,15 +115,15 @@
 
 1. **ENV-1**：Windows 打包版嵌入式 MariaDB 验收，并按 AD-7 的 T0–T5 口径采集启动基线；这是启动裁剪的实际前置证据。
 2. **AD-7 后续裁剪实施**：仅在 ENV-1 测量确认候选收益后，针对已证明无消费者/可条件化且具备 CI 回归保护的最小候选另行编号和授权。
-3. **AD-6.1**：主 reactor Java 17 构建基线实施；设计已完成，但仍需用户明确授权。
+3. **AD-6.1 环境验收**：手动运行 Windows EXE 工作流并以既有数据复验 health/收银窗口；不重复 ENV-1 的性能与首次初始化验收。
 4. **ENV-2**：小票/钱箱硬件验收，保持独立于启动裁剪。
 
 SQLite 已完成只读可行性评估，但用户当前决定不进入迁移计划，故不登记为活跃债务或当前前置条件。
 
 ## 当前下一最小任务
 
-**AD-6.1：主 reactor Java 17 构建基线实施（仅在用户明确授权后）。**
+**AD-6.1：Java 17 Windows EXE 环境验收。**
 
-仅按 `MoneyPOS-AD-6-Java17-Source-Baseline-Assessment.md` 的范围更新构建治理并完成隔离全量回归、
-Java 17 打包、架构门禁与 Windows 安装包复验。不得夹带业务、数据库/Flyway、Boot 3/Jakarta、XXL、Maven
-拆分、SQLite 或启动裁剪。ENV-1 的首次初始化、端口冲突和关闭流程仍是独立环境验收，不因 AD-6 关闭而完成。
+手动运行 `Build WanXiangPOS EXE Installer`，使用新安装包对既有数据进行一次打开、health 和收银窗口复验。
+不得夹带业务、数据库/Flyway、Boot 3/Jakarta、XXL、Maven 拆分、SQLite 或启动裁剪。ENV-1 的首次初始化、
+端口冲突和关闭流程仍是独立环境验收，不因 AD-6.1 关闭而完成。
