@@ -1,0 +1,31 @@
+name: Architecture Gate
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  additions-only:
+    name: additions-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify scan tools
+        run: |
+          bash --version
+          rg --version
+      - name: Verify architecture scan fixtures
+        run: bash scripts/test-architecture-scan.sh
+      - name: Enforce additions-only architecture gate
+        run: bash scripts/architecture-scan.sh --check-new
