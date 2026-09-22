@@ -1717,3 +1717,15 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Retained Surefire 2.22.2 after proving that an unnecessary 3.2.5 upgrade changed test execution conditions. Clean Java 17 regression exposed two Mapper tests missing the same SecurityContext fixture used by peer Mapper tests; added only their test setup/cleanup, with no production authentication change.
 - Isolated `money_pos_test` regression passed 58 test classes / 105 tests with zero failures, errors or skips. Java 17 package passed, `QkMoneyApplication` is class major 61, scanner fixtures and additions-only gate passed, and whitespace validation passed.
 - The remaining AD-6.1 acceptance is external: manually run the GitHub Windows EXE workflow and open its fresh package against existing data to check health and the cashier window. Do not conflate that confirmation with unresolved ENV-1 first-init, port-conflict, shutdown or startup-performance checks.
+
+### Completed: AD-6.1 Java 17 Build Baseline
+
+- The user ran the Windows EXE workflow, installed the resulting package at `D:\30\_Data\WANXIANG-POS\vana-pos`, and reused the data directory `D:\WanXiang\POS-Data`.
+- The packaged backend returned actuator health `UP` with MariaDB validation `SELECT 1`; the cashier window opened and normal collection was completed. This closes the Java 17 build-baseline acceptance.
+- Repeated packaged launches were about 15 seconds on an i7-8700. This is a useful ENV-1 startup baseline, not proof that a startup-cut candidate is beneficial. ENV-1 still requires first-initialization, instance-reuse, port-conflict and clean-shutdown checks.
+
+### Completed: Order Full-Refund Dictionary Compatibility Fix
+
+- Added Flyway `V1.0.4__add_refunded_order_status_dictionary.sql`. It seeds the canonical current-workflow value `orderStatus/REFUNDED/已退单`, or corrects its display metadata if the row already exists.
+- The migration intentionally leaves historical `oms_order.status = RETURN` rows unchanged. Both `RETURN` and `REFUNDED` display as “已退单”; new full-refund code continues to write only `REFUNDED`.
+- Removed temporary high-volume dictionary diagnostics from TRADE order queries while retaining a warning and enum fallback for genuinely unknown codes. `OrderStatusDictionaryIntegrationTest` proves the Flyway-seeded map includes PAID, PARTIAL_REFUNDED, legacy RETURN and canonical REFUNDED.
