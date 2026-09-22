@@ -46,6 +46,24 @@ git status -sb
 或重复创建提交。自动工具宿主与交互 WSL 的网络路径可能不同，只有实际 Git 命令所在终端的成功推送与
 `ahead=0`/`behind=0` 才能作为接力闭环证据。
 
+### 阶段提交的人工推送责任
+
+当 Codex 已完成编号任务、验证和本地提交，但其受限工具宿主无法解析或连接 GitHub 时，**不重复创建提交，
+由用户在自己的交互 WSL 终端执行推送**。这是本仓库的固定接力流程；Codex 必须报告待推送的提交号和下列
+完整命令，收到用户粘贴的成功输出后才可将任务报告为远端闭环：
+
+```bash
+cd ~/projects/money-pos
+git status -sb
+git push ssh://git@ssh.github.com:443/miozen/money-pos.git dev:dev
+git fetch origin
+git status -sb
+```
+
+最后一行必须为 `## dev...origin/dev`，即没有 `ahead` 或 `behind`。上述显式 URL 固定使用 GitHub
+SSH-over-443，不依赖自动工具宿主的网络条件，也不需要改写 `origin`。若用户终端也失败，先执行本节前面的
+`ssh -T -o ConnectTimeout=10 git@github.com` 诊断；在成功推送前不得开始下一编号任务。
+
 
 ## 强制的编号任务闭环
 

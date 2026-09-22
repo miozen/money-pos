@@ -16,7 +16,7 @@
 
 `MoneyPOS-Architecture-Debt-Backlog.md` 的“当前任务”是唯一允许开始的任务编号。每轮只完成一个编号任务：先读其设计边界，再实施、验证、更新台账/债务清单/本文件，最后提交。不得在迁移任务中自行选择下一切片，也不得在选择任务中夹带迁移实现。
 
-每轮的完成定义是：**编号任务 → 任务范围内的代码/测试/文档 → 验证 → 本地提交 → 推送 `origin/dev` → 确认 `ahead=0` 且 `behind=0`**。任一步未完成，只能报告“本地进行中”或“本地完成待同步”，不能作为另一台电脑或新 AI 对话继续下一编号任务的基线。详细命令、数据库隔离和冲突处理见 `MoneyPOS-双电脑接力协议.md`。
+每轮的完成定义是：**编号任务 → 任务范围内的代码/测试/文档 → 验证 → 本地提交 → 推送 `origin/dev` → 确认 `ahead=0` 且 `behind=0`**。任一步未完成，只能报告“本地进行中”或“本地完成待同步”，不能作为另一台电脑或新 AI 对话继续下一编号任务的基线。若 Codex 工具宿主因网络/DNS 无法推送，用户应在其交互 WSL 终端按 `MoneyPOS-双电脑接力协议.md` 的 SSH-over-443 固定命令完成推送并回传结果；AI 不得重复创建提交。
 
 
 ## 仓库与操作红线
@@ -25,8 +25,9 @@
 - Maven 根目录：`/home/mio/projects/money-pos/money-pos`。
 - 当前分支：`dev`；仅在 `dev` 开发。
 - 远端为 SSH `git@github.com:miozen/money-pos.git`。开始前 `git fetch origin`、`git pull --ff-only origin dev`；
-  完成后可提交并推送到 `origin/dev` 以供双电脑接力。推送后再次 `git fetch origin`，确认无 ahead/behind；不得推送
-  `main`，不得强推或覆盖另一台电脑的提交。
+  完成后可提交并推送到 `origin/dev` 以供双电脑接力。受限工具宿主推送失败时，由用户在交互 WSL 执行
+  `git push ssh://git@ssh.github.com:443/miozen/money-pos.git dev:dev`，再 `git fetch origin` 与 `git status -sb`
+  复核；不得推送 `main`，不得强推或覆盖另一台电脑的提交。
 - 不使用 `git reset --hard`，不使用广泛的 `git checkout` / `git restore`。
 - 每次只 `git add` 当前最小任务明确修改的文件；提交前先检查暂存区。
 执行环境为 Windows PowerShell 宿主 + WSL Ubuntu 仓库。所有含 Bash 变量、命令替换、正则、凭据或多行逻辑的命令，必须通过 `MoneyPOS-双电脑接力协议.md` 的 `$wslScript` 单引号 here-string 模板，以标准输入传入 `wsl.exe ... bash -s`；外层 PowerShell 只能传递脚本，不解释业务语法。看到 PowerShell `ParserError` 时，该命令尚未进入 WSL，先修正封装，不要将其记作 Maven、数据库或代码失败。
@@ -62,26 +63,27 @@
   单 JVM `AtomicBoolean` 防重入，失败保留上一份有效快照并记录日志。多实例部署尚无分布式锁，
   这是已记录的运行风险。
 - AD-3 已关闭：AD-3.1 至 AD-3.4.1 均已闭环；遗留实现类型与跨域通用实体查询风险已按当前盘点收敛。
-- AD-2（共享 Entity 物理归属）、AD-4（物理 Maven 拆分）、AD-5（CI 门禁）、AD-6（Java 17
-  基线）均未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
+- AD-2（共享 Entity 物理归属）、AD-4（物理 Maven 拆分）均已关闭；AD-5（CI 门禁）、AD-6（Java 17
+  基线）和 AD-7（运行时启动负担与无效能力盘点）尚未完成，不能因 P2 已关闭而误报“架构调整全部完成”。
 
 架构扫描当前应保持：Controller → Mapper、跨 Feature Mapper/ServiceImpl、跨 Feature 实现 import
 均为 0；共享 `com.money.entity` import、所有权登记、跨域桥和通配符路径均为 0。`--check-new`
 持续阻止新增未登记 Entity 与新通配符，且不把其他历史报告型指标误接为失败规则。
 
-## 当前任务：AD-5
+## 当前任务：AD-7
 
-**架构门禁接入 CI 设计。**
+**运行时启动负担与无效能力盘点/裁剪设计。**
 
-先完整阅读实施台账、债务清单和 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`，盘点现有
-CI、触发方式、失败策略、开发工作流和密钥/数据库边界；先形成设计，未经独立实施授权不得修改 CI 配置。
+先完整阅读实施台账、债务清单、运行时能力资料和 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`，
+建立可重复的启动分段测量、启动期 Bean/自动配置/主动任务清单及调用证据矩阵。先形成盘点和裁剪设计，未经独立
+实施授权不得移除依赖、关闭 Bean 或改变路由、数据库/Flyway、交易事务及硬件/备份行为。
 
-- `scripts/architecture-scan.sh --check-new` 当前稳定通过，Controller→Mapper、跨 Feature 实现/Mapper、`platform → feature`、共享 Entity import、登记、桥和通配符均为 0；CI 只能阻止新增违规，不得把历史报告型指标错误转为失败条件。
-- AD-4 已结论为暂不拆分：当前 `money-app-biz` 继续作为单一业务模块；不得在 AD-5 中夹带 Maven 拆分或 Mapper 迁移。
+- HOME `ApplicationReadyEvent` 快照补偿/刷新是优先测量候选；支付字典校验、定时备份、WebSocket、邮件、Actuator、租户/国际化/时区和文件存储需按真实消费者与装配条件分类。静态引用少不构成删除证据。
+- AD-4 已结论为暂不拆分：当前 `money-app-biz` 继续作为单一业务模块；不得在 AD-7 中夹带 Maven 拆分、SQLite 迁移或业务功能删除。
 
 ## 后续编号顺序
 
-AD-5 只做门禁接入设计；实现 CI 配置须独立授权。AD-6 仍为后续独立的平台升级评估任务。
+AD-7 完成盘点/设计后，先执行 AD-5 门禁设计与获准的独立实施；只有具备门禁和候选证据后，才为裁剪实施另行编号。AD-6 仍为后续独立的平台升级评估任务。SQLite 当前不在计划内。
 
 ## Java 与设计约束
 

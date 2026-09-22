@@ -1675,3 +1675,9 @@ Obtain a supported receipt printer for the final print-path check, or explicitly
 - Reassessment still defers splitting. `money-app-biz` owns the Boot entry point, Flyway classpath and hard-coded mapper scanning; 53 of 58 tests start the complete Spring Boot application, and checkout/refund use one transaction across TRADE orchestration plus GMS/UMS command handlers. No candidate has independent build/test value or a proven split-runtime assembly.
 - Compared maintaining the current module, Mapper-only physical cleanup and Feature Maven modules. Maintaining the current module is the recommended decision; Mapper cleanup is a separately authorized preparatory refactor only if a measured maintenance need emerges; Feature POM splitting is not approved.
 - Next: AD-5 architecture-gate CI integration design.
+
+### Operational Update: User-Managed GitHub SSH-over-443 Push
+
+- Confirmed that the interactive WSL terminal successfully pushed AD-4 commit `900bb8d` through `ssh://git@ssh.github.com:443/miozen/money-pos.git`, then fetched and verified `dev...origin/dev` with no ahead/behind state.
+- Codex's restricted tool host may fail DNS resolution for `ssh.github.com` even while the user's WSL path works. The dual-computer protocol and AI handoff now require Codex to report a completed local commit and the explicit SSH-over-443 push command; the user performs the push and returns the verification output. A push failure never authorizes duplicate commits or starting the next numbered task.
+- Reprioritized the open backlog at user request: next is AD-7 runtime startup-load and unused-capability inventory/cut-design, then AD-5 CI-gate design and authorized implementation, then evidence-backed runtime pruning. AD-6 and the two environment acceptances remain separate later work; SQLite migration is explicitly deferred and not an active task.
