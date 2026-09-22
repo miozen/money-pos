@@ -99,7 +99,7 @@
 | AD-3.4.1 | GMS→POS 商品搜索快照迁移 | 已关闭 | GMS 通过独立 Entity-free 快照提供遗留 POS 搜索；`GoodsPosFacade` 仅组装旧响应和 SYS 品牌券策略。 | 保持 `/gms/goods/pos-search`；已回归非 `SALE` 的条码/名称、助记码、原样小写关键字、空关键字、价格矩阵及策略关券。 |
 | **AD-4** | Maven 物理模块化重新评估 | **已关闭** | 已按当前源码重新评估，结论为继续维持单一 `money-app-biz` 业务模块，不实施拆分。 | 见 `MoneyPOS-AD-4-Maven-Physical-Modularization-Reassessment.md`；源码边界已清零，但集中 Mapper、组合装配和测试独立性未证明拆分收益。 |
 | **AD-5** | 架构门禁接入 CI 设计 | **已关闭** | 已设计独立 Linux additions-only 工作流、触发范围、最小权限、夹具和失败语义；未修改 CI 配置。 | 见 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`；现有 Windows EXE 发布工作流不变，CI 实施转入 AD-5.1。 |
-| **AD-5.1** | 架构门禁 CI 工作流实施 | **待实施** | 仅新增设计指定的 `.github/workflows/architecture-gate.yml`，以 `bash` 执行夹具和 `architecture-scan.sh --check-new`。 | 推送后须在 Actions 验证 dev push、PR、故意违规红灯和管理员可选的分支保护；不改 EXE 打包、Maven/Node、业务源码或扫描基线。 |
+| **AD-5.1** | 架构门禁 CI 工作流实施 | **已关闭** | 已新增独立 Linux 工作流，显式安装 `ripgrep` 后以 Bash 执行夹具和 `architecture-scan.sh --check-new`。 | `dev` 正常运行绿灯；临时 PR 的故意 Controller→Mapper 违规按预期红灯且分支已删除。见 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`；分支保护为管理员可选后续设置。 |
 | **AD-6** | Java 17 源码基线升级评估 | **待设计** | 评估从 Maven Java 8 编译目标升级的收益、依赖兼容和发布风险。 | 独立于 P2/Entity 迁移；未完成前，主模块继续保持 Java 8 源码语法。 |
 | **AD-7** | 运行时启动负担与无效能力盘点/裁剪设计 | **已关闭** | 已完成启动入口、主动任务、自动配置与前后端消费者盘点，建立 Windows 分段测量协议及候选分类；未删除源码或关闭功能。 | 见 `MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md`；HOME 快照和 Electron 健康检查为待测量候选，裁剪实施须在 CI 门禁落地后另行编号授权。 |
 
@@ -112,20 +112,18 @@
 
 ## 推荐执行顺序
 
-1. **AD-5.1**：实施独立 additions-only 架构门禁工作流，并在 Actions/PR 真实验证；为后续裁剪建立回归安全网。
-2. **AD-7 后续裁剪实施**：仅针对 AD-7 已证明无消费者、无条件加载需求且已具备回归覆盖的最小候选，另行编号和授权。
+1. **ENV-1**：Windows 打包版嵌入式 MariaDB 验收，并按 AD-7 的 T0–T5 口径采集启动基线；这是启动裁剪的实际前置证据。
+2. **AD-7 后续裁剪实施**：仅在 ENV-1 测量确认候选收益后，针对已证明无消费者/可条件化且具备 CI 回归保护的最小候选另行编号和授权。
 3. **AD-6**：Java 17 源码基线升级评估，需独立的平台升级授权。
-4. **ENV-1**：Windows 打包版嵌入式 MariaDB 验收；应复用 AD-7 的启动测量口径，但不能以源码测试替代。
-5. **ENV-2**：小票/钱箱硬件验收，保持独立于启动裁剪。
+4. **ENV-2**：小票/钱箱硬件验收，保持独立于启动裁剪。
 
 SQLite 已完成只读可行性评估，但用户当前决定不进入迁移计划，故不登记为活跃债务或当前前置条件。
 
 ## 当前下一最小任务
 
-**AD-5.1：架构门禁 CI 工作流实施。**
+**ENV-1：Windows 打包版嵌入式 MariaDB 与启动基线验收。**
 
-
-实施前完整阅读 `MoneyPOS-AD-5-CI-Architecture-Gate-Design.md`。只新增设计指定的 Linux 静态工作流，并用
-`bash` 显式运行夹具和 additions-only 扫描；不得修改既有 EXE 发布工作流、Maven/Node 构建、业务源码、扫描规则
-或所有权基线。推送后必须由用户在 GitHub Actions 上确认 dev push、PR 和故意违规分支的预期结果；分支保护由仓库
-管理员选择设置。
+使用 Windows 打包目录、随包 JRE/MariaDB 与代表性既有数据，按
+`MoneyPOS-AD-7-Runtime-Startup-Load-and-Redundancy-Inventory.md` 的 T0–T5 口径记录首次初始化和至少五次
+已有数据目录启动。验证 MariaDB 首次初始化、已有实例复用、端口冲突拒绝、关闭流程、健康接口和 Electron 窗口可见；
+不得以 WSL 开发库或源码测试替代。该环境验收不修改业务代码，测量结果才决定是否另立 AD-7 裁剪实施切片。

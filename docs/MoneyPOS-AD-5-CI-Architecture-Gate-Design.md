@@ -103,3 +103,13 @@ jobs:
   门禁所需扫描工具，不下载应用 JRE/MariaDB、不构建发布产物，也不静默降级扫描。
 - 门禁保护的是架构新增回归，不测数据库、交易、启动性能或打包。这些风险继续由专项回归、ENV-1/ENV-2 和后续
   CI 测试环境设计承担。
+
+## AD-5.1 远端验收记录
+
+- `fccaf5a` 首次推送后，GitHub runner 在工具检查阶段报告 `rg: command not found`（退出码 127）；未执行夹具或
+  生产扫描。`47fb359` 显式安装 `ripgrep` 后，`Architecture Gate / additions-only` 在 `dev` 推送中全部通过。
+- 临时分支 `codex/ad5-1-negative-gate` 的提交 `ad7f933` 仅新增
+  `Ad51GateViolationController.java`，故意触发 Controller→Mapper 规则。其目标为 `dev` 的 PR 触发门禁并以退出码 1
+  红灯，日志精确报告该文件；证明 PR 触发和失败传播均生效。
+- 该 PR 未合并，远端临时分支已删除，本地临时分支也已删除；`dev...origin/dev` 再次对齐。分支保护 required check
+  仍是仓库管理员可选的后续设置，不是本次实现的阻塞项。
