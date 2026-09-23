@@ -58,6 +58,13 @@ source ~/.nvm/nvm.sh
 nvm use 20
 ```
 
+本项目当前 WSL 开发环境已验证的运行时为 `Node v20.20.2` / `npm 10.8.2`，nvm 位于 `/home/mio/.nvm/nvm.sh`。在本机执行前端命令时，请使用以下完整命令，避免因 shell 未加载 nvm 而误判 npm 未安装：
+
+```bash
+source /home/mio/.nvm/nvm.sh
+nvm use 20
+```
+
 ### 2.3 安装并启动 MariaDB
 
 ```bash
