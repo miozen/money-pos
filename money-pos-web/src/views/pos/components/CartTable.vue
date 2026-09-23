@@ -11,11 +11,17 @@
         <el-table-column type="index" label="序号" width="70" align="center" />
         <el-table-column prop="barcode" label="条码" width="160" />
 
-        <el-table-column label="商品名称" min-width="220">
+        <el-table-column label="商品名称" min-width="250">
             <template #default="{ row }">
-                <span class="font-bold mr-2">{{ row.name }}</span>
-                <el-tag v-if="row.isCombo === 1" type="warning" size="small" effect="dark" class="mr-1">套餐</el-tag>
-                <el-tag v-if="row.isDiscountParticipable === 1" type="danger" size="small" effect="plain">满减</el-tag>
+                <div>
+                    <span class="font-bold mr-2">{{ row.name }}</span>
+                    <el-tag v-if="row.isCombo === 1" type="warning" size="small" effect="dark" class="mr-1">套餐</el-tag>
+                    <el-tag v-if="row.isDiscountParticipable === 1" type="danger" size="small" effect="plain">满减</el-tag>
+                    <div v-if="isStockInsufficient(row)" class="stock-warning mt-1 flex items-center gap-1 text-xs font-bold">
+                        <el-icon><WarningFilled /></el-icon>
+                        {{ stockWarningText(row) }}
+                    </div>
+                </div>
             </template>
         </el-table-column>
 
@@ -75,9 +81,12 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="100" align="center" fixed="right">
-            <template #default="{ $index }">
-                <el-button type="danger" icon="Delete" circle plain @click="removeItem($index)" />
+        <el-table-column label="操作" width="150" align="center" fixed="right">
+            <template #default="{ row, $index }">
+                <div class="flex items-center justify-center gap-1">
+                    <el-button v-if="isStockInsufficient(row)" type="warning" link size="small" @click.stop="emit('restock', row)">补货</el-button>
+                    <el-button type="danger" icon="Delete" circle plain @click.stop="removeItem($index)" />
+                </div>
             </template>
         </el-table-column>
     </el-table>
@@ -85,9 +94,20 @@
 
 <script setup>
 import { watch, nextTick } from 'vue'
+import { WarningFilled } from '@element-plus/icons-vue'
 import { usePosStore } from '../hooks/usePosStore'
 
 const { cartList, enrichedCartList, currentMember, removeItem, runTrial, activeItemIndex } = usePosStore()
+const emit = defineEmits(['restock'])
+
+const isStockInsufficient = (row) => Number(row.qty || 0) > Number(row.stock ?? 0)
+
+const stockWarningText = (row) => {
+    const stock = Number(row.stock ?? 0)
+    return stock <= 0
+        ? `库存为 0，已选 ${row.qty}`
+        : `库存不足：现有 ${stock}，已选 ${row.qty}`
+}
 
 // 🌟 核心逻辑：当输入框获得焦点时，自动全选内容
 const handleFocus = (event) => {
@@ -125,12 +145,24 @@ const handleQtyChange = (index, newVal) => {
     runTrial();
 }
 
-const tableRowClassName = ({ rowIndex }) => {
-    return rowIndex === activeItemIndex.value ? 'active-pos-row' : '';
+const tableRowClassName = ({ row, rowIndex }) => {
+    const classNames = []
+    if (isStockInsufficient(row)) classNames.push('stock-insufficient-row')
+    if (rowIndex === activeItemIndex.value) classNames.push('active-pos-row')
+    return classNames.join(' ')
 }
 </script>
 
 <style scoped>
+.stock-warning {
+    color: #dc2626;
+}
+
+/* 库存异常优先于斑马纹；选中行仍保留蓝色焦点。 */
+:deep(.el-table__body tr.stock-insufficient-row > td.el-table__cell) {
+    background-color: #fef2f2 !important;
+}
+
 /* 🌟 击穿原生斑马纹，保证选中行背景泛蓝 */
 :deep(.el-table__body tr.active-pos-row > td.el-table__cell) {
     background-color: #e0f2fe !important;

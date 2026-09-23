@@ -3,7 +3,7 @@
         <HeaderBar :cashierName="cashierName" :currentTime="currentTime" @action="handleNavAction" />
 
         <div class="flex-1 overflow-hidden p-2">
-            <CartTable class="h-full rounded-md shadow-sm overflow-hidden border border-gray-200" />
+            <CartTable class="h-full rounded-md shadow-sm overflow-hidden border border-gray-200" @restock="handleQuickRestock" />
         </div>
 
         <BottomConsole
@@ -21,7 +21,7 @@
         />
 
         <CheckoutModal v-model="dialogs.checkout" :pay-method-dict="payMethodDict" :pay-tag-dict="payTagDict" @checkout-success="handleCheckoutSuccess" @closed="keepFocus" />
-        <RestockModal v-model="dialogs.restock" @closed="keepFocus" />
+        <RestockModal v-model="dialogs.restock" :initial-goods="restockGoods" @success="handleRestockSuccess" @closed="handleRestockClosed" />
         <MemberBindModal v-model="dialogs.memberBind" @select="handleMemberSelect" @closed="keepFocus" />
         <RechargeModal v-model="dialogs.recharge" @closed="keepFocus" />
         <MemberAddModal v-model="dialogs.memberAdd" :memberTypesDict="memberTypesDict" @closed="keepFocus" />
@@ -68,7 +68,7 @@ import QuickAddGoodsModal from './components/dialogs/QuickAddGoodsModal.vue'
 const router = useRouter()
 const userStore = useUserStore()
 
-const { cartList, currentMember, totalAmount, clearAll, restoreOrder, scanAndAddToCart, addToCart, initGlobalDicts, quickAdjustActiveItem, moveActiveIndex } = usePosStore();
+const { cartList, currentMember, totalAmount, clearAll, restoreOrder, scanAndAddToCart, addToCart, initGlobalDicts, quickAdjustActiveItem, moveActiveIndex, refreshCartGoods } = usePosStore();
 
 const bottomConsoleRef = ref(null)
 const keepFocus = () => bottomConsoleRef.value?.focusInput()
@@ -169,6 +169,7 @@ const handleGlobalKeyDown = (e) => {
 }
 
 const missingBarcode = ref('')
+const restockGoods = ref(null)
 
 const handleQuickAddTrigger = (barcode) => {
     missingBarcode.value = barcode;
@@ -181,6 +182,21 @@ const handleQuickAddSuccess = (newGoods) => {
         ElMessage.success(`[${newGoods.name}] 建档成功并已加入收银车！`);
     }
     keepFocus();
+}
+
+const handleQuickRestock = (goods) => {
+    restockGoods.value = goods
+    dialogs.restock = true
+}
+
+const handleRestockSuccess = async () => {
+    await refreshCartGoods()
+    ElMessage.success('购物车库存已刷新')
+}
+
+const handleRestockClosed = () => {
+    restockGoods.value = null
+    keepFocus()
 }
 
 useScanner({
@@ -290,7 +306,10 @@ const handleNavAction = (action) => {
             window.open(router.resolve({ path: '/login', query: { entry: 'admin' } }).href, '_blank', 'noopener,noreferrer')
         }
     }
-    else if (action === 'restock') dialogs.restock = true
+    else if (action === 'restock') {
+        restockGoods.value = null
+        dialogs.restock = true
+    }
     else if (action === 'recharge') dialogs.recharge = true
     else if (action === 'addMember') dialogs.memberAdd = true
 }

@@ -131,8 +131,11 @@ import { req } from '@/api/index.js'
 import inventoryApi from '@/api/gms/inventory.js'
 import QuickAddGoodsModal from './QuickAddGoodsModal.vue'
 
-const props = defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue', 'closed'])
+const props = defineProps({
+    modelValue: Boolean,
+    initialGoods: { type: Object, default: null }
+})
+const emit = defineEmits(['update:modelValue', 'closed', 'success'])
 const visible = computed({ get: () => props.modelValue, set: (val) => emit('update:modelValue', val) })
 
 const loading = ref(false)
@@ -223,6 +226,7 @@ const initModal = () => {
         hasDraft.value = false;
     }
     qtyInputRefs.value = [];
+    if (props.initialGoods) addInboundGoods(props.initialGoods);
     resetScanner();
 }
 
@@ -249,7 +253,7 @@ const querySearchAsync = async (queryString, cb) => {
     } catch (e) { cb([]); }
 }
 
-const handleSelect = (item) => {
+const addInboundGoods = (item) => {
     const existing = inboundList.value.find(i => i.id === item.id);
     if (existing) {
         existing.qty = (Number(existing.qty) || 0) + 1;
@@ -262,6 +266,10 @@ const handleSelect = (item) => {
             qty: 1
         });
     }
+}
+
+const handleSelect = (item) => {
+    addInboundGoods(item);
     resetScanner();
 }
 
@@ -317,12 +325,15 @@ const submitInbound = async () => {
         };
         await inventoryApi.createInbound(payload);
 
+        const completedItems = inboundList.value.map(item => ({ ...item }));
+
         // 🌟 提交成功后，彻底撕毁草稿！
         localStorage.removeItem(DRAFT_KEY);
         localStorage.removeItem(DRAFT_KEY + '_remark');
         inboundList.value = [];
 
         ElMessage.success('入库成功');
+        emit('success', completedItems);
         visible.value = false;
     } catch (e) {
     } finally {

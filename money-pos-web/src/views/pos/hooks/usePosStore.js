@@ -316,6 +316,22 @@ export function usePosStore() {
         }
     };
 
+    const refreshCartGoods = async () => {
+        const refreshedItems = await Promise.all(cartList.value.map(async (item) => {
+            if (!item.barcode) return item;
+            try {
+                const res = await req({ url: '/pos/goods', method: 'GET', params: { barcode: item.barcode } });
+                const goods = (res.data || []).find(candidate => String(candidate.id) === String(item.id));
+                return goods ? { ...item, ...goods, qty: item.qty } : item;
+            } catch (error) {
+                console.error('刷新购物车商品库存失败:', error);
+                return item;
+            }
+        }));
+        cartList.value = refreshedItems;
+        return runTrial();
+    };
+
     return {
         cartList, enrichedCartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
         totalCount, totalAmount, memberAmount, actualCouponUsed, waivedCouponAmount, finalPayAmount, theoreticalCouponUsed, participatingAmount,
@@ -323,6 +339,6 @@ export function usePosStore() {
         reqId, trialResult, isTrialing, activeItemIndex,
         addToCart, removeItem, bindMember, clearMember, clearAll, restoreOrder, submitOrder, runTrial, prepareCheckout, getCartItemPrices,
         getTrialItemInfo, scanAndAddToCart, globalBrandsKv, globalMemberTypes, initGlobalDicts,
-        quickAdjustActiveItem, moveActiveIndex
+        quickAdjustActiveItem, moveActiveIndex, refreshCartGoods
     };
 }
