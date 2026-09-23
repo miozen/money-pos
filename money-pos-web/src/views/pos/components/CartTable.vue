@@ -84,7 +84,7 @@
         <el-table-column label="操作" width="150" align="center" fixed="right">
             <template #default="{ row, $index }">
                 <div class="flex items-center justify-center gap-1">
-                    <el-button v-if="isStockInsufficient(row)" type="warning" link size="small" @click.stop="emit('restock', row)">补货</el-button>
+                    <el-button v-if="isStockInsufficient(row)" type="warning" link class="!text-sm !font-bold" @click.stop="emit('restock', row)">补货</el-button>
                     <el-button type="danger" icon="Delete" circle plain @click.stop="removeItem($index)" />
                 </div>
             </template>
