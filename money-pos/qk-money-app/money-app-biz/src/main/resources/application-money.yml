@@ -52,6 +52,7 @@ money:
     # 忽略的白名单
     ignore:
       get:
+        - /auth/login-candidates
         - /tenants/byCode
         - /auth/refreshToken
         - /common/display-settings

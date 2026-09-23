@@ -24,6 +24,7 @@ import com.money.service.SysRoleService;
 import com.money.service.SysUserService;
 import com.money.util.PageUtil;
 import com.money.vo.SysUserVO;
+import com.money.vo.LoginCandidateVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,6 +51,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public SysUser getByUsername(String username) {
         return this.lambdaQuery().eq(SysUser::getUsername, username).one();
+    }
+
+    @Override
+    public List<LoginCandidateVO> listEnabledLoginCandidates() {
+        return this.lambdaQuery()
+                .select(SysUser::getUsername, SysUser::getNickname)
+                .eq(SysUser::getEnabled, true)
+                .orderByAsc(SysUser::getNickname)
+                .orderByAsc(SysUser::getUsername)
+                .list()
+                .stream()
+                .map(user -> new LoginCandidateVO(
+                        user.getUsername(),
+                        StrUtil.isNotBlank(user.getNickname()) ? user.getNickname() : user.getUsername()))
+                .collect(Collectors.toList());
     }
 
     // ============================================================

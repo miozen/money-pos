@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, Menu } = require('electron');
+const { app, BrowserWindow, screen, Menu, ipcMain } = require('electron');
 const path = require('path');
 const { spawn, exec } = require('child_process');
 const http = require('http');
@@ -12,7 +12,67 @@ const JAR_PATH = isPackaged ? path.join(RESOURCES_DIR, 'backend', 'vana-pos.jar'
 
 let mainWindow;
 let guestWindow;
+let adminWindow;
 let backendProcess;
+let isQuitting = false;
+
+const POS_PRELOAD = path.join(__dirname, 'preload.cjs');
+
+function frontendUrl(route) {
+    const indexPath = isPackaged ? `file://${path.join(__dirname, 'dist', 'index.html')}` : 'http://localhost:1520/money-pos';
+    return `${indexPath}#${route}`;
+}
+
+function openAdminWindow() {
+    if (adminWindow && !adminWindow.isDestroyed()) {
+        if (adminWindow.isMinimized()) adminWindow.restore();
+        adminWindow.focus();
+        return;
+    }
+
+    const partition = `money-admin-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    adminWindow = new BrowserWindow({
+        width: 1280,
+        height: 800,
+        minWidth: 1024,
+        minHeight: 640,
+        title: '万象收银 - 后台管理',
+        webPreferences: {
+            preload: POS_PRELOAD,
+            partition,
+            nodeIntegration: false,
+            contextIsolation: true,
+            webSecurity: false
+        },
+        autoHideMenuBar: true
+    });
+
+    let storageCleared = false;
+    let clearingStorage = false;
+    adminWindow.on('close', (event) => {
+        if (isQuitting || storageCleared) return;
+        event.preventDefault();
+        if (clearingStorage) return;
+        clearingStorage = true;
+        const closingWindow = adminWindow;
+        closingWindow.webContents.session.clearStorageData()
+            .catch((error) => console.error('[VanaPOS] 清理后台认证状态失败', error))
+            .finally(() => {
+                storageCleared = true;
+                clearingStorage = false;
+                if (!closingWindow.isDestroyed()) closingWindow.close();
+            });
+    });
+    adminWindow.on('closed', () => { adminWindow = undefined; });
+    adminWindow.loadURL(frontendUrl('/login?entry=admin'));
+}
+
+ipcMain.handle('money-pos:open-admin', (event) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+        throw new Error('后台窗口只能由主收银窗口打开');
+    }
+    openAdminWindow();
+});
 
 function createWindows() {
     const displays = screen.getAllDisplays();
@@ -21,13 +81,11 @@ function createWindows() {
     mainWindow = new BrowserWindow({
         width: 1280, height: 800,
         title: "万象收银", show: false,
-        webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false },
+        webPreferences: { preload: POS_PRELOAD, nodeIntegration: false, contextIsolation: true, webSecurity: false },
         autoHideMenuBar: true
     });
 
-    const indexPath = isPackaged ? `file://${path.join(__dirname, 'dist', 'index.html')}` : 'http://localhost:1520/money-pos';
-
-    mainWindow.loadURL(`${indexPath}#/pos`);
+    mainWindow.loadURL(frontendUrl('/pos'));
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
@@ -62,7 +120,7 @@ function createWindows() {
         // 🌟 核心提权：突破 floating 限制，使用 screen-saver 级别，绝对压制 Windows 任务栏
         guestWindow.setAlwaysOnTop(true, 'screen-saver');
 
-        guestWindow.loadURL(`${indexPath}#/guest`);
+        guestWindow.loadURL(frontendUrl('/guest'));
 
         guestWindow.once('ready-to-show', () => {
             // 🌟 核心防线：确保物理边界在渲染引擎中 100% 锁定
@@ -107,6 +165,7 @@ app.whenReady().then(() => {
 
 // 🌟 核心修复：在应用真正退出前，无条件强杀 Java 引擎
 app.on('before-quit', () => {
+    isQuitting = true;
     if (backendProcess) {
         console.log("🛑 [VanaPOS总控] 正在执行强行停机序列...");
         if (process.platform === 'win32') {

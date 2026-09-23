@@ -283,7 +283,13 @@ watch(suspendedOrderList, (newVal) => { localStorage.setItem('pos_suspended_orde
 const handleNavAction = (action) => {
     if (action === 'shift') dialogs.shift = true
     else if (action === 'sales') dialogs.sales = true
-    else if (action === 'admin') window.open(router.resolve({ path: '/' }).href, '_blank')
+    else if (action === 'admin') {
+        if (window.moneyPosDesktop?.openAdminWindow) {
+            window.moneyPosDesktop.openAdminWindow()
+        } else {
+            window.open(router.resolve({ path: '/login', query: { entry: 'admin' } }).href, '_blank', 'noopener,noreferrer')
+        }
+    }
     else if (action === 'restock') dialogs.restock = true
     else if (action === 'recharge') dialogs.recharge = true
     else if (action === 'addMember') dialogs.memberAdd = true

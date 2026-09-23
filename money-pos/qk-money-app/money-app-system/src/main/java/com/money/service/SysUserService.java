@@ -9,9 +9,11 @@ import com.money.dto.SysUserDTO;
 import com.money.dto.UpdateProfileDTO;
 import com.money.entity.SysUser;
 import com.money.vo.SysUserVO;
+import com.money.vo.LoginCandidateVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
+import java.util.List;
 
 /**
  * 用户表(SysUser)表服务接口
@@ -28,6 +30,9 @@ public interface SysUserService extends IService<SysUser> {
      * @return {@link SysUser}
      */
     SysUser getByUsername(String username);
+
+    /** Lists only enabled account names for the local Admin login selector. */
+    List<LoginCandidateVO> listEnabledLoginCandidates();
 
     // ============================================================
 

@@ -4,6 +4,7 @@ import com.money.dto.LoginDTO;
 import com.money.vo.AuthTokenVO;
 import com.money.vo.UserInfoVO;
 import com.money.vo.VueRouterVO;
+import com.money.vo.LoginCandidateVO;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +32,9 @@ public interface SysAuthService {
      * @return {@link AuthTokenVO}
      */
     AuthTokenVO login(LoginDTO loginDto);
+
+    /** Returns the minimum local account metadata required before Admin login. */
+    List<LoginCandidateVO> getLoginCandidates();
 
     /**
      * 获取个人信息

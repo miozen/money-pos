@@ -11,7 +11,24 @@
                 <div class="form-group">
                     <label for="username" class="sr-only">Username</label>
                     <el-form-item prop="username" class="form-item">
+                        <el-select
+                            v-if="isAdminEntry"
+                            v-model="loginForm.username"
+                            size="large"
+                            placeholder="请选择后台账号"
+                            class="form-input"
+                            :loading="candidateLoading"
+                            :disabled="candidateLoading || loginCandidates.length === 0"
+                        >
+                            <el-option
+                                v-for="candidate in loginCandidates"
+                                :key="candidate.username"
+                                :label="candidate.displayName"
+                                :value="candidate.username"
+                            />
+                        </el-select>
                         <el-input
+                            v-else
                             ref="usernameInputRef"  v-model="loginForm.username"
                             size="large"
                             placeholder="请输入账号"
@@ -78,13 +95,19 @@
 
 <script setup>
 import { useUserStore } from '@/store';
-import { ref, onMounted, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, ref, onMounted, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import authApi from '@/api/system/auth.js';
+import { ElMessage } from 'element-plus';
 
 const noProd = import.meta.env.MODE !== 'production';
 const title = document.title;
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
+const isAdminEntry = computed(() => route.query.entry === 'admin');
+const loginCandidates = ref([]);
+const candidateLoading = ref(false);
 
 const loginFormRef = ref();
 const usernameInputRef = ref();
@@ -103,6 +126,10 @@ const rules = {
 const loading = ref(false);
 
 onMounted(() => {
+    if (isAdminEntry.value) {
+        loadLoginCandidates();
+        return;
+    }
     // 🌟 品牌重塑：改用 Vana 专属的本地缓存 Key
     const savedUsername = localStorage.getItem('vanapos_remember_username');
     if (savedUsername) {
@@ -117,6 +144,19 @@ onMounted(() => {
     }
 });
 
+async function loadLoginCandidates() {
+    candidateLoading.value = true;
+    try {
+        const res = await authApi.getLoginCandidates();
+        loginCandidates.value = res.data || [];
+    } catch (error) {
+        loginCandidates.value = [];
+        ElMessage.error('无法获取本机账号列表，请确认后台服务正常运行');
+    } finally {
+        candidateLoading.value = false;
+    }
+}
+
 async function login() {
     const valid = await loginFormRef.value.validate();
     if (!valid) return;
@@ -124,8 +164,10 @@ async function login() {
     loading.value = true;
     try {
         await userStore.login(loginForm.value);
-        localStorage.setItem('vanapos_remember_username', loginForm.value.username);
-        await router.push({ path: '/pos' });
+        if (!isAdminEntry.value) {
+            localStorage.setItem('vanapos_remember_username', loginForm.value.username);
+        }
+        await router.push({ path: isAdminEntry.value ? '/dashboard' : '/pos' });
     } catch (error) {
         console.error("登录失败：", error)
     } finally {

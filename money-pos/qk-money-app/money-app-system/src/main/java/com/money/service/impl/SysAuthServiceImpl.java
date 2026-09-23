@@ -19,6 +19,7 @@ import com.money.service.SysUserService;
 import com.money.vo.AuthTokenVO;
 import com.money.vo.UserInfoVO;
 import com.money.vo.VueRouterVO;
+import com.money.vo.LoginCandidateVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -108,6 +109,11 @@ public class SysAuthServiceImpl implements SysAuthService {
         sysUser.setLastTime(LocalDateTime.now());
         sysUserService.updateById(sysUser);
         return authTokenVO;
+    }
+
+    @Override
+    public List<LoginCandidateVO> getLoginCandidates() {
+        return sysUserService.listEnabledLoginCandidates();
     }
 
     @Override

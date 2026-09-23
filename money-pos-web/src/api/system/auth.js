@@ -1,6 +1,10 @@
 import req from '../index.js'
 
 export default {
+    getLoginCandidates: () => req({
+        url: '/auth/login-candidates',
+        method: 'GET'
+    }),
     getDyRoutes: () => req({
         url: '/auth/router',
         method: 'GET'
