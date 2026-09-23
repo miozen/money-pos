@@ -12,10 +12,10 @@
                     <label for="username" class="sr-only">Username</label>
                     <el-form-item prop="username" class="form-item">
                         <el-select
-                            v-if="isAdminEntry"
+                            ref="loginCandidateRef"
                             v-model="loginForm.username"
                             size="large"
-                            placeholder="请选择后台账号"
+                            :placeholder="isAdminEntry ? '请选择后台账号' : '请选择收银员'"
                             class="form-input"
                             :loading="candidateLoading"
                             :disabled="candidateLoading || loginCandidates.length === 0"
@@ -23,18 +23,10 @@
                             <el-option
                                 v-for="candidate in loginCandidates"
                                 :key="candidate.username"
-                                :label="candidate.displayName"
+                                :label="candidate.displayName === candidate.username ? candidate.username : `${candidate.displayName}（${candidate.username}）`"
                                 :value="candidate.username"
                             />
                         </el-select>
-                        <el-input
-                            v-else
-                            ref="usernameInputRef"  v-model="loginForm.username"
-                            size="large"
-                            placeholder="请输入账号"
-                            prefix-icon="User"
-                            class="form-input"
-                        />
                     </el-form-item>
                 </div>
 
@@ -57,6 +49,7 @@
                 <!-- 登录按钮 -->
                 <el-button
                     :loading="loading"
+                    :disabled="candidateLoading || loginCandidates.length === 0"
                     @click="login"
                     size="large"
                     class="login-button"
@@ -110,7 +103,7 @@ const loginCandidates = ref([]);
 const candidateLoading = ref(false);
 
 const loginFormRef = ref();
-const usernameInputRef = ref();
+const loginCandidateRef = ref();
 const passwordInputRef = ref();
 
 const loginForm = ref({
@@ -126,22 +119,7 @@ const rules = {
 const loading = ref(false);
 
 onMounted(() => {
-    if (isAdminEntry.value) {
-        loadLoginCandidates();
-        return;
-    }
-    // 🌟 品牌重塑：改用 Vana 专属的本地缓存 Key
-    const savedUsername = localStorage.getItem('vanapos_remember_username');
-    if (savedUsername) {
-        loginForm.value.username = savedUsername;
-        nextTick(() => {
-            passwordInputRef.value?.focus();
-        });
-    } else {
-        nextTick(() => {
-            usernameInputRef.value?.focus();
-        });
-    }
+    loadLoginCandidates();
 });
 
 async function loadLoginCandidates() {
@@ -149,6 +127,13 @@ async function loadLoginCandidates() {
     try {
         const res = await authApi.getLoginCandidates();
         loginCandidates.value = res.data || [];
+        const savedUsername = isAdminEntry.value ? '' : localStorage.getItem('vanapos_remember_username');
+        if (savedUsername && loginCandidates.value.some(candidate => candidate.username === savedUsername)) {
+            loginForm.value.username = savedUsername;
+            nextTick(() => passwordInputRef.value?.focus());
+        } else {
+            nextTick(() => loginCandidateRef.value?.focus());
+        }
     } catch (error) {
         loginCandidates.value = [];
         ElMessage.error('无法获取本机账号列表，请确认后台服务正常运行');
