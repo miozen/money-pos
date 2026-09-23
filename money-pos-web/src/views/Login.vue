@@ -125,7 +125,7 @@ onMounted(() => {
 async function loadLoginCandidates() {
     candidateLoading.value = true;
     try {
-        const res = await authApi.getLoginCandidates();
+        const res = await authApi.getLoginCandidates(isAdminEntry.value ? 'admin' : 'pos');
         loginCandidates.value = res.data || [];
         const savedUsername = isAdminEntry.value ? '' : localStorage.getItem('vanapos_remember_username');
         if (savedUsername && loginCandidates.value.some(candidate => candidate.username === savedUsername)) {

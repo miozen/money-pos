@@ -46,12 +46,17 @@ public class SysAuthController {
         return sysAuthService.login(loginDto);
     }
 
-    @Operation(summary = "本机后台登录账号候选")
+    @Operation(summary = "本机登录账号候选")
     @GetMapping("/login-candidates")
-    public List<LoginCandidateVO> loginCandidates(HttpServletRequest request, HttpServletResponse response) {
+    public List<LoginCandidateVO> loginCandidates(@RequestParam(required = false) String entry, HttpServletRequest request, HttpServletResponse response) {
         requireLocalDefaultTenantRequest(request);
         response.setHeader("Cache-Control", "no-store");
-        return sysAuthService.getLoginCandidates();
+        return sysAuthService.getLoginCandidates("pos".equalsIgnoreCase(entry));
+    }
+
+    /** Keeps direct Java callers and existing tests on the default admin-candidate behavior. */
+    public List<LoginCandidateVO> loginCandidates(HttpServletRequest request, HttpServletResponse response) {
+        return loginCandidates(null, request, response);
     }
 
     @Operation(summary = "注销")

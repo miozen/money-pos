@@ -37,6 +37,7 @@
         <SuspendModal v-model="dialogs.suspendList" :suspendedList="suspendedOrderList" @retrieve="retrieveOrder" @closed="keepFocus" />
         <SalesOrderModal v-model="dialogs.sales" @closed="keepFocus" />
         <ShiftModal v-model="dialogs.shift" :cashier-name="cashierName" @closed="keepFocus" />
+        <SwitchCashierModal v-model="dialogs.switchCashier" @success="handleCashierSwitched" @closed="keepFocus" />
 
         <QuickAddGoodsModal
             v-model="dialogs.quickAdd"
@@ -72,6 +73,7 @@ import MemberAddModal from './components/dialogs/MemberAddModal.vue'
 import SuspendModal from './components/dialogs/SuspendModal.vue'
 import SalesOrderModal from './components/dialogs/SalesOrderModal.vue'
 import ShiftModal from './components/dialogs/ShiftModal.vue'
+import SwitchCashierModal from './components/dialogs/SwitchCashierModal.vue'
 import QuickAddGoodsModal from './components/dialogs/QuickAddGoodsModal.vue'
 
 const router = useRouter()
@@ -91,7 +93,8 @@ const dialogs = reactive({
     suspendList: false,
     sales: false,
     shift: false,
-    quickAdd: false
+    quickAdd: false,
+    switchCashier: false
 });
 
 const isAnyDialogOpen = computed(() => Object.values(dialogs).some(isOpen => isOpen === true));
@@ -191,6 +194,13 @@ const handleQuickAddSuccess = (newGoods) => {
         ElMessage.success(`[${newGoods.name}] 建档成功并已加入收银车！`);
     }
     keepFocus();
+}
+
+const handleCashierSwitched = (cashier) => {
+    lastOrder.value = { total: 0, paid: 0, couponUsed: 0 }
+    handleClear()
+    const name = cashier?.nickname || cashier?.nickName || cashier?.name || cashier?.username || '新收银员'
+    ElMessage.success(`已切换至收银员：${name}`)
 }
 
 const handleQuickRestock = (goods) => {
@@ -306,7 +316,13 @@ onUnmounted(() => {
 watch(suspendedOrderList, (newVal) => { localStorage.setItem('pos_suspended_orders', JSON.stringify(newVal)); }, { deep: true });
 
 const handleNavAction = (action) => {
-    if (action === 'shift') dialogs.shift = true
+    if (action === 'switchCashier') {
+        const isPrivateDialogOpen = bottomConsoleRef.value && bottomConsoleRef.value.isDialogOpen
+        if (cartList.value.length > 0) ElMessage.warning('请先完成、清空或手动挂单当前购物车，再切换收银员')
+        else if (isAnyDialogOpen.value || isPrivateDialogOpen) ElMessage.warning('请先关闭当前操作窗口，再切换收银员')
+        else dialogs.switchCashier = true
+    }
+    else if (action === 'shift') dialogs.shift = true
     else if (action === 'sales') dialogs.sales = true
     else if (action === 'admin') {
         if (window.moneyPosDesktop?.openAdminWindow) {

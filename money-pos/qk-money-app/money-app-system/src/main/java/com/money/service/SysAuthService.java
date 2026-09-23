@@ -34,7 +34,7 @@ public interface SysAuthService {
     AuthTokenVO login(LoginDTO loginDto);
 
     /** Returns the minimum local account metadata required before Admin login. */
-    List<LoginCandidateVO> getLoginCandidates();
+    List<LoginCandidateVO> getLoginCandidates(boolean posOnly);
 
     /**
      * 获取个人信息

@@ -1,9 +1,10 @@
 import req from '../index.js'
 
 export default {
-    getLoginCandidates: () => req({
+    getLoginCandidates: (entry) => req({
         url: '/auth/login-candidates',
-        method: 'GET'
+        method: 'GET',
+        params: entry ? { entry } : undefined
     }),
     getDyRoutes: () => req({
         url: '/auth/router',

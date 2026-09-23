@@ -15,12 +15,15 @@ import com.money.dto.UpdateProfileDTO;
 import com.money.dto.query.SysUserPageQueryDTO;
 import com.money.entity.SysUser;
 import com.money.entity.SysUserRoleRelation;
+import com.money.entity.SysRole;
+import com.money.entity.SysPermission;
 import com.money.mapper.SysUserMapper;
 import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;
 import com.money.oss.core.FolderPath;
 import com.money.oss.local.LocalOSS;
 import com.money.service.SysRoleService;
+import com.money.service.SysPermissionService;
 import com.money.service.SysUserService;
 import com.money.util.PageUtil;
 import com.money.vo.SysUserVO;
@@ -47,6 +50,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final OSSDelegate<LocalOSS> localOSS;
 
     private final SysRoleService sysRoleService;
+    private final SysPermissionService sysPermissionService;
 
     @Override
     public SysUser getByUsername(String username) {
@@ -66,6 +70,30 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                         user.getUsername(),
                         StrUtil.isNotBlank(user.getNickname()) ? user.getNickname() : user.getUsername()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LoginCandidateVO> listEnabledPosLoginCandidates() {
+        return this.lambdaQuery()
+                .select(SysUser::getId, SysUser::getUsername, SysUser::getNickname)
+                .eq(SysUser::getEnabled, true)
+                .orderByAsc(SysUser::getNickname)
+                .orderByAsc(SysUser::getUsername)
+                .list()
+                .stream()
+                .filter(this::hasPosCashierPermission)
+                .map(user -> new LoginCandidateVO(
+                        user.getUsername(),
+                        StrUtil.isNotBlank(user.getNickname()) ? user.getNickname() : user.getUsername()))
+                .collect(Collectors.toList());
+    }
+
+    private boolean hasPosCashierPermission(SysUser user) {
+        List<SysRole> roles = sysRoleService.getByUser(user.getId());
+        if (roles.stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleCode()))) return true;
+        List<Long> roleIds = roles.stream().map(SysRole::getId).collect(Collectors.toList());
+        return !roleIds.isEmpty() && sysPermissionService.getByRole(roleIds).stream()
+                .anyMatch(permission -> "pos:cashier".equals(permission.getPermission()));
     }
 
     // ============================================================

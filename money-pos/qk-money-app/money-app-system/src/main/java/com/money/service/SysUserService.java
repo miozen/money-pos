@@ -31,8 +31,11 @@ public interface SysUserService extends IService<SysUser> {
      */
     SysUser getByUsername(String username);
 
-    /** Lists only enabled account names for the local Admin login selector. */
+    /** Lists all enabled account names for the local admin login selector. */
     List<LoginCandidateVO> listEnabledLoginCandidates();
+
+    /** Lists enabled accounts that may access the POS cashier endpoints. */
+    List<LoginCandidateVO> listEnabledPosLoginCandidates();
 
     // ============================================================
 

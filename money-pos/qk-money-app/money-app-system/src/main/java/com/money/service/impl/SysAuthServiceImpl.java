@@ -112,8 +112,8 @@ public class SysAuthServiceImpl implements SysAuthService {
     }
 
     @Override
-    public List<LoginCandidateVO> getLoginCandidates() {
-        return sysUserService.listEnabledLoginCandidates();
+    public List<LoginCandidateVO> getLoginCandidates(boolean posOnly) {
+        return posOnly ? sysUserService.listEnabledPosLoginCandidates() : sysUserService.listEnabledLoginCandidates();
     }
 
     @Override

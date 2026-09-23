@@ -45,6 +45,29 @@ export const useUserStore = defineStore('user', {
             })
         },
         /**
+         * 在 POS 内切换收银员。仅在新账号认证成功后才替换当前会话，避免密码输错导致当前收银员被登出。
+         */
+        async switchCashier(data) {
+            const previousToken = getToken()
+            const res = await authApi.login(data)
+            const nextToken = res?.data?.accessToken
+            if (!nextToken) throw new Error('切换收银员失败，未获取到有效登录凭证')
+
+            if (previousToken) {
+                try {
+                    await authApi.logout()
+                } catch (error) {
+                    console.warn('原收银员会话注销失败，将在到期后失效', error)
+                }
+            }
+
+            setToken(nextToken)
+            this.info = null
+            this.roles = null
+            this.permissions = null
+            return this.loadInfo()
+        },
+        /**
          * 加载用户信息
          * @returns {Promise<unknown>}
          */

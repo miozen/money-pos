@@ -33,9 +33,11 @@
                 <el-icon><HomeFilled /></el-icon>
                 <span class="text-sm font-bold">后台管理</span>
             </div>
-            <div class="flex items-center gap-1.5 text-gray-300">
+            <div class="flex items-center gap-1.5 cursor-pointer text-gray-300 hover:text-blue-300 transition-colors" title="切换收银员" @click="$emit('action', 'switchCashier')">
                 <el-icon><Avatar /></el-icon>
                 <span class="text-sm font-bold">{{ cashierName }}</span>
+                <el-icon class="text-xs"><SwitchButton /></el-icon>
+                <span class="text-xs font-bold">切换</span>
             </div>
             <div class="text-xl font-black text-cyan-400 tracking-widest w-24 text-right">
                 {{ currentTime.split(' ')[1] }}
@@ -45,7 +47,7 @@
 </template>
 
 <script setup>
-import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar } from '@element-plus/icons-vue'
+import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar, SwitchButton } from '@element-plus/icons-vue'
 defineProps(['cashierName', 'currentTime'])
 defineEmits(['action'])
 </script>
