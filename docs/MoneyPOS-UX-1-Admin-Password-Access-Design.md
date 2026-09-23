@@ -165,7 +165,7 @@ Admin 主动退出时调用现有 `/auth/logout`，只删除 Admin token 与该 
 已验证：
 
 - `mvn -q -pl qk-money-app/money-app-system -am test-compile` 通过。
-- 在隔离 `money_pos_test` 库上运行 `SysAuthControllerIntegrationTest` 通过（2 tests, 0 failures/errors）。
+- 在隔离 `money_pos_test` 库上运行 `SysAuthControllerIntegrationTest` 通过（3 tests, 0 failures/errors），其中包含未认证 HTTP 请求穿过实际安全过滤器的白名单回归。
 - `git diff --check` 通过。
 
 本工作环境没有可用的 Linux `npm`，且 Windows Node 在 WSL 中无法启动，因此前端 production build 与 Windows EXE 实机回归仍须在开发机完成。重点验收本文“回归矩阵”中的 POS/Admin 身份隔离、关闭重开重新登录、重复入口单窗口及预加载文件随打包产物加载。

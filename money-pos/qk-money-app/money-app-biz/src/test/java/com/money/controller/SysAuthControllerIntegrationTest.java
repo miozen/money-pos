@@ -8,9 +8,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,6 +37,9 @@ class SysAuthControllerIntegrationTest {
 
     @Autowired
     private SysUserService sysUserService;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @BeforeEach
     void bindRequestContext() {
@@ -90,6 +96,14 @@ class SysAuthControllerIntegrationTest {
         remoteRequest.setRemoteAddr("192.0.2.10");
         assertThatThrownBy(() -> sysAuthController.loginCandidates(remoteRequest, new MockHttpServletResponse()))
                 .isInstanceOf(BaseException.class);
+    }
+
+    @Test
+    void candidateEndpointIsPermittedForAnUnauthenticatedLoopbackHttpRequest() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/auth/login-candidates", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getCacheControl()).isEqualTo("no-store");
     }
 
     private MockHttpServletRequest loopbackRequest() {
