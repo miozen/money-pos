@@ -16,6 +16,8 @@ const paymentList = ref([]);
 const trialResult = ref(null);
 const reqId = ref('');
 const isTrialing = ref(false);
+const stockNotice = ref(null);
+let dismissedStockNoticeKey = null;
 
 const globalBrandsKv = ref({});
 const globalMemberTypes = ref([]);
@@ -26,6 +28,21 @@ const activeItemIndex = ref(-1);
 let currentTrialVersion = 0;
 let trialTimer = null;
 let trialResolvers = [];
+
+const currentCartSignature = () => cartList.value
+    .map(item => `${item.id}:${item.qty}:${item.stock ?? 0}`)
+    .join('|');
+
+const showStockNotice = (message) => {
+    const key = `${currentCartSignature()}::${message}`;
+    if (dismissedStockNoticeKey === key) return;
+    stockNotice.value = { key, message };
+};
+
+const dismissStockNotice = () => {
+    dismissedStockNoticeKey = stockNotice.value?.key || null;
+    stockNotice.value = null;
+};
 
 export function usePosStore() {
 
@@ -62,17 +79,17 @@ export function usePosStore() {
             trialResolvers.push(resolve);
             isTrialing.value = true;
             clearTimeout(trialTimer);
+            const version = ++currentTrialVersion;
 
             trialTimer = setTimeout(async () => {
                 if (cartList.value.length === 0) {
                     trialResult.value = null;
                     isTrialing.value = false;
+                    stockNotice.value = null;
+                    dismissedStockNoticeKey = null;
                     flushTrialResolvers();
                     return;
                 }
-
-                const version = Date.now();
-                currentTrialVersion = version;
 
                 const payload = {
                     member: currentMember.value.id || null,
@@ -87,13 +104,24 @@ export function usePosStore() {
                 };
 
                 try {
-                    const res = await req({ url: '/pos/trial', method: 'POST', data: payload });
+                    const res = await req({
+                        url: '/pos/trial',
+                        method: 'POST',
+                        data: payload,
+                        handledBusinessCodes: [30002]
+                    });
                     if (version === currentTrialVersion) {
                         let realData = res.data || res;
                         trialResult.value = realData;
+                        stockNotice.value = null;
+                        dismissedStockNoticeKey = null;
                     }
                 } catch (error) {
-                    console.error("计价引擎同步失败:", error);
+                    if (version === currentTrialVersion && error.bizCode === 30002) {
+                        showStockNotice(error.message || '购物车存在库存不足商品，请调整数量或补货。');
+                    } else if (version === currentTrialVersion) {
+                        console.error("计价引擎同步失败:", error);
+                    }
                 } finally {
                     if (version === currentTrialVersion) {
                         isTrialing.value = false;
@@ -286,6 +314,8 @@ export function usePosStore() {
         trialResult.value = null;
         currentTrialVersion = 0;
         activeItemIndex.value = -1;
+        stockNotice.value = null;
+        dismissedStockNoticeKey = null;
     };
 
     const restoreOrder = (cartArray, memberObj) => {
@@ -295,8 +325,8 @@ export function usePosStore() {
         runTrial();
     };
 
-    const submitOrder = async (orderData) => {
-        return await req({ url: '/pos/settleAccounts', method: 'POST', data: orderData });
+    const submitOrder = async (orderData, requestConfig = {}) => {
+        return await req({ url: '/pos/settleAccounts', method: 'POST', data: orderData, ...requestConfig });
     };
 
     const scanAndAddToCart = async (barcode) => {
@@ -336,9 +366,9 @@ export function usePosStore() {
         cartList, enrichedCartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
         totalCount, totalAmount, memberAmount, actualCouponUsed, waivedCouponAmount, finalPayAmount, theoreticalCouponUsed, participatingAmount,
         paymentStats,
-        reqId, trialResult, isTrialing, activeItemIndex,
+        reqId, trialResult, isTrialing, activeItemIndex, stockNotice,
         addToCart, removeItem, bindMember, clearMember, clearAll, restoreOrder, submitOrder, runTrial, prepareCheckout, getCartItemPrices,
         getTrialItemInfo, scanAndAddToCart, globalBrandsKv, globalMemberTypes, initGlobalDicts,
-        quickAdjustActiveItem, moveActiveIndex, refreshCartGoods
+        quickAdjustActiveItem, moveActiveIndex, refreshCartGoods, dismissStockNotice
     };
 }

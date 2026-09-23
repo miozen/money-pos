@@ -1,5 +1,14 @@
 <template>
     <el-dialog v-model="visible" title="混合收银工作站" width="900px" top="6vh" destroy-on-close class="checkout-dialog" @closed="handleClosed">
+        <el-alert
+            v-if="stockErrorMessage"
+            :title="stockErrorMessage"
+            type="error"
+            show-icon
+            closable
+            class="mx-4 mt-4"
+            @close="stockErrorMessage = ''"
+        />
         <div class="flex gap-4 p-4 pb-0 h-[480px]">
             <div class="w-[42%] flex flex-col gap-2">
                 <div v-if="currentMember.id" class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200 shadow-inner shrink-0">
@@ -163,6 +172,7 @@ const visible = computed({
 
 const submitLoading = ref(false)
 const localPayTagDict = ref([]) // 🌟 纯净的数据源存放点
+const stockErrorMessage = ref('')
 
 const {
     cartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
@@ -237,6 +247,7 @@ const changeAmount = computed(() => {
 
 watch(visible, (newVal) => {
     if (newVal) {
+        stockErrorMessage.value = ''
         prepareCheckout();
         usedCouponCount.value = 0;
 
@@ -325,7 +336,7 @@ const submitOrderAction = async () => {
             orderDetail: orderDetails,
             payments: validPayments
         };
-        const res = await submitOrder(payload)
+        const res = await submitOrder(payload, { handledBusinessCodes: [30002] })
         ElMessage.success('收款成功！订单已真实入库！')
         try {
             const orderNoToPrint = (res && res.data && res.data.orderNo) || (res && res.orderNo) || (typeof res === 'string' ? res : null);
@@ -337,7 +348,11 @@ const submitOrderAction = async () => {
         visible.value = false;
     } catch (error) {
         console.error("结账异常", error);
-        ElMessage.error(error.msg || error.message || '结账失败，后端风控拦截');
+        if (error.bizCode === 30002) {
+            stockErrorMessage.value = error.message || '库存不足，请调整数量或完成补货后重试。';
+        } else if (!error.isGlobalMessageShown) {
+            ElMessage.error(error.msg || error.message || '结账失败，后端风控拦截');
+        }
     } finally {
         submitLoading.value = false
     }

@@ -78,8 +78,16 @@ instance.interceptors.response.use(
         // 处理非 200 状态码
         if (body.code !== 200) {
             const errorMsg = body.message || '服务器错误';
-            ElMessage.error(errorMsg);
-            return Promise.reject(new Error(errorMsg));
+            const businessError = new Error(errorMsg);
+            businessError.bizCode = body.code;
+            businessError.bizData = body.data;
+
+            const handledCodes = response.config?.handledBusinessCodes || [];
+            if (!handledCodes.includes(body.code)) {
+                ElMessage.error(errorMsg);
+                businessError.isGlobalMessageShown = true;
+            }
+            return Promise.reject(businessError);
         }
 
         return body;
@@ -88,6 +96,7 @@ instance.interceptors.response.use(
         // 网络错误处理
         if (error.message === 'Network Error') {
             ElMessage.error('网络错误，请检查网络连接');
+            error.isGlobalMessageShown = true;
             return Promise.reject(error);
         }
 
@@ -139,12 +148,15 @@ instance.interceptors.response.use(
                     ElMessage.error('登录状态已过期，请重新登录');
                     useUserStore().logout();
                 }
+                error.isGlobalMessageShown = true;
                 break;
             case 403:
                 ElMessage.error('您没有权限执行此操作');
+                error.isGlobalMessageShown = true;
                 break;
             default:
                 ElMessage.error(error.response?.data?.message || error.message || '请求失败');
+                error.isGlobalMessageShown = true;
         }
 
         return Promise.reject(error);

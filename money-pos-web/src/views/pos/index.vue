@@ -2,8 +2,17 @@
     <div class="pos-container absolute inset-0 z-40 flex flex-col overflow-hidden font-sans select-none bg-[#f3f4f6]">
         <HeaderBar :cashierName="cashierName" :currentTime="currentTime" @action="handleNavAction" />
 
-        <div class="flex-1 overflow-hidden p-2">
-            <CartTable class="h-full rounded-md shadow-sm overflow-hidden border border-gray-200" @restock="handleQuickRestock" />
+        <div class="flex-1 overflow-hidden p-2 flex flex-col gap-2">
+            <el-alert
+                v-if="stockNotice"
+                :title="stockNotice.message"
+                type="error"
+                show-icon
+                closable
+                class="shrink-0"
+                @close="dismissStockNotice"
+            />
+            <CartTable class="flex-1 min-h-0 rounded-md shadow-sm overflow-hidden border border-gray-200" @restock="handleQuickRestock" />
         </div>
 
         <BottomConsole
@@ -68,7 +77,7 @@ import QuickAddGoodsModal from './components/dialogs/QuickAddGoodsModal.vue'
 const router = useRouter()
 const userStore = useUserStore()
 
-const { cartList, currentMember, totalAmount, clearAll, restoreOrder, scanAndAddToCart, addToCart, initGlobalDicts, quickAdjustActiveItem, moveActiveIndex, refreshCartGoods } = usePosStore();
+const { cartList, currentMember, totalAmount, clearAll, restoreOrder, scanAndAddToCart, addToCart, initGlobalDicts, quickAdjustActiveItem, moveActiveIndex, refreshCartGoods, stockNotice, dismissStockNotice } = usePosStore();
 
 const bottomConsoleRef = ref(null)
 const keepFocus = () => bottomConsoleRef.value?.focusInput()
