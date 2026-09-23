@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, Menu, dialog, ipcMain } = require('electron');
 const path = require('path');
 const { spawn, exec } = require('child_process');
 const http = require('http');
@@ -15,12 +15,41 @@ let guestWindow;
 let adminWindow;
 let backendProcess;
 let isQuitting = false;
+let isAppExitApproved = false;
+let isExitConfirmationShowing = false;
 
 const POS_PRELOAD = path.join(__dirname, 'preload.cjs');
 
 function frontendUrl(route) {
     const indexPath = isPackaged ? `file://${path.join(__dirname, 'dist', 'index.html')}` : 'http://localhost:1520/money-pos';
     return `${indexPath}#${route}`;
+}
+
+async function requestAppExitConfirmation() {
+    if (isAppExitApproved || isExitConfirmationShowing || !mainWindow || mainWindow.isDestroyed()) return;
+
+    isExitConfirmationShowing = true;
+    try {
+        const { response } = await dialog.showMessageBox(mainWindow, {
+            type: 'warning',
+            title: '确认退出',
+            message: '确认退出万象收银？未结算购物车不会自动保存；已挂单订单保留在本机。',
+            buttons: ['继续收银', '确认退出'],
+            defaultId: 0,
+            cancelId: 0,
+            noLink: true
+        });
+
+        if (response === 1) {
+            isAppExitApproved = true;
+            isQuitting = true;
+            app.quit();
+        }
+    } catch (error) {
+        console.error('[VanaPOS] 显示退出确认框失败', error);
+    } finally {
+        isExitConfirmationShowing = false;
+    }
 }
 
 function openAdminWindow() {
@@ -92,9 +121,15 @@ function createWindows() {
         mainWindow.maximize();
     });
 
-    // 🌟 主副屏同生共死：只要主窗口关闭，直接触发应用全局退出
+    // 主 POS 是唯一需要确认的用户主动退出入口；Admin/客显不触发此流程。
+    mainWindow.on('close', (event) => {
+        if (isAppExitApproved || isQuitting) return;
+        event.preventDefault();
+        requestAppExitConfirmation();
+    });
+
     mainWindow.on('closed', () => {
-        app.quit();
+        mainWindow = undefined;
     });
 
     // 🌟 修复嗅探：只要 ID 和系统主屏不一样，就是副屏（完美兼容负坐标、左右颠倒布局）
