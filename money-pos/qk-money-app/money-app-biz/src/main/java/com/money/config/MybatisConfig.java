@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
         "com.money.mapper",
         "com.money.feature.fin.infrastructure.persistence.mapper",
         "com.money.feature.gms.infrastructure.persistence.mapper",
+        "com.money.feature.ums.infrastructure.persistence.mapper",
         "com.money.feature.trade.infrastructure.persistence.mapper"
 })
 public class MybatisConfig {
