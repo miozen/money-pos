@@ -362,6 +362,16 @@ html {
   font-size: 16px;
 }
 
+/* Element Plus 的 el-input 与 el-select 分别由内部 wrapper 决定控件高度。
+   让两者继承外层登录控件尺寸，避免下拉框比密码框矮。 */
+.form-input :deep(.el-input__wrapper),
+.form-input :deep(.el-select__wrapper) {
+  box-sizing: border-box;
+  height: inherit;
+  min-height: inherit;
+  border-radius: inherit;
+}
+
 .form-input:hover {
   border-color: rgba(102, 126, 234, 0.3);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
