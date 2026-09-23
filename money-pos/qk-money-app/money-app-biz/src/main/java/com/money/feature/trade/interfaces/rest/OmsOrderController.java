@@ -2,6 +2,7 @@ package com.money.feature.trade.interfaces.rest;
 
 import cn.hutool.core.util.StrUtil;
 import com.money.constant.BizErrorStatus;
+import com.money.constant.PayMethodEnum;
 // 🌟 必须显式导入，拒绝通配符
 import com.money.dto.OmsOrder.OmsOrderQueryDTO;
 import com.money.dto.OmsOrder.OmsOrderVO;
@@ -25,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Tag(name = "oms-order", description = "订单与营销管理 (V8.1 防并发锁死版)")
@@ -88,11 +90,35 @@ public class OmsOrderController {
         return omsOrderProfitAuditQueryService.getProfitAuditPage(queryDTO);
     }
 
-    @Operation(summary = "硬件级：打印小票并弹开钱箱")
+    @Operation(summary = "硬件级：重打订单小票（不自动弹开钱箱）")
     @GetMapping("/hardware/print")
     public Boolean printHardwareReceipt(@RequestParam String orderNo) {
         OrderDetailVO orderVO = omsOrderService.getOrderDetailByNo(orderNo);
-        posPrinterService.printReceiptAndOpenDrawer(orderVO);
+        posPrinterService.printReceipt(orderVO, false);
         return true;
+    }
+
+    @Operation(summary = "收银结算后打印小票；含现金支付时按配置自动弹开钱箱")
+    @PostMapping("/hardware/checkout-receipt")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public Boolean printCheckoutReceipt(@RequestParam String orderNo) {
+        OrderDetailVO orderVO = omsOrderService.getOrderDetailByNo(orderNo);
+        posPrinterService.printReceipt(orderVO, hasCashPayment(orderVO));
+        return true;
+    }
+
+    @Operation(summary = "硬件级：手动弹开钱箱")
+    @PostMapping("/hardware/open-drawer")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public Boolean openCashDrawer() {
+        posPrinterService.openCashDrawer();
+        return true;
+    }
+
+    private boolean hasCashPayment(OrderDetailVO orderVO) {
+        return orderVO.getPayments() != null && orderVO.getPayments().stream()
+                .anyMatch(pay -> PayMethodEnum.CASH == PayMethodEnum.fromCode(pay.getPayMethodCode())
+                        && pay.getPayAmount() != null
+                        && pay.getPayAmount().compareTo(BigDecimal.ZERO) > 0);
     }
 }

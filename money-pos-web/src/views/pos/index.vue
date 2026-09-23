@@ -360,11 +360,17 @@ const handleClear = () => {
     notifyIdle();
 }
 
-const openDrawer = () => ElMessage.success('指令：弹开钱箱')
+const openDrawer = async () => {
+    try {
+        await req({ url: '/oms-order/hardware/open-drawer', method: 'POST' });
+        ElMessage.success('钱箱开启指令已发送')
+    } catch (error) {
+        ElMessage.error(error.msg || error.message || '钱箱开启失败')
+    }
+}
 
 const handleCheckoutSuccess = (orderSummary) => {
     lastOrder.value = orderSummary;
-    openDrawer();
     handleClear();
     notifyPaySuccess(orderSummary.total);
 }

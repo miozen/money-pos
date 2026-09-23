@@ -341,7 +341,7 @@ const submitOrderAction = async () => {
         try {
             const orderNoToPrint = (res && res.data && res.data.orderNo) || (res && res.orderNo) || (typeof res === 'string' ? res : null);
             if (orderNoToPrint) {
-                req({ url: '/oms-order/hardware/print', method: 'GET', params: { orderNo: orderNoToPrint } }).catch(e=>console.log("硬件打印静默失败:", e));
+                req({ url: '/oms-order/hardware/checkout-receipt', method: 'POST', params: { orderNo: orderNoToPrint } }).catch(e=>console.log("硬件打印静默失败:", e));
             }
         } catch(e) { console.log(e) }
         emit('checkout-success', { total: totalAmount.value, paid: totalPaid.value, couponUsed: actualCouponUsed.value })

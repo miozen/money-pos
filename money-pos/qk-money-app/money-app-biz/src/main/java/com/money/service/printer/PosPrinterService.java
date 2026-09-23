@@ -32,7 +32,11 @@ public class PosPrinterService {
     private final SysDictDetailMapper sysDictDetailMapper;
     private final MemberCouponCountQuery memberCouponCountQuery;
 
-    public void printReceiptAndOpenDrawer(OrderDetailVO orderVO) {
+    /**
+     * 打印订单小票；是否自动开钱箱由调用方传入的结算语义决定。
+     * 重打小票不可传 true，避免重打时意外弹开钱箱。
+     */
+    public void printReceipt(OrderDetailVO orderVO, boolean openDrawerForCashPayment) {
         try {
             SysPrintConfig config = sysPrintConfigMapper.selectById(1L);
             if (config == null) return;
@@ -40,7 +44,7 @@ public class PosPrinterService {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bos.write(EscPosUtil.INIT);
 
-            if (config.getOpenDrawer() != null && config.getOpenDrawer()) {
+            if (openDrawerForCashPayment && Boolean.TRUE.equals(config.getOpenDrawer())) {
                 bos.write(EscPosUtil.OPEN_CASH_DRAWER);
             }
             if (config.getAutoPrint() == null || !config.getAutoPrint()) {
@@ -163,6 +167,18 @@ public class PosPrinterService {
 
         } catch (Exception e) {
             log.error("❌ 硬件打印指令执行失败: ", e);
+        }
+    }
+
+    /** 收银台手动开箱，不依赖“现金收款后自动弹开”配置。 */
+    public void openCashDrawer() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bos.write(EscPosUtil.INIT);
+            bos.write(EscPosUtil.OPEN_CASH_DRAWER);
+            executeHardwareCommand(bos.toByteArray());
+        } catch (Exception e) {
+            log.error("❌ 钱箱开启指令执行失败: ", e);
         }
     }
 

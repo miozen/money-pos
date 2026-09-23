@@ -23,7 +23,7 @@
                     </el-form-item>
 
                     <el-form-item label="自动弹开钱箱">
-                        <el-switch v-model="form.openDrawer" active-text="结账后弹开" inactive-text="不弹开" />
+                        <el-switch v-model="form.openDrawer" active-text="现金收款后自动弹开" inactive-text="不自动弹开" />
                     </el-form-item>
 
                     <el-divider content-position="left" class="!mt-8">小票排版内容</el-divider>
