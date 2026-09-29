@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.2 code commit | `e44c6e9 feat(member): implement quantity deferred fulfillment` |
-| Working tree | Local commit exists; **not synchronized** to `origin/dev` |
-| Current phase | `ME-1.2 QUANTITY 延迟履约` |
+| Working tree | **CLEAN and synchronized** after final handoff record is pushed |
+| Current phase | `ME-1.2 QUANTITY 延迟履约 — complete` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -38,8 +38,8 @@ its recorded isolated MariaDB and Checkout regression evidence applies only to t
 - Added QUANTITY refund splitting: unpicked rights are cancelled without stock movement; only picked quantities invoke
   native GMS `MEMBER_PICKUP_RETURN`. `V1.0.7` expands the inventory-document type column for that frozen code.
 
-This is **not accepted or complete**: all local validation and the code commit are complete, but synchronization is
-blocked. The current local commit must not be treated as another computer's baseline until it is pushed.
+ME-1.2 implementation, validation, commit and synchronization are complete. The next session must not start ME-1.3
+without a new accepted phase instruction.
 
 ## Validation actually performed
 
@@ -61,8 +61,8 @@ pickup must not restore stock, while a return of picked physical goods must use 
 
 ## Exact next action
 
-Resolve outbound SSH-over-443 connectivity to `20.205.243.160`, push `e44c6e9` (and this handoff record) to
-`origin/dev`, then verify `dev...origin/dev` has neither ahead nor behind before declaring ME-1.2 complete.
+No active ME-1.2 implementation action remains. Verify `git status --short --branch` after this handoff record is
+pushed; it must show no changes and no ahead/behind before selecting a future accepted phase.
 
 ## Handoff rule
 
