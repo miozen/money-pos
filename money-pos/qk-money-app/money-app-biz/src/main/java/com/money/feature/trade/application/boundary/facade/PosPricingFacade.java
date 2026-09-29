@@ -15,4 +15,9 @@ public class PosPricingFacade {
     public PricingResult trial(SettleTrialReqDTO request) {
         return posCalculationEngine.calculate(request);
     }
+
+    /** Internal deferred-purchase pricing; physical availability is checked only at pickup. */
+    public PricingResult priceDeferredQuantity(SettleTrialReqDTO request) {
+        return posCalculationEngine.calculateWithoutStockCheck(request);
+    }
 }

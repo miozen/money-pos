@@ -5,6 +5,8 @@ import cn.hutool.json.JSONUtil;
 import com.money.dto.pos.NormalizedPaymentResult;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
+import com.money.contract.member.MemberBrandBenefitLedgerCommand;
+import com.money.contract.member.MemberBrandBenefitLedgerCommandHandler;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
@@ -31,10 +33,21 @@ public class CheckoutOrchestrator {
     private final CheckoutInventoryService inventoryService;
     private final CheckoutMemberAssetService memberAssetService;
     private final CheckoutPaymentService paymentService;
+    private final MemberBrandBenefitLedgerCommandHandler memberBrandBenefitLedgerCommandHandler;
     private final OmsOrderLogService omsOrderLogService;
 
     @Transactional(rollbackFor = Exception.class)
     public SettleResultVO orchestrate(SettleAccountsDTO request) {
+        return orchestrate(request, false);
+    }
+
+    /** Deferred quantity purchase: records the sale and payment but grants fulfilment rights instead of deducting stock. */
+    @Transactional(rollbackFor = Exception.class)
+    public SettleResultVO orchestrateDeferredQuantity(SettleAccountsDTO request) {
+        return orchestrate(request, true);
+    }
+
+    private SettleResultVO orchestrate(SettleAccountsDTO request, boolean deferredQuantity) {
         log.info("🚀 启动结算流水线，单号: {}", request.getReqId());
 
         CheckoutContext context = new CheckoutContext();
@@ -50,13 +63,21 @@ public class CheckoutOrchestrator {
 
         // ================= 🌟 2. 正常流水线 =================
         validationService.validate(context);
-        pricingService.calculate(context);
+        if (deferredQuantity) {
+            pricingService.calculateDeferredQuantity(context);
+        } else {
+            pricingService.calculate(context);
+        }
 
         // 🌟 P0 核心修复 2：粮草先行！必须先将前端支付参数解析归一化，再谈后续的扣款
         paymentService.preProcessPayments(context);
 
         orderService.createOrder(context);
-        inventoryService.deductStock(context);
+        if (deferredQuantity) {
+            grantDeferredQuantityRights(context);
+        } else {
+            inventoryService.deductStock(context);
+        }
 
         // 此时，资产管家能够拿到 100% 准确的 paymentResult 对象了
         memberAssetService.handleAsset(context);
@@ -66,6 +87,21 @@ public class CheckoutOrchestrator {
         saveAuditLog(context);
 
         return buildFinalResult(context);
+    }
+
+    private void grantDeferredQuantityRights(CheckoutContext context) {
+        if (context.getMember() == null) throw new com.money.web.exception.BaseException("延迟提货购买必须关联会员");
+        for (com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail detail : context.getOrderDetails()) {
+            com.money.contract.goods.CheckoutGoodsSnapshot goods = context.getGoodsMap().get(detail.getGoodsId());
+            if (goods == null || goods.getBrandId() == null) throw new com.money.web.exception.BaseException("延迟提货商品缺少品牌信息");
+            MemberBrandBenefitLedgerCommand.QuantityGrant grant = new MemberBrandBenefitLedgerCommand.QuantityGrant();
+            grant.setMemberId(context.getMember().getMemberId()); grant.setBrandId(String.valueOf(goods.getBrandId()));
+            grant.setGoodsId(detail.getGoodsId()); grant.setSourceOrderNo(context.getOrder().getOrderNo());
+            grant.setSourceOrderDetailId(detail.getId()); grant.setQuantity(detail.getQuantity());
+            grant.setRequestNo(context.getOrder().getOrderNo() + "-RIGHT-" + detail.getId());
+            grant.setReason("DEFERRED_QUANTITY_PURCHASE");
+            memberBrandBenefitLedgerCommandHandler.grantQuantity(grant);
+        }
     }
 
     private void saveAuditLog(CheckoutContext context) {

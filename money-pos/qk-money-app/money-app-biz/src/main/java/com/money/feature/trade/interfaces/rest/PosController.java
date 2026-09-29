@@ -7,6 +7,7 @@ import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
 import com.money.dto.pos.SettleTrialReqDTO;
 import com.money.feature.trade.application.pos.PosService;
+import com.money.feature.trade.application.memberpickup.DeferredQuantityPickupService;
 import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,7 @@ import java.util.List;
 public class PosController {
 
     private final PosService posService;
+    private final DeferredQuantityPickupService deferredQuantityPickupService;
     private final PosPricingFacade posPricingFacade;
 
     @Operation(summary = "商品列表")
@@ -49,6 +51,20 @@ public class PosController {
     @PreAuthorize("@rbac.hasPermission('pos:cashier')")
     public SettleResultVO settleAccounts(@Validated @RequestBody SettleAccountsDTO settleAccountsDTO) {
         return posService.settleAccounts(settleAccountsDTO);
+    }
+
+    @Operation(summary = "会员数量权益购买（延迟提货）")
+    @PostMapping("/deferred-quantity/settle")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public SettleResultVO settleDeferredQuantity(@Validated @RequestBody SettleAccountsDTO settleAccountsDTO) {
+        return posService.settleDeferredQuantity(settleAccountsDTO);
+    }
+
+    @Operation(summary = "会员数量权益提货")
+    @PostMapping("/deferred-quantity/pickup")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public com.money.dto.pos.DeferredQuantityPickupVO pickupDeferredQuantity(@Validated @RequestBody com.money.dto.pos.DeferredQuantityPickupDTO dto) {
+        return deferredQuantityPickupService.pickup(dto);
     }
 
     @Operation(summary = "收银台实时试算 (不落库/防抖调用)")

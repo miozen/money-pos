@@ -63,7 +63,7 @@ public class OmsOrderRefundServiceImpl implements OmsOrderRefundService {
 
         // 4. 委托【仓储部】处理明细库存
         List<OmsOrderDetail> details = omsOrderDetailMapper.selectList(new LambdaQueryWrapper<OmsOrderDetail>().eq(OmsOrderDetail::getOrderNo, orderNo));
-        inventoryHelper.processFullOrderInventory(orderNo, details);
+        inventoryHelper.processFullOrderInventory(reqId, orderNo, details);
 
         // 5. 委托【财务部】处理资产与退款
         assetHelper.processFullOrderAsset(order, orderNo);
@@ -106,7 +106,7 @@ public class OmsOrderRefundServiceImpl implements OmsOrderRefundService {
         BigDecimal refundMemberCoupon = unitCoupon.multiply(new BigDecimal(dto.getReturnQty()));
 
         // 4. 委托【仓储部】处理单品库存回补
-        inventoryHelper.processPartialReturnInventory(dto.getOrderNo(), detail, dto.getReturnQty());
+        inventoryHelper.processPartialReturnInventory(dto.getReqId(), dto.getOrderNo(), detail, dto.getReturnQty());
 
         // 5. 更新订单数据库金额累加字段
         omsOrderMapper.applyPartialRefund(dto.getOrderNo(), refundSales, refundCost, refundMemberCoupon, OrderStatusEnum.PARTIAL_REFUNDED.name());

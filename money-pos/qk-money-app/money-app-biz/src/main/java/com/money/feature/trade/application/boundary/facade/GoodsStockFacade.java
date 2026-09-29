@@ -2,6 +2,8 @@ package com.money.feature.trade.application.boundary.facade;
 
 import com.money.contract.goods.RefundStockCommand;
 import com.money.contract.goods.RefundStockCommandHandler;
+import com.money.contract.goods.MemberPickupReturnStockCommand;
+import com.money.contract.goods.MemberPickupReturnStockCommandHandler;
 import com.money.contract.goods.SaleStockCommand;
 import com.money.contract.goods.SaleStockCommandHandler;
 import com.money.contract.goods.StockMutationLine;
@@ -22,6 +24,7 @@ public class GoodsStockFacade {
 
     private final SaleStockCommandHandler saleStockCommandHandler;
     private final RefundStockCommandHandler refundStockCommandHandler;
+    private final MemberPickupReturnStockCommandHandler memberPickupReturnStockCommandHandler;
 
     public void deductForSale(SaleStockRequest request) {
         SaleStockCommand command = new SaleStockCommand();
@@ -35,6 +38,14 @@ public class GoodsStockFacade {
         command.setOrderNo(request.getOrderNo());
         command.setLines(request.getLines().stream().map(this::toStockMutationLine).collect(Collectors.toList()));
         return refundStockCommandHandler.handle(command);
+    }
+
+    public BigDecimal restoreForMemberPickupReturn(String returnNo, java.util.List<RefundStockLine> lines) {
+        if (lines.isEmpty()) return BigDecimal.ZERO;
+        MemberPickupReturnStockCommand command = new MemberPickupReturnStockCommand();
+        command.setReturnNo(returnNo);
+        command.setLines(lines.stream().map(this::toStockMutationLine).collect(Collectors.toList()));
+        return memberPickupReturnStockCommandHandler.handle(command);
     }
 
     private StockMutationLine toStockMutationLine(SaleStockLine line) {

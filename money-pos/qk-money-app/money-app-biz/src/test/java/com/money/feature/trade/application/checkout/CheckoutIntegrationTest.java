@@ -85,6 +85,8 @@ class CheckoutIntegrationTest {
     private OmsOrderLogMapper omsOrderLogMapper;
     @Autowired
     private GmsInventoryDocMapper inventoryDocMapper;
+    @Autowired
+    private com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberQuantityRightMapper quantityRightMapper;
 
     @BeforeEach
     void authenticateFixtureWriter() {
@@ -147,6 +149,38 @@ class CheckoutIntegrationTest {
         assertThat(inventoryDocMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
                         .eq(GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
+    }
+
+    @Test
+    void deferredQuantityPurchaseCreatesRightsWithoutPhysicalStockMutation() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        String requestId = "DQ-" + suffix;
+        GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
+        goods.setBrandId(1L);
+        gmsGoodsMapper.updateById(goods);
+        UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
+
+        com.money.dto.pos.SettleAccountsDTO request = tradeFixture.cashSettlement(requestId, goods.getId(), 2,
+                new BigDecimal("24.00"));
+        request.setMember(member.getId());
+        SettleResultVO first = checkoutOrchestrator.orchestrateDeferredQuantity(request);
+        SettleResultVO replay = checkoutOrchestrator.orchestrateDeferredQuantity(request);
+
+        assertThat(first.getOrderNo()).isEqualTo(requestId);
+        assertThat(replay.getOrderNo()).isEqualTo(requestId);
+        assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
+        assertThat(inventoryDocMapper.selectCount(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
+                        .eq(GmsInventoryDoc::getDocNo, "XS-" + requestId))).isZero();
+        assertThat(quantityRightMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight>()
+                        .eq(com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getSourceOrderNo, requestId)))
+                .singleElement()
+                .extracting(com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getMemberId,
+                        com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getGoodsId,
+                        com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getGrantedQuantity,
+                        com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getRemainingQuantity)
+                .containsExactly(member.getId(), goods.getId(), 2, 2);
     }
 
 

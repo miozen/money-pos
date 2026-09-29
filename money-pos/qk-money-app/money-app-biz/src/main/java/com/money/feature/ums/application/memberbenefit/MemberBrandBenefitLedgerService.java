@@ -3,6 +3,13 @@ package com.money.feature.ums.application.memberbenefit;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.MemberBrandBenefitLedgerCommand;
 import com.money.contract.member.MemberBrandBenefitLedgerCommandHandler;
+import com.money.contract.member.MemberQuantityPickupCommand;
+import com.money.contract.member.MemberQuantityPickupCommandHandler;
+import com.money.contract.member.MemberQuantityRightQuery;
+import com.money.contract.member.MemberQuantityRightSnapshot;
+import com.money.contract.member.MemberQuantityRefundCommand;
+import com.money.contract.member.MemberQuantityRefundCommandHandler;
+import com.money.contract.member.MemberQuantityRefundResult;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import com.money.mapper.UmsMemberBrandLevelMapper;
@@ -13,13 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * UMS ledger writer for ME-1.1. Later features may call this boundary, but may not update a right balance directly.
  */
 @Service
 @RequiredArgsConstructor
-public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedgerCommandHandler {
+public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedgerCommandHandler,
+        MemberQuantityPickupCommandHandler, MemberQuantityRightQuery, MemberQuantityRefundCommandHandler {
     private final UmsBrandBenefitTierMapper tierMapper;
     private final UmsMemberQuantityRightMapper quantityRightMapper;
     private final UmsMemberQuantityRightLogMapper quantityLogMapper;
@@ -159,6 +169,68 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
             update.setId(current.getId()); update.setLevelCode(candidate.getPricingLevelCode());
             brandLevelMapper.updateById(update);
         }
+    }
+
+    @Override
+    public List<MemberQuantityRightSnapshot> findAvailableForPickup(Long memberId, List<Long> rightIds) {
+        if (memberId == null || rightIds == null || rightIds.isEmpty()) return java.util.Collections.emptyList();
+        return quantityRightMapper.selectList(new LambdaQueryWrapper<UmsMemberQuantityRight>()
+                .eq(UmsMemberQuantityRight::getMemberId, memberId).eq(UmsMemberQuantityRight::getStatus, "ACTIVE")
+                .in(UmsMemberQuantityRight::getId, rightIds)).stream().map(right -> {
+                    MemberQuantityRightSnapshot snapshot = new MemberQuantityRightSnapshot();
+                    snapshot.setRightId(right.getId()); snapshot.setMemberId(right.getMemberId()); snapshot.setBrandId(right.getBrandId());
+                    snapshot.setGoodsId(right.getGoodsId()); snapshot.setSourceOrderNo(right.getSourceOrderNo());
+                    snapshot.setSourceOrderDetailId(right.getSourceOrderDetailId()); snapshot.setRemainingQuantity(right.getRemainingQuantity());
+                    return snapshot;
+                }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void handle(MemberQuantityPickupCommand command) {
+        require(command != null && command.getMemberId() != null && text(command.getPickupNo())
+                && text(command.getRequestNo()) && command.getLines() != null && !command.getLines().isEmpty(), "提货权益命令不完整");
+        for (MemberQuantityPickupCommand.Line line : command.getLines()) {
+            require(line.getRightId() != null && positive(line.getQuantity()), "提货数量不合法");
+            UmsMemberQuantityRight right = quantityRightMapper.selectByIdForUpdate(line.getRightId());
+            require(right != null && command.getMemberId().equals(right.getMemberId()), "数量权益不属于当前会员");
+            MemberBrandBenefitLedgerCommand.QuantityChange change = new MemberBrandBenefitLedgerCommand.QuantityChange();
+            change.setRightId(right.getId()); change.setDelta(-line.getQuantity()); change.setPickedDelta(line.getQuantity());
+            change.setAction("PICKUP_DEDUCT"); change.setRequestNo(command.getRequestNo() + "-" + right.getId());
+            change.setSourceType("MEMBER_PICKUP"); change.setSourceNo(command.getPickupNo()); change.setOperatorName(command.getOperatorName());
+            changeQuantity(change);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public List<MemberQuantityRefundResult> handle(MemberQuantityRefundCommand command) {
+        require(command != null && text(command.getRequestNo()) && text(command.getSourceOrderNo())
+                && command.getLines() != null && !command.getLines().isEmpty(), "数量权益退款命令不完整");
+        List<MemberQuantityRefundResult> results = new java.util.ArrayList<>();
+        for (MemberQuantityRefundCommand.Line line : command.getLines()) {
+            require(line != null && line.getSourceOrderDetailId() != null && positive(line.getQuantity()), "数量权益退款明细不完整");
+            UmsMemberQuantityRight right = quantityRightMapper.selectBySourceOrderDetailIdForUpdate(line.getSourceOrderDetailId());
+            if (right == null) {
+                continue;
+            }
+            require(command.getSourceOrderNo().equals(right.getSourceOrderNo()), "数量权益来源订单不匹配");
+            int remaining = right.getRemainingQuantity() == null ? 0 : right.getRemainingQuantity();
+            int cancelled = Math.min(line.getQuantity(), remaining);
+            if (cancelled > 0) {
+                MemberBrandBenefitLedgerCommand.QuantityChange change = new MemberBrandBenefitLedgerCommand.QuantityChange();
+                change.setRightId(right.getId()); change.setDelta(-cancelled); change.setPickedDelta(0);
+                change.setAction("REFUND_CANCEL"); change.setRequestNo(command.getRequestNo() + "-" + right.getId());
+                change.setSourceType("TRADE_REFUND"); change.setSourceNo(command.getSourceOrderNo());
+                change.setOperatorName(command.getOperatorName()); change.setReason("DEFERRED_QUANTITY_REFUND");
+                changeQuantity(change);
+            }
+            MemberQuantityRefundResult result = new MemberQuantityRefundResult();
+            result.setSourceOrderDetailId(line.getSourceOrderDetailId()); result.setGoodsId(right.getGoodsId());
+            result.setDeferredQuantity(true); result.setCancelledUnpickedQuantity(cancelled);
+            result.setPickedReturnQuantity(line.getQuantity() - cancelled); results.add(result);
+        }
+        return results;
     }
 
     private UmsBrandBenefitTier enabledTier(String brandId, String tierCode) {

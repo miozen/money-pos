@@ -34,13 +34,23 @@ public class PosCalculationEngine {
         Map<String, String> memberBrandLevels;
         CheckoutPricingBenefitSnapshot.VoucherRule voucherRule;
         BigDecimal totalConfiguredCoupon = BigDecimal.ZERO;
+        boolean enforceStock;
     }
 
     public PricingResult calculate(SettleTrialReqDTO req) {
+        return calculate(req, true);
+    }
+
+    public PricingResult calculateWithoutStockCheck(SettleTrialReqDTO req) {
+        return calculate(req, false);
+    }
+
+    private PricingResult calculate(SettleTrialReqDTO req, boolean enforceStock) {
         if (req.getItems() == null || req.getItems().isEmpty()) {
             return new PricingResult();
         }
         CalcContext ctx = initContext(req);
+        ctx.enforceStock = enforceStock;
         calculateBasePrices(ctx);
         dispatchSettlementTrack(ctx);
         calculateMarketingDeduct(ctx);
@@ -71,7 +81,7 @@ public class PosCalculationEngine {
             if (goods == null) throw new BaseException("【试算拦截】发现不存在或已下架的商品ID: " + reqItem.getGoodsId());
 
             long currentStock = goods.getStock() != null ? goods.getStock() : 0L;
-            if (reqItem.getQuantity() > currentStock) {
+            if (ctx.enforceStock && reqItem.getQuantity() > currentStock) {
                 throw new BaseException(BizErrorStatus.STOCK_NOT_ENOUGH, "结算中断！商品【{0}】库存不足，当前仅剩 {1} 件。", goods.getName(), currentStock).withData(currentStock);
             }
 

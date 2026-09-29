@@ -136,4 +136,9 @@ public class PosServiceImpl implements PosService {
     public SettleResultVO settleAccounts(SettleAccountsDTO dto) {
         return checkoutOrchestrator.orchestrate(dto);
     }
+
+    @Override
+    public SettleResultVO settleDeferredQuantity(SettleAccountsDTO dto) {
+        return checkoutOrchestrator.orchestrateDeferredQuantity(dto);
+    }
 }

@@ -14,4 +14,6 @@ public interface PosService {
 
     // 🌟 返回值已修改为增强版 VO
     SettleResultVO settleAccounts(SettleAccountsDTO dto);
+
+    SettleResultVO settleDeferredQuantity(SettleAccountsDTO dto);
 }

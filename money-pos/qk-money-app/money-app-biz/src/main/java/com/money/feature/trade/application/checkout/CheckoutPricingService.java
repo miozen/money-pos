@@ -22,6 +22,14 @@ public class CheckoutPricingService {
     private final PosPricingFacade posPricingFacade;
 
     public void calculate(CheckoutContext context) {
+        calculate(context, false);
+    }
+
+    public void calculateDeferredQuantity(CheckoutContext context) {
+        calculate(context, true);
+    }
+
+    private void calculate(CheckoutContext context, boolean deferredQuantity) {
         SettleAccountsDTO dto = context.getRequest();
         SettleTrialReqDTO trialReq = new SettleTrialReqDTO();
         trialReq.setMember(dto.getMember());
@@ -36,7 +44,9 @@ public class CheckoutPricingService {
             return item;
         }).collect(Collectors.toList()));
 
-        PricingResult trialRes = posPricingFacade.trial(trialReq);
+        PricingResult trialRes = deferredQuantity
+                ? posPricingFacade.priceDeferredQuantity(trialReq)
+                : posPricingFacade.trial(trialReq);
         BigDecimal finalPayAmount = trialRes.getFinalPayAmount().setScale(2, RoundingMode.HALF_UP);
         context.setPricingResult(trialRes);
         context.setPaymentResult(normalizePayments(dto.getPayments(), finalPayAmount));

@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Update;
 public interface UmsMemberQuantityRightMapper extends BaseMapper<UmsMemberQuantityRight> {
     @Select("SELECT * FROM ums_member_quantity_right WHERE id = #{id} FOR UPDATE")
     UmsMemberQuantityRight selectByIdForUpdate(@Param("id") Long id);
+    @Select("SELECT * FROM ums_member_quantity_right WHERE source_order_detail_id = #{detailId} FOR UPDATE")
+    UmsMemberQuantityRight selectBySourceOrderDetailIdForUpdate(@Param("detailId") Long detailId);
     @Update("UPDATE ums_member_quantity_right SET remaining_quantity = remaining_quantity + #{delta}, " +
             "picked_quantity = picked_quantity + #{pickedDelta}, update_time = NOW() " +
             "WHERE id = #{id} AND remaining_quantity + #{delta} >= 0")
