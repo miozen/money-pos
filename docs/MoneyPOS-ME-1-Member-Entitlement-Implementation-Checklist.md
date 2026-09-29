@@ -16,8 +16,8 @@
 | --- | --- | --- | --- | --- |
 | ME-1.0 | 冻结模型、范围和实施顺序 | 完成 | 三类场景、退款边界、收入确认和不降级规则均已确认 | ME-1.1 |
 | ME-1.1 | 品牌权益档位与 UMS 账本基础 | 完成 | Flyway、3 项账本专项、17 项既有 Checkout 回归、编译和静态架构门禁均通过 | ME-1.2 |
-| ME-1.2 | QUANTITY 延迟履约购买与提货 | **本地进行中** | 存在未提交源码；仅编译通过，尚未形成业务验收或回归结论，不能提交、不能接力、不能开始 ME-1.3。 | 仅在本清单 ME-1.2.1～ME-1.2.8 全部闭环后进入 ME-1.3 |
-| ME-1.3 | AMOUNT 权益包、混合补差与整笔提货退款 | 未开始 | - | ME-1.4 |
+| ME-1.2 | QUANTITY 延迟履约购买与提货 | 完成 | `e44c6e9` 已完成实现，`e3928a7` 记录收口；隔离全量回归、打包和架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.3 |
+| ME-1.3 | AMOUNT 权益包、混合补差与整笔提货退款 | **本地完成待同步** | 代码、隔离全量回归、打包和架构门禁已通过；尚未提交并验证 `dev...origin/dev` 0/0。 | 提交、推送并确认同步 |
 | ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 未开始 | - | ME-1.5 |
 | ME-1.5 | FIN/HOME 投影、查询页面与总体验收 | 未开始 | - | 收口复核 |
 
@@ -80,20 +80,12 @@
 - [x] **ME-1.2.8 收口。** 全量测试、打包、架构门禁与空白检查通过；`e44c6e9` 与接力记录
   `99fdce1` 已推送至 `origin/dev`，并已验证 `dev...origin/dev` 无 ahead/behind。
 
-### 当前本地源码盘点（2026-09-29）
+### ME-1.2 收口事实（2026-09-29）
 
-下列内容存在于工作区，**不表示任一验收项完成**：
-
-- 已新增未提交的提货单/明细 Flyway、TRADE Entity/Mapper、DTO，以及 UMS/GMS 的中立契约草案。
-- 已新增延迟购买和提货 HTTP 入口及编排，并通过专项隔离数据库回归。
-- GMS 从 `MemberPickupStockCommand` 直接进入 `MEMBER_PICKUP` 扣库、凭证和流水，且与销售共享原子扣库/
-  套餐展开算法；专项回归断言提货不产生 `SALE` 或 `SALE_OUT`。
-- 退款链路通过 UMS 权益命令将退款分配为未提权益取消与已提实物退货；仅后者调用 GMS
-  `MEMBER_PICKUP_RETURN`，并以 Flyway 扩展库存单类型长度。
-
-### 当前唯一下一动作
-
-执行 ME-1.2.8 收口：全量测试、打包、架构门禁、文档验收、提交与同步；任何一项缺失均不得宣称 ME-1.2 完成。
+- `e44c6e9` 已实现并提交提货单/明细 Flyway、TRADE 编排、UMS/GMS Entity-free 契约、原生
+  `MEMBER_PICKUP` / `MEMBER_PICKUP_RETURN` 库存路径及退款分叉。
+- `e3928a7` 已记录收口；隔离完整回归（121 tests）、打包、架构门禁和空白检查均通过，且
+  `dev...origin/dev` 为 0/0。
 
 ## ME-1.3：AMOUNT 权益包与混合补差
 
@@ -103,6 +95,22 @@
 - AMOUNT 提货按权益的价格档快照计价；权益抵扣不确认收入，现金/扫码/余额补差确认新增收入并实际出库。
 - V1 仅支持整笔提货单退款：恢复权益、原路退补差、GMS `MEMBER_PICKUP_RETURN`、冲回补差收入和成本。
 - 验收：150 = 权益 100 + 扫码 50 时，收入只新增 50，商品订单数和商品销量不增加。
+
+### 实施清单（唯一执行顺序）
+
+- [x] **ME-1.3.1 数据与契约。** 以 Flyway 建立 TRADE 非商品业务凭证、凭证支付、AMOUNT 提货及明细；
+  在 `money-app-api` 增加 Entity-free 的 AMOUNT 权益读取与扣减边界。凭证请求号唯一，支付与商品订单支付表隔离。
+- [x] **ME-1.3.2 权益包购买。** 仅专用入口可为已验证会员按启用品牌档位创建
+  `AMOUNT_PACKAGE_PURCHASE` 凭证、支付明细和 AMOUNT 权益；不得创建 `oms_order`、订单明细或库存流水。
+- [x] **ME-1.3.3 混合补差提货。** 按权益中冻结的价格等级快照计价，原子扣减权益、写
+  `AMOUNT_PICKUP_SUPPLEMENT`（仅补差额支付/收入）、调用原生 `MEMBER_PICKUP` 扣实物库存并写提货明细。
+  权益抵扣不作为新增收入，不得写商品订单或商品销量。
+- [x] **ME-1.3.4 整笔退款。** 仅允许完整提货单退款；恢复原 AMOUNT 权益、原路冲回补差支付、使用
+  `MEMBER_PICKUP_RETURN` 回库，并将补差收入与成本一并冲回。拒绝部分退款及重复退款。
+- [x] **ME-1.3.5 HTTP、权限与回归。** 所有专用入口使用 `pos:cashier`；在 `money_pos_test` 覆盖权益包幂等、
+  100+50 混合补差、价格快照、余额/库存失败回滚、整笔退款、重复/部分退款拒绝，以及普通 Checkout 回归。
+- [ ] **ME-1.3.6 收口。** 全量测试、打包、架构门禁与空白检查已通过；待本地提交、推送和
+  `dev...origin/dev` 0/0。完成后才可进入 ME-1.4。
 
 ## ME-1.4：TARGET 专用结算与人工升级
 
@@ -132,3 +140,17 @@
 - 首次测试失败只是当前 shell 未注入测试变量；完整阅读接力说明后，已按文档规定从 `application-dev.yml` 提取既有本地开发凭据，并以固定 `money_pos_test` URL 受控执行。普通沙箱的 `Operation not permitted` 是本机 3306 网络限制，不是变量或数据库缺失。
 
 ME-1.1 已具备开始 ME-1.2 的前置条件；下一切片仅实现 QUANTITY 延迟履约，不提前混入 AMOUNT 或 TARGET。
+
+### ME-1.3（2026-09-29，本地完成待同步）
+
+- 新增 `V1.0.8__create_member_amount_receipt_and_pickup.sql`，以 TRADE 非商品凭证、独立凭证支付、AMOUNT
+  提货和提货明细承载权益包购买、补差和退款审计；没有写入 `oms_order`、订单明细或商品订单支付表。
+- 新增 Entity-free AMOUNT 权益、启用档位和余额支付契约。UMS 负责权益余额和余额支付流水，TRADE 编排只读取
+  快照并提交命令，GMS 继续独占 `MEMBER_PICKUP` / `MEMBER_PICKUP_RETURN` 实物库存命令。
+- `/pos/amount-package/purchase`、`/pickup`、`/pickup-refund` 均受 `pos:cashier` 保护。提货按权益冻结的
+  `pricingLevelCodeSnapshot` 计价：权益抵扣不入补差凭证，补差支付才记为新增收入；整笔退款恢复权益、冲回补差
+  支付并回库。
+- 已通过隔离 `money_pos_test` 专项（`MemberAmountBenefitServiceIntegrationTest` 4 项、路由契约）与
+  `CheckoutIntegrationTest`；完整 `mvn -q test` 为 65 个测试类、125 项、零 failures/errors。还通过
+  `mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、
+  `scripts/architecture-scan.sh --check-new` 和 `git diff --check`。

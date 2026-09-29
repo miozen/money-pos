@@ -15,6 +15,9 @@ class PosDeferredQuantityRouteContractTest {
         assertRoute("settleAccounts", "/settleAccounts");
         assertRoute("settleDeferredQuantity", "/deferred-quantity/settle");
         assertRoute("pickupDeferredQuantity", "/deferred-quantity/pickup");
+        assertRoute("purchaseAmountPackage", "/amount-package/purchase");
+        assertRoute("pickupAmountPackage", "/amount-package/pickup");
+        assertRoute("refundAmountPickup", "/amount-package/pickup-refund");
     }
 
     private void assertRoute(String methodName, String path) throws Exception {

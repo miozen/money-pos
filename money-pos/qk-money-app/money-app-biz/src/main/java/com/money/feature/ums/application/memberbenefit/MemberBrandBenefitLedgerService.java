@@ -10,6 +10,14 @@ import com.money.contract.member.MemberQuantityRightSnapshot;
 import com.money.contract.member.MemberQuantityRefundCommand;
 import com.money.contract.member.MemberQuantityRefundCommandHandler;
 import com.money.contract.member.MemberQuantityRefundResult;
+import com.money.contract.member.MemberAmountRightQuery;
+import com.money.contract.member.MemberAmountRightSnapshot;
+import com.money.contract.member.MemberAmountPickupCommand;
+import com.money.contract.member.MemberAmountPickupCommandHandler;
+import com.money.contract.member.MemberAmountPickupRefundCommand;
+import com.money.contract.member.MemberAmountPickupRefundCommandHandler;
+import com.money.contract.member.MemberBrandBenefitTierQuery;
+import com.money.contract.member.MemberBrandBenefitTierSnapshot;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import com.money.mapper.UmsMemberBrandLevelMapper;
@@ -29,7 +37,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedgerCommandHandler,
-        MemberQuantityPickupCommandHandler, MemberQuantityRightQuery, MemberQuantityRefundCommandHandler {
+        MemberQuantityPickupCommandHandler, MemberQuantityRightQuery, MemberQuantityRefundCommandHandler,
+        MemberAmountRightQuery, MemberAmountPickupCommandHandler, MemberAmountPickupRefundCommandHandler,
+        MemberBrandBenefitTierQuery {
     private final UmsBrandBenefitTierMapper tierMapper;
     private final UmsMemberQuantityRightMapper quantityRightMapper;
     private final UmsMemberQuantityRightLogMapper quantityLogMapper;
@@ -186,6 +196,46 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
     }
 
     @Override
+    public MemberAmountRightSnapshot findAvailableForPickup(Long memberId, Long rightId) {
+        if (memberId == null || rightId == null) return null;
+        UmsMemberAmountRight right = amountRightMapper.selectOne(new LambdaQueryWrapper<UmsMemberAmountRight>()
+                .eq(UmsMemberAmountRight::getId, rightId).eq(UmsMemberAmountRight::getMemberId, memberId)
+                .eq(UmsMemberAmountRight::getStatus, "ACTIVE"));
+        if (right == null) return null;
+        MemberAmountRightSnapshot snapshot = new MemberAmountRightSnapshot();
+        snapshot.setRightId(right.getId()); snapshot.setMemberId(right.getMemberId()); snapshot.setBrandId(right.getBrandId());
+        snapshot.setTierCodeSnapshot(right.getTierCodeSnapshot()); snapshot.setTierNameSnapshot(right.getTierNameSnapshot());
+        snapshot.setPricingLevelCodeSnapshot(right.getPricingLevelCodeSnapshot()); snapshot.setRemainingAmount(right.getRemainingAmount());
+        snapshot.setSourceReceiptNo(right.getSourceReceiptNo()); return snapshot;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void handle(MemberAmountPickupCommand command) {
+        require(command != null && command.getMemberId() != null && command.getRightId() != null && text(command.getPickupNo())
+                && text(command.getRequestNo()) && positive(command.getAmount()), "金额权益提货命令不完整");
+        UmsMemberAmountRight right = amountRightMapper.selectByIdForUpdate(command.getRightId());
+        require(right != null && command.getMemberId().equals(right.getMemberId()), "金额权益不属于当前会员");
+        MemberBrandBenefitLedgerCommand.AmountChange change = new MemberBrandBenefitLedgerCommand.AmountChange();
+        change.setRightId(right.getId()); change.setDelta(command.getAmount().negate()); change.setAction("PICKUP_DEDUCT");
+        change.setRequestNo(command.getRequestNo()); change.setSourceType("MEMBER_AMOUNT_PICKUP"); change.setSourceNo(command.getPickupNo());
+        change.setOperatorName(command.getOperatorName()); change.setReason("AMOUNT_PICKUP"); changeAmount(change);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void handle(MemberAmountPickupRefundCommand command) {
+        require(command != null && command.getMemberId() != null && command.getRightId() != null && text(command.getPickupNo())
+                && text(command.getRefundNo()) && text(command.getRequestNo()) && positive(command.getAmount()), "金额权益提货退款命令不完整");
+        UmsMemberAmountRight right = amountRightMapper.selectByIdForUpdate(command.getRightId());
+        require(right != null && command.getMemberId().equals(right.getMemberId()), "金额权益不属于当前会员");
+        MemberBrandBenefitLedgerCommand.AmountChange change = new MemberBrandBenefitLedgerCommand.AmountChange();
+        change.setRightId(right.getId()); change.setDelta(command.getAmount()); change.setAction("PICKUP_REFUND_RESTORE");
+        change.setRequestNo(command.getRequestNo()); change.setSourceType("MEMBER_AMOUNT_PICKUP_REFUND"); change.setSourceNo(command.getRefundNo());
+        change.setOperatorName(command.getOperatorName()); change.setReason("AMOUNT_PICKUP_REFUND:" + command.getPickupNo()); changeAmount(change);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void handle(MemberQuantityPickupCommand command) {
         require(command != null && command.getMemberId() != null && text(command.getPickupNo())
@@ -238,6 +288,18 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
                 .eq(UmsBrandBenefitTier::getBrandId, brandId).eq(UmsBrandBenefitTier::getTierCode, tierCode)
                 .eq(UmsBrandBenefitTier::getEnabled, true));
         require(tier != null, "品牌权益档位不存在或未启用"); return tier;
+    }
+
+    @Override
+    public MemberBrandBenefitTierSnapshot findEnabled(String brandId, String tierCode) {
+        if (!text(brandId) || !text(tierCode)) return null;
+        UmsBrandBenefitTier tier = tierMapper.selectOne(new LambdaQueryWrapper<UmsBrandBenefitTier>()
+                .eq(UmsBrandBenefitTier::getBrandId, brandId).eq(UmsBrandBenefitTier::getTierCode, tierCode)
+                .eq(UmsBrandBenefitTier::getEnabled, true));
+        if (tier == null) return null;
+        MemberBrandBenefitTierSnapshot snapshot = new MemberBrandBenefitTierSnapshot();
+        snapshot.setBrandId(tier.getBrandId()); snapshot.setTierCode(tier.getTierCode()); snapshot.setTierName(tier.getTierName());
+        snapshot.setConfiguredAmount(tier.getConfiguredAmount()); return snapshot;
     }
     private UmsMemberQuantityRightLog quantityLog(Long id, String action, int delta, int before, int after, String request, String sourceType, String sourceNo, String operator, String reason) {
         UmsMemberQuantityRightLog log = new UmsMemberQuantityRightLog(); log.setRightId(id); log.setAction(action); log.setQuantityDelta(delta); log.setBeforeQuantity(before); log.setAfterQuantity(after); log.setRequestNo(request); log.setSourceType(blank(sourceType)); log.setSourceNo(sourceNo); log.setOperatorName(blank(operator)); log.setReason(blank(reason)); return log;
