@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.3 code commit | `3cffdec feat(member): implement amount benefit pickup` |
-| Working tree | Local ME-1.3 commit exists; this handoff update is uncommitted and neither is synchronized yet. |
-| Current phase | `ME-1.3 AMOUNT 权益包、混合补差与整笔提货退款 — local complete pending sync` |
+| Working tree | **CLEAN and synchronized** after ME-1.3 handoff is pushed |
+| Current phase | `ME-1.3 AMOUNT 权益包、混合补差与整笔提货退款 — complete` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -54,8 +54,8 @@ right, reverse the supplement and use `MEMBER_PICKUP_RETURN` for physical stock.
 
 ## Exact next action
 
-Commit this updated plan/handoff, push `3cffdec` and the documentation commit to `origin/dev`, then verify
-`dev...origin/dev` has neither ahead nor behind. Do not start ME-1.4 until that evidence exists.
+ME-1.3 has no active implementation action. Verify `git status --short --branch` after this final handoff record is
+pushed; it must show no changes and no ahead/behind before selecting a future accepted phase.
 
 ## Handoff rule
 
