@@ -15,6 +15,7 @@ import com.money.dto.pos.SettleTrialReqDTO;
 import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.trade.application.memberpickup.DeferredQuantityPickupService;
 import com.money.feature.trade.application.memberpickup.MemberAmountBenefitService;
+import com.money.feature.trade.application.membertarget.MemberTargetBenefitService;
 import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,7 @@ public class PosController {
     private final PosService posService;
     private final DeferredQuantityPickupService deferredQuantityPickupService;
     private final MemberAmountBenefitService memberAmountBenefitService;
+    private final MemberTargetBenefitService memberTargetBenefitService;
     private final PosPricingFacade posPricingFacade;
 
     @Operation(summary = "商品列表")
@@ -94,6 +96,34 @@ public class PosController {
     @PreAuthorize("@rbac.hasPermission('pos:cashier')")
     public MemberAmountPickupRefundVO refundAmountPickup(@Validated @RequestBody MemberAmountPickupRefundDTO dto) {
         return memberAmountBenefitService.refund(dto);
+    }
+
+    @Operation(summary = "会员TARGET即时结算")
+    @PostMapping("/target/settle")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public SettleResultVO settleTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetSettleDTO dto) {
+        return memberTargetBenefitService.settle(dto);
+    }
+
+    @Operation(summary = "会员TARGET补差")
+    @PostMapping("/target/supplement")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public com.money.dto.pos.MemberTargetReceiptVO supplementTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetAdjustmentDTO dto) {
+        return memberTargetBenefitService.supplement(dto);
+    }
+
+    @Operation(summary = "会员TARGET人工豁免")
+    @PostMapping("/target/waive")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public com.money.dto.pos.MemberTargetReceiptVO waiveTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetAdjustmentDTO dto) {
+        return memberTargetBenefitService.waive(dto);
+    }
+
+    @Operation(summary = "会员TARGET达标人工确认")
+    @PostMapping("/target/confirm")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public com.money.dto.pos.MemberTargetConfirmVO confirmTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetConfirmDTO dto) {
+        return memberTargetBenefitService.confirm(dto);
     }
 
     @Operation(summary = "收银台实时试算 (不落库/防抖调用)")

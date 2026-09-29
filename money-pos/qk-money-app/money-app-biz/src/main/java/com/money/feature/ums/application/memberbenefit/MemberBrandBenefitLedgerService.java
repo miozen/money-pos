@@ -18,6 +18,8 @@ import com.money.contract.member.MemberAmountPickupRefundCommand;
 import com.money.contract.member.MemberAmountPickupRefundCommandHandler;
 import com.money.contract.member.MemberBrandBenefitTierQuery;
 import com.money.contract.member.MemberBrandBenefitTierSnapshot;
+import com.money.contract.member.MemberTargetPlanQuery;
+import com.money.contract.member.MemberTargetPlanSnapshot;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import com.money.mapper.UmsMemberBrandLevelMapper;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
 public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedgerCommandHandler,
         MemberQuantityPickupCommandHandler, MemberQuantityRightQuery, MemberQuantityRefundCommandHandler,
         MemberAmountRightQuery, MemberAmountPickupCommandHandler, MemberAmountPickupRefundCommandHandler,
-        MemberBrandBenefitTierQuery {
+        MemberBrandBenefitTierQuery, MemberTargetPlanQuery {
     private final UmsBrandBenefitTierMapper tierMapper;
     private final UmsMemberQuantityRightMapper quantityRightMapper;
     private final UmsMemberQuantityRightLogMapper quantityLogMapper;
@@ -155,6 +157,41 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         require(targetPlanMapper.changeProgress(plan.getId(), c.getDelta()) == 1, "TARGET进度并发更新失败");
         targetLogMapper.insert(targetLog(plan.getId(), c.getAction(), c.getDelta(), before, after, c.getRequestNo(),
                 c.getSourceType(), c.getSourceNo(), c.getOperatorName(), c.getReason()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void confirmTargetPlan(Long planId, String requestNo, String operatorName, String reason) {
+        require(planId != null && text(requestNo), "TARGET人工确认命令不完整");
+        UmsMemberTargetPlan plan = targetPlanMapper.selectByIdForUpdate(planId);
+        require(plan != null && "IN_PROGRESS".equals(plan.getStatus()), "TARGET计划不存在或不可确认");
+        require(plan.getProgressAmount().compareTo(plan.getTargetAmount()) >= 0, "TARGET进度尚未达标，不能确认升级");
+        activateTierIfHigher(plan.getMemberId(), plan.getBrandId(), plan.getTargetTierCodeSnapshot());
+        targetPlanMapper.confirm(planId, operatorName, reason);
+        targetLogMapper.insert(targetLog(planId, "MANUAL_CONFIRM", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
+                "TARGET_MANUAL_CONFIRM", null, operatorName, reason));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markTargetPlanReviewRequired(Long planId, String requestNo, String sourceNo, String reason) {
+        require(planId != null && text(requestNo), "TARGET退款复核命令不完整");
+        UmsMemberTargetPlan plan = targetPlanMapper.selectByIdForUpdate(planId);
+        require(plan != null, "TARGET计划不存在");
+        if (targetLogMapper.exists(new LambdaQueryWrapper<UmsMemberTargetProgressLog>().eq(UmsMemberTargetProgressLog::getPlanId, planId).eq(UmsMemberTargetProgressLog::getRequestNo, requestNo))) return;
+        targetPlanMapper.markReviewRequired(planId);
+        targetLogMapper.insert(targetLog(planId, "REFUND_REVIEW_REQUIRED", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
+                "TARGET_SALE_REFUND", sourceNo, null, reason));
+    }
+
+    @Override
+    public MemberTargetPlanSnapshot findById(Long planId) {
+        UmsMemberTargetPlan plan = planId == null ? null : targetPlanMapper.selectById(planId);
+        if (plan == null) return null;
+        MemberTargetPlanSnapshot snapshot = new MemberTargetPlanSnapshot();
+        snapshot.setPlanId(plan.getId()); snapshot.setMemberId(plan.getMemberId()); snapshot.setBrandId(plan.getBrandId());
+        snapshot.setTargetTierCode(plan.getTargetTierCodeSnapshot()); snapshot.setTargetAmount(plan.getTargetAmount());
+        snapshot.setProgressAmount(plan.getProgressAmount()); snapshot.setStatus(plan.getStatus()); return snapshot;
     }
 
     /** Only this method may promote the current member-brand level from a configured benefit tier. */

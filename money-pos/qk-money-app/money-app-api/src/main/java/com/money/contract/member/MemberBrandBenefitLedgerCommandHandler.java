@@ -8,5 +8,7 @@ public interface MemberBrandBenefitLedgerCommandHandler {
     void changeAmount(MemberBrandBenefitLedgerCommand.AmountChange command);
     Long createTargetPlan(MemberBrandBenefitLedgerCommand.TargetPlanCreate command);
     void changeTargetProgress(MemberBrandBenefitLedgerCommand.TargetProgressChange command);
+    void confirmTargetPlan(Long planId, String requestNo, String operatorName, String reason);
+    void markTargetPlanReviewRequired(Long planId, String requestNo, String sourceNo, String reason);
     void activateTierIfHigher(Long memberId, String brandId, String tierCode);
 }

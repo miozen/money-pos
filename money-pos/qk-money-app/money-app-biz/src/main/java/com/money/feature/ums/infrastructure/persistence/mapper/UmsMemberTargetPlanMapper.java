@@ -15,4 +15,8 @@ public interface UmsMemberTargetPlanMapper extends BaseMapper<UmsMemberTargetPla
     @Update("UPDATE ums_member_target_plan SET progress_amount = progress_amount + #{delta}, update_time = NOW() " +
             "WHERE id = #{id} AND progress_amount + #{delta} >= 0 AND status = 'IN_PROGRESS'")
     int changeProgress(@Param("id") Long id, @Param("delta") BigDecimal delta);
+    @Update("UPDATE ums_member_target_plan SET status = 'CONFIRMED', confirmed_by = #{operatorName}, confirmed_time = NOW(), remark = COALESCE(#{reason}, remark), update_time = NOW() WHERE id = #{id} AND status = 'IN_PROGRESS'")
+    int confirm(@Param("id") Long id, @Param("operatorName") String operatorName, @Param("reason") String reason);
+    @Update("UPDATE ums_member_target_plan SET status = 'REVIEW_REQUIRED', update_time = NOW() WHERE id = #{id} AND status <> 'REVIEW_REQUIRED'")
+    int markReviewRequired(@Param("id") Long id);
 }

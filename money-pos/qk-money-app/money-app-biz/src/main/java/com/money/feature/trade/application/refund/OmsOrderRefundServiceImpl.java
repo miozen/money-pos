@@ -14,6 +14,7 @@ import com.money.feature.trade.application.refund.OmsOrderRefundService;
 import com.money.feature.trade.application.checkout.refund.RefundAssetHelper;
 import com.money.feature.trade.application.checkout.refund.RefundInventoryHelper;
 import com.money.feature.trade.application.checkout.refund.RefundStateGuard;
+import com.money.feature.trade.application.membertarget.MemberTargetBenefitService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class OmsOrderRefundServiceImpl implements OmsOrderRefundService {
     private final RefundStateGuard stateGuard;
     private final RefundInventoryHelper inventoryHelper;
     private final RefundAssetHelper assetHelper;
+    private final MemberTargetBenefitService memberTargetBenefitService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,6 +69,7 @@ public class OmsOrderRefundServiceImpl implements OmsOrderRefundService {
 
         // 5. 委托【财务部】处理资产与退款
         assetHelper.processFullOrderAsset(order, orderNo);
+        memberTargetBenefitService.markRefundReviewRequired(reqId, orderNo);
 
         // 6. 记录订单生命周期日志
         OmsOrderLog orderLog = new OmsOrderLog();
@@ -113,6 +116,7 @@ public class OmsOrderRefundServiceImpl implements OmsOrderRefundService {
 
         // 6. 委托【财务部】处理会员资产回退
         assetHelper.processPartialReturnAsset(order, refundSales, refundMemberCoupon, dto.getOrderNo());
+        memberTargetBenefitService.markRefundReviewRequired(dto.getReqId(), dto.getOrderNo());
 
         // 7. 检查是否达到全退条件升级状态
         omsOrderMapper.checkAndUpgradeToFullRefund(dto.getOrderNo());

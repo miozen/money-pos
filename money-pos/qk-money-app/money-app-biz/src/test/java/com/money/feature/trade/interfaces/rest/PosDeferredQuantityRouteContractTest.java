@@ -18,6 +18,10 @@ class PosDeferredQuantityRouteContractTest {
         assertRoute("purchaseAmountPackage", "/amount-package/purchase");
         assertRoute("pickupAmountPackage", "/amount-package/pickup");
         assertRoute("refundAmountPickup", "/amount-package/pickup-refund");
+        assertRoute("settleTarget", "/target/settle");
+        assertRoute("supplementTarget", "/target/supplement");
+        assertRoute("waiveTarget", "/target/waive");
+        assertRoute("confirmTarget", "/target/confirm");
     }
 
     private void assertRoute(String methodName, String path) throws Exception {
