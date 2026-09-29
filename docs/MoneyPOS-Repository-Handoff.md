@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 code commit | `3dc88ec feat(member): implement target benefit settlement` |
-| Working tree | **CLEAN except this handoff/plan update, which must be committed and synchronized before using it as a cross-machine baseline** |
-| Current phase | `ME-1.4 TARGET 专用结算、进度、补差和人工确认 — code complete; handoff pending commit/push` |
+| Working tree | **CLEAN and synchronized** after ME-1.4 implementation and handoff are pushed |
+| Current phase | `ME-1.4 TARGET 专用结算、进度、补差和人工确认 — complete` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -54,8 +54,8 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Commit this handoff/plan update, push `dev`, then run `git fetch origin` and `git status --short --branch`; it must
-show no changes and no ahead/behind before selecting ME-1.5.
+ME-1.4 has no active implementation action. Verify `git status --short --branch` after this final handoff record is
+pushed; it must show no changes and no ahead/behind before selecting ME-1.5.
 
 ## Handoff rule
 

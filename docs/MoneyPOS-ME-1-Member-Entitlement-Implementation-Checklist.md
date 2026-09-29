@@ -18,7 +18,7 @@
 | ME-1.1 | 品牌权益档位与 UMS 账本基础 | 完成 | Flyway、3 项账本专项、17 项既有 Checkout 回归、编译和静态架构门禁均通过 | ME-1.2 |
 | ME-1.2 | QUANTITY 延迟履约购买与提货 | 完成 | `e44c6e9` 已完成实现，`e3928a7` 记录收口；隔离全量回归、打包和架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.3 |
 | ME-1.3 | AMOUNT 权益包、混合补差与整笔提货退款 | 完成 | `3cffdec` 实现、`f0a9781` 接力记录均已推送；隔离全量回归、打包、架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.4 |
-| ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 完成 | `3dc88ec` 已实现；隔离全量回归、打包和架构门禁通过，本阶段文档接力记录待同步。 | ME-1.5 |
+| ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 完成 | `3dc88ec` 实现、`4e2ab06` 接力记录均已推送；隔离全量回归、打包和架构门禁通过。 | ME-1.5 |
 | ME-1.5 | FIN/HOME 投影、查询页面与总体验收 | 未开始 | - | 收口复核 |
 
 ## ME-1.1：品牌权益档位与 UMS 账本基础
@@ -131,8 +131,8 @@
   `REFUND_REVIEW_REQUIRED` 审计并置 `REVIEW_REQUIRED`，绝不自动降级或反向调整历史等级。
 - [x] **ME-1.4.4 HTTP、权限与回归。** 所有专用入口使用 `pos:cashier`；隔离专项覆盖即时订单幂等贡献、补差/
   豁免凭证、确认升级与退款复核，并通过全部既有 Checkout 回归。
-- [x] **ME-1.4.5 收口。** `3dc88ec` 已通过全量测试、打包、架构门禁和空白检查；文档接力提交与远端同步为本阶段
-  最后一步。
+- [x] **ME-1.4.5 收口。** `3dc88ec` 与接力记录 `4e2ab06` 已推送；全量测试、打包、架构门禁和空白检查通过，
+  且推送前 `dev...origin/dev` 为 0/0。
 
 ## ME-1.5：报表、页面与收口
 
@@ -168,7 +168,7 @@ ME-1.1 已具备开始 ME-1.2 的前置条件；下一切片仅实现 QUANTITY �
   `mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、
   `scripts/architecture-scan.sh --check-new` 和 `git diff --check`。
 
-### ME-1.4（2026-09-29，本地完成待同步）
+### ME-1.4（2026-09-29，已同步）
 
 - 新增 `V1.0.9__create_member_target_trade_records.sql`：TARGET 即时销售贡献关联、补差/豁免非商品凭证及其独立支付明细。
   贡献以 `(target_plan_id, order_no)` 唯一；不改变普通 `oms_order`、支付、库存、成本或收入写入。
