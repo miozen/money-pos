@@ -18,7 +18,7 @@
 | ME-1.1 | 品牌权益档位与 UMS 账本基础 | 完成 | Flyway、3 项账本专项、17 项既有 Checkout 回归、编译和静态架构门禁均通过 | ME-1.2 |
 | ME-1.2 | QUANTITY 延迟履约购买与提货 | 完成 | `e44c6e9` 已完成实现，`e3928a7` 记录收口；隔离全量回归、打包和架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.3 |
 | ME-1.3 | AMOUNT 权益包、混合补差与整笔提货退款 | 完成 | `3cffdec` 实现、`f0a9781` 接力记录均已推送；隔离全量回归、打包、架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.4 |
-| ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 未开始 | - | ME-1.5 |
+| ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 完成 | `3dc88ec` 已实现；隔离全量回归、打包和架构门禁通过，本阶段文档接力记录待同步。 | ME-1.5 |
 | ME-1.5 | FIN/HOME 投影、查询页面与总体验收 | 未开始 | - | 收口复核 |
 
 ## ME-1.1：品牌权益档位与 UMS 账本基础
@@ -121,6 +121,19 @@
 - `INITIAL_PROGRESS`、补差、豁免、退款反冲均写进度流水；达标后仍必须人工确认。
 - 验收：TARGET 期间采用当前品牌等级价格；确认后才升级；历史退款只转 `REVIEW_REQUIRED`，不自动降级。
 
+### 实施清单（唯一执行顺序）
+
+- [x] **ME-1.4.1 即时结算与贡献关联。** 专用 `/pos/target/settle` 仅编排既有 `IMMEDIATE`
+  Checkout，并以计划/订单唯一关联写 `SALE_CONTRIBUTION`；TARGET 商品必须属于计划品牌，普通订单语义不变。
+- [x] **ME-1.4.2 进度调整。** 补差以独立非商品凭证及支付明细入账，豁免仅写非收入凭证；二者均以幂等请求号写
+  TARGET 进度流水。
+- [x] **ME-1.4.3 人工确认与退款。** 达标后由 `/pos/target/confirm` 人工确认并升级；关联销售退款只写
+  `REFUND_REVIEW_REQUIRED` 审计并置 `REVIEW_REQUIRED`，绝不自动降级或反向调整历史等级。
+- [x] **ME-1.4.4 HTTP、权限与回归。** 所有专用入口使用 `pos:cashier`；隔离专项覆盖即时订单幂等贡献、补差/
+  豁免凭证、确认升级与退款复核，并通过全部既有 Checkout 回归。
+- [x] **ME-1.4.5 收口。** `3dc88ec` 已通过全量测试、打包、架构门禁和空白检查；文档接力提交与远端同步为本阶段
+  最后一步。
+
 ## ME-1.5：报表、页面与收口
 
 ### 范围与验收
@@ -154,3 +167,14 @@ ME-1.1 已具备开始 ME-1.2 的前置条件；下一切片仅实现 QUANTITY �
   `CheckoutIntegrationTest`；完整 `mvn -q test` 为 65 个测试类、125 项、零 failures/errors。还通过
   `mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、
   `scripts/architecture-scan.sh --check-new` 和 `git diff --check`。
+
+### ME-1.4（2026-09-29，本地完成待同步）
+
+- 新增 `V1.0.9__create_member_target_trade_records.sql`：TARGET 即时销售贡献关联、补差/豁免非商品凭证及其独立支付明细。
+  贡献以 `(target_plan_id, order_no)` 唯一；不改变普通 `oms_order`、支付、库存、成本或收入写入。
+- `/pos/target/settle` 复用原有即时 Checkout；计划会员及计划品牌校验后，才追加 `SALE_CONTRIBUTION`。
+  `/supplement`、`/waive`、`/confirm` 均为 `pos:cashier` 专用入口；达到阈值仍须人工确认才升级。
+- 关联普通订单的全额或部分退款均只追加 `REFUND_REVIEW_REQUIRED` 流水并置计划为 `REVIEW_REQUIRED`，没有自动降级。
+- 已通过隔离专项 `MemberTargetBenefitServiceIntegrationTest`（2 项）和既有账本专项（3 项）；隔离完整
+  `mvn -q test` 为 127 tests、零 failures/errors。也已通过 `mvn -q package -DskipTests`、
+  `scripts/test-architecture-scan.sh`、`scripts/architecture-scan.sh --check-new` 与 `git diff --check`。

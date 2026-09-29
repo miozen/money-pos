@@ -13,49 +13,49 @@ continuing.
 | Field | Value |
 | --- | --- |
 | Branch | `dev` |
-| ME-1.3 code commit | `3cffdec feat(member): implement amount benefit pickup` |
-| Working tree | **CLEAN and synchronized** after ME-1.3 handoff is pushed |
-| Current phase | `ME-1.3 AMOUNT 权益包、混合补差与整笔提货退款 — complete` |
+| ME-1.4 code commit | `3dc88ec feat(member): implement target benefit settlement` |
+| Working tree | **CLEAN except this handoff/plan update, which must be committed and synchronized before using it as a cross-machine baseline** |
+| Current phase | `ME-1.4 TARGET 专用结算、进度、补差和人工确认 — code complete; handoff pending commit/push` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
 ## Last completed reliable point
 
-ME-1.2 is committed in `e44c6e9` and synchronized in `e3928a7`. It supplies QUANTITY deferred fulfillment,
-native member pickup/return inventory commands and its recorded full isolated regression baseline.
+ME-1.3 is committed in `3cffdec` and its final handoff is `2ff751c`. It supplies AMOUNT non-product receipts,
+frozen-tier mixed supplement pickup and full-pickup refund reversal.
 
-## Local ME-1.3 implementation state
+## Local ME-1.4 implementation state
 
-- `V1.0.8` adds TRADE-owned non-product AMOUNT receipts, isolated receipt payments, pickup headers and pickup lines.
-  It does not create `oms_order`, order details or normal order payments.
-- `3cffdec` adds Entity-free UMS AMOUNT-right/tier/balance-payment contracts, specialized purchase/pickup/refund routes
-  under `pos:cashier`, frozen-tier-price mixed supplement orchestration, native pickup/return inventory commands and
-  full-pickup refund reversal.
-- New isolated integration coverage asserts package-purchase idempotency, 100-right + 50-scanned supplement for a
-  150-price item, no product order creation, full refund restoration, stock rejection and the route-permission contract.
+- `V1.0.9` adds TRADE-owned TARGET sale contribution links plus isolated non-product adjustment receipts and payments.
+  Ordinary immediate orders remain the sole writer of normal order, payment, inventory, cost and sales data.
+- `3dc88ec` adds Entity-free UMS TARGET-plan snapshots and confirmation/review commands; `/pos/target/settle`,
+  `/supplement`, `/waive` and `/confirm` are all protected by `pos:cashier`.
+- TARGET settlement calls existing immediate Checkout, then writes one `SALE_CONTRIBUTION` per plan/order. Supplement
+  creates income-bearing non-product receipt payments; waiver creates no payment. Target tiers change only after
+  explicit confirmation. Any linked full or partial historical refund creates `REFUND_REVIEW_REQUIRED` and status
+  `REVIEW_REQUIRED`, never an automatic downgrade.
 
 ## Validation actually performed
 
 - `mvn -q -pl qk-money-app/money-app-biz -am test-compile -DskipTests` passed.
-- Isolated `money_pos_test`: `MemberAmountBenefitServiceIntegrationTest` (4/0/0),
-  `CheckoutIntegrationTest`, and `PosDeferredQuantityRouteContractTest` passed.
-- Isolated full `mvn -q test` passed: 65 test classes and 125 tests, zero failures/errors.
+- Isolated `money_pos_test`: `MemberTargetBenefitServiceIntegrationTest` (2/0/0),
+  `MemberBrandBenefitLedgerServiceIntegrationTest` (3/0/0), and the route contract passed.
+- Isolated full `mvn -q test` passed: 127 tests, zero failures/errors.
 - `mvn -q package -DskipTests`, `bash scripts/test-architecture-scan.sh`, and
   `bash scripts/architecture-scan.sh --check-new` passed.
-- `git diff --check` passed before `3cffdec`.
+- `git diff --check` passed before `3dc88ec`.
 
 ## Blockers and decisions
 
-There is no unresolved business or architecture decision. Frozen AMOUNT rule: package purchase and supplement use
-non-product receipts; an AMOUNT pickup prices from its right's frozen tier snapshot, deducts the right without new
-income, and records only cash/scan/balance supplement as new income. V1 refunds only a complete pickup: restore the
-right, reverse the supplement and use `MEMBER_PICKUP_RETURN` for physical stock.
+There is no unresolved business or architecture decision. Frozen TARGET rule: dedicated settlement uses the current
+brand-level price through normal immediate Checkout; only manual confirmation upgrades. Historical refunds require
+review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-ME-1.3 has no active implementation action. Verify `git status --short --branch` after this final handoff record is
-pushed; it must show no changes and no ahead/behind before selecting a future accepted phase.
+Commit this handoff/plan update, push `dev`, then run `git fetch origin` and `git status --short --branch`; it must
+show no changes and no ahead/behind before selecting ME-1.5.
 
 ## Handoff rule
 
