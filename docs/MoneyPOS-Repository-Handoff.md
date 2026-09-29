@@ -13,56 +13,49 @@ continuing.
 | Field | Value |
 | --- | --- |
 | Branch | `dev` |
-| ME-1.2 code commit | `e44c6e9 feat(member): implement quantity deferred fulfillment` |
-| Working tree | **CLEAN and synchronized** after final handoff record is pushed |
-| Current phase | `ME-1.2 QUANTITY 延迟履约 — complete` |
+| ME-1.3 code commit | `3cffdec feat(member): implement amount benefit pickup` |
+| Working tree | Local ME-1.3 commit exists; this handoff update is uncommitted and neither is synchronized yet. |
+| Current phase | `ME-1.3 AMOUNT 权益包、混合补差与整笔提货退款 — local complete pending sync` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
 ## Last completed reliable point
 
-ME-1.1 is committed in `30975df`. It supplies brand benefit tiers and UMS quantity/amount/target ledger foundations;
-its recorded isolated MariaDB and Checkout regression evidence applies only to that committed baseline.
+ME-1.2 is committed in `e44c6e9` and synchronized in `e3928a7`. It supplies QUANTITY deferred fulfillment,
+native member pickup/return inventory commands and its recorded full isolated regression baseline.
 
-## Uncommitted ME-1.2 implementation state
+## Local ME-1.3 implementation state
 
-- Added Entity-free UMS quantity-right query/pickup commands and GMS member-pickup command contracts.
-- Added `V1.0.6` pickup tables, TRADE pickup entities/mappers, deferred-pickup DTOs, a deferred purchase endpoint,
-  and a TRADE pickup orchestration draft.
-- Consolidated normal sale and native `MEMBER_PICKUP` onto one atomic deduction/combo-expansion implementation, while
-  keeping their log/document types separate from the entry point onward.
-- Added UMS quantity-right pickup deduction, TRADE request idempotency, and end-to-end pickup rollback coverage.
-- Added deferred-purchase pricing that reuses normal price rules but defers physical availability validation to pickup;
-  ordinary trial and ordinary checkout remain stock-strict.
-- Added QUANTITY refund splitting: unpicked rights are cancelled without stock movement; only picked quantities invoke
-  native GMS `MEMBER_PICKUP_RETURN`. `V1.0.7` expands the inventory-document type column for that frozen code.
-
-ME-1.2 implementation, validation, commit and synchronization are complete. The next session must not start ME-1.3
-without a new accepted phase instruction.
+- `V1.0.8` adds TRADE-owned non-product AMOUNT receipts, isolated receipt payments, pickup headers and pickup lines.
+  It does not create `oms_order`, order details or normal order payments.
+- `3cffdec` adds Entity-free UMS AMOUNT-right/tier/balance-payment contracts, specialized purchase/pickup/refund routes
+  under `pos:cashier`, frozen-tier-price mixed supplement orchestration, native pickup/return inventory commands and
+  full-pickup refund reversal.
+- New isolated integration coverage asserts package-purchase idempotency, 100-right + 50-scanned supplement for a
+  150-price item, no product order creation, full refund restoration, stock rejection and the route-permission contract.
 
 ## Validation actually performed
 
 - `mvn -q -pl qk-money-app/money-app-biz -am test-compile -DskipTests` passed.
-- Isolated `money_pos_test`: `MemberPickupStockCommandIntegrationTest` (1/0/0),
-  `DeferredQuantityPickupServiceIntegrationTest` (6/0/0), `CheckoutIntegrationTest` (18/0/0), and
-  `PosDeferredQuantityRouteContractTest` (1/0/0) passed.
-- `git diff --check` passed.
-
-- Isolated full `mvn -q test` passed: 64 test classes and 121 tests, zero failures/errors.
+- Isolated `money_pos_test`: `MemberAmountBenefitServiceIntegrationTest` (4/0/0),
+  `CheckoutIntegrationTest`, and `PosDeferredQuantityRouteContractTest` passed.
+- Isolated full `mvn -q test` passed: 65 test classes and 125 tests, zero failures/errors.
 - `mvn -q package -DskipTests`, `bash scripts/test-architecture-scan.sh`, and
   `bash scripts/architecture-scan.sh --check-new` passed.
+- `git diff --check` passed before `3cffdec`.
 
 ## Blockers and decisions
 
-There is no unresolved business or architecture decision. Frozen QUANTITY rule: purchase confirms normal sales income
-but does not deduct physical stock; pickup deducts quantity right and physical stock atomically; a refund without a
-pickup must not restore stock, while a return of picked physical goods must use `MEMBER_PICKUP_RETURN`.
+There is no unresolved business or architecture decision. Frozen AMOUNT rule: package purchase and supplement use
+non-product receipts; an AMOUNT pickup prices from its right's frozen tier snapshot, deducts the right without new
+income, and records only cash/scan/balance supplement as new income. V1 refunds only a complete pickup: restore the
+right, reverse the supplement and use `MEMBER_PICKUP_RETURN` for physical stock.
 
 ## Exact next action
 
-No active ME-1.2 implementation action remains. Verify `git status --short --branch` after this handoff record is
-pushed; it must show no changes and no ahead/behind before selecting a future accepted phase.
+Commit this updated plan/handoff, push `3cffdec` and the documentation commit to `origin/dev`, then verify
+`dev...origin/dev` has neither ahead nor behind. Do not start ME-1.4 until that evidence exists.
 
 ## Handoff rule
 
