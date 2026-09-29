@@ -13,8 +13,8 @@ continuing.
 | Field | Value |
 | --- | --- |
 | Branch | `dev` |
-| Last committed HEAD | `30975df feat(member): add brand benefit ledger foundation` |
-| Working tree | **DIRTY — local only; do not treat as cross-computer baseline** |
+| ME-1.2 code commit | `e44c6e9 feat(member): implement quantity deferred fulfillment` |
+| Working tree | Local commit exists; **not synchronized** to `origin/dev` |
 | Current phase | `ME-1.2 QUANTITY 延迟履约` |
 | Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -38,9 +38,8 @@ its recorded isolated MariaDB and Checkout regression evidence applies only to t
 - Added QUANTITY refund splitting: unpicked rights are cancelled without stock movement; only picked quantities invoke
   native GMS `MEMBER_PICKUP_RETURN`. `V1.0.7` expands the inventory-document type column for that frozen code.
 
-This is **not accepted or complete**: only ME-1.2.8 final closure remains; the full
-test suite, package, architecture gate, final document acceptance, commit, and push have not been run. The current
-working tree must not be enabled or handed to another computer as if synchronized.
+This is **not accepted or complete**: all local validation and the code commit are complete, but synchronization is
+blocked. The current local commit must not be treated as another computer's baseline until it is pushed.
 
 ## Validation actually performed
 
@@ -50,7 +49,9 @@ working tree must not be enabled or handed to another computer as if synchronize
   `PosDeferredQuantityRouteContractTest` (1/0/0) passed.
 - `git diff --check` passed.
 
-Full `mvn test`, package, and architecture scan have not yet run.
+- Isolated full `mvn -q test` passed: 64 test classes and 121 tests, zero failures/errors.
+- `mvn -q package -DskipTests`, `bash scripts/test-architecture-scan.sh`, and
+  `bash scripts/architecture-scan.sh --check-new` passed.
 
 ## Blockers and decisions
 
@@ -60,7 +61,8 @@ pickup must not restore stock, while a return of picked physical goods must use 
 
 ## Exact next action
 
-Execute ME-1.2.8: full test suite, package, architecture gate, documentation acceptance, commit and synchronization.
+Resolve outbound SSH-over-443 connectivity to `20.205.243.160`, push `e44c6e9` (and this handoff record) to
+`origin/dev`, then verify `dev...origin/dev` has neither ahead nor behind before declaring ME-1.2 complete.
 
 ## Handoff rule
 
