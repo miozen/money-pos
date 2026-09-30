@@ -23,6 +23,9 @@
             <div class="nav-item group" @click="$emit('action', 'recharge')">
                 <el-icon class="text-xl"><Coin /></el-icon><span>会员充值</span>
             </div>
+            <div class="nav-item group" @click="$emit('action', 'memberBenefit')">
+                <el-icon class="text-xl"><Present /></el-icon><span>权益办理</span>
+            </div>
             <div class="nav-item group" @click="$emit('action', 'restock')">
                 <el-icon class="text-xl"><Goods /></el-icon><span>极速补货</span>
             </div>
@@ -47,7 +50,7 @@
 </template>
 
 <script setup>
-import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar, SwitchButton } from '@element-plus/icons-vue'
+import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar, SwitchButton, Present } from '@element-plus/icons-vue'
 defineProps(['cashierName', 'currentTime'])
 defineEmits(['action'])
 </script>

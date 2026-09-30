@@ -38,6 +38,9 @@
         <SalesOrderModal v-model="dialogs.sales" @closed="keepFocus" />
         <ShiftModal v-model="dialogs.shift" :cashier-name="cashierName" @closed="keepFocus" />
         <SwitchCashierModal v-model="dialogs.switchCashier" @success="handleCashierSwitched" @closed="keepFocus" />
+        <el-dialog v-model="dialogs.memberBenefit" title="权益办理" fullscreen destroy-on-close class="member-benefit-dialog" @closed="keepFocus">
+            <MemberBenefitWorkspace ref="memberBenefitWorkspaceRef" :initial-member="benefitDefaultMember" />
+        </el-dialog>
 
         <QuickAddGoodsModal
             v-model="dialogs.quickAdd"
@@ -75,6 +78,7 @@ import SalesOrderModal from './components/dialogs/SalesOrderModal.vue'
 import ShiftModal from './components/dialogs/ShiftModal.vue'
 import SwitchCashierModal from './components/dialogs/SwitchCashierModal.vue'
 import QuickAddGoodsModal from './components/dialogs/QuickAddGoodsModal.vue'
+import MemberBenefitWorkspace from '@/views/ums/memberBenefit/MemberBenefitWorkspace.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -94,8 +98,12 @@ const dialogs = reactive({
     sales: false,
     shift: false,
     quickAdd: false,
-    switchCashier: false
+    switchCashier: false,
+    memberBenefit: false
 });
+
+const benefitDefaultMember = ref(null)
+const memberBenefitWorkspaceRef = ref(null)
 
 const isAnyDialogOpen = computed(() => Object.values(dialogs).some(isOpen => isOpen === true));
 const { notifyPaySuccess, notifyIdle, notifyMemberBind } = useDisplaySync(computed(() => dialogs.checkout));
@@ -220,6 +228,10 @@ const handleRestockClosed = () => {
 
 useScanner({
     onEnter: async (buffer) => {
+        if (dialogs.memberBenefit && buffer) {
+            await memberBenefitWorkspaceRef.value?.handleBarcode(buffer)
+            return
+        }
         if (!isAnyDialogOpen.value && !(bottomConsoleRef.value && bottomConsoleRef.value.isDialogOpen)) {
             if (buffer && buffer.length > 0) {
                 const res = await scanAndAddToCart(buffer);
@@ -337,6 +349,10 @@ const handleNavAction = (action) => {
     }
     else if (action === 'recharge') dialogs.recharge = true
     else if (action === 'addMember') dialogs.memberAdd = true
+    else if (action === 'memberBenefit') {
+        benefitDefaultMember.value = currentMember.value?.id ? { ...toRaw(currentMember.value) } : null
+        dialogs.memberBenefit = true
+    }
 }
 
 const handleClearConfirm = () => {

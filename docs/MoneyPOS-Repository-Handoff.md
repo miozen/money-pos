@@ -13,10 +13,10 @@ continuing.
 | Field | Value |
 | --- | --- |
 | Branch | `dev` |
-| ME-1.4 code commit | `3dc88ec feat(member): implement target benefit settlement` |
-| Working tree | **CLEAN and synchronized** after ME-1.4 implementation and handoff are pushed |
-| Current phase | `ME-1.4 TARGET 专用结算、进度、补差和人工确认 — complete` |
-| Current plan | `MoneyPOS-ME-1-Member-Entitlement-Implementation-Checklist.md` |
+| ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
+| Working tree | **DIRTY: ME-1.5A and in-progress ME-1.5B code, tests, frozen contract and handoff updates are uncommitted** |
+| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5B local implementation in progress` |
+| Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -36,15 +36,36 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
   explicit confirmation. Any linked full or partial historical refund creates `REFUND_REVIEW_REQUIRED` and status
   `REVIEW_REQUIRED`, never an automatic downgrade.
 
+## Local ME-1.5 implementation state
+
+- TRADE now exposes Entity-free non-product receipt daily/payment snapshots. FIN/HOME merge only non-product income,
+  receipt and refund projections; product order count, sales volume and cost remain order-derived.
+- UMS/TRADE provide protected member-benefit overview, TARGET progress-log and benefit trade-history read routes;
+  the new `/ums/member-benefit` page calls the established write APIs with per-operation idempotency request IDs.
+- The generated frontend component registry includes `ElRow` and `ElCol` used by the new page.
+- A pre-existing `CheckoutIntegrationTest` fixture used a decimal nanosecond suffix which made the generated
+  inventory document number exceed `doc_no varchar(32)`. The fixture now uses an equivalent unique base36 suffix;
+  no production business rule changed.
+- `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` is frozen locally as the unique
+  follow-up contract. It defines POS full-screen Workspace, selected-member/POS-store isolation, three permissions,
+  tier management and ME-1.5A～ME-1.5E.
+- ME-1.5A has extracted the existing benefit screen as `MemberBenefitWorkspace`. The POS HeaderBar opens it in a
+  main-window full-screen dialog, shallow-copying `currentMember` only as its initial value. The Workspace searches
+  and changes only its local `selectedMember`, never calling `bindMember` or accessing cart/payment/trial state.
+  The backend page reuses the same component and has no operator member-ID input.
+- ME-1.5B has local UI/API paths for QUANTITY purchase, TARGET dedicated sale settlement and AMOUNT pickup full refund.
+  Goods search/scans remain Workspace-local. `BenefitPaymentEditor` is present but not yet wired through every existing
+  benefit operation dialog, so B remains in progress and C～E have not started.
+
 ## Validation actually performed
 
-- `mvn -q -pl qk-money-app/money-app-biz -am test-compile -DskipTests` passed.
-- Isolated `money_pos_test`: `MemberTargetBenefitServiceIntegrationTest` (2/0/0),
-  `MemberBrandBenefitLedgerServiceIntegrationTest` (3/0/0), and the route contract passed.
-- Isolated full `mvn -q test` passed: 127 tests, zero failures/errors.
-- `mvn -q package -DskipTests`, `bash scripts/test-architecture-scan.sh`, and
-  `bash scripts/architecture-scan.sh --check-new` passed.
-- `git diff --check` passed before `3dc88ec`.
+- `source /home/mio/.nvm/nvm.sh && nvm use 20 && npm run build` passed under Node `v20.20.2` / npm `10.8.2`
+  (only pre-existing warnings), and `git diff --check` passed after its source changes.
+- Isolated `money_pos_test`: `FinanceFeatureIntegrationTest` (14/0/0),
+  `HomeCountSnapshotCharacterizationTest` (7/0/0), `UmsMemberBenefitRouteContractTest` (1/0/0),
+  `CheckoutIntegrationTest` after fixture correction (18/0/0), and final `mvn -q test` (130/0/0) passed.
+- `mvn -q package -DskipTests`, `bash scripts/test-architecture-scan.sh`,
+  `bash scripts/architecture-scan.sh --check-new`, and current `git diff --check` passed.
 
 ## Blockers and decisions
 
@@ -54,8 +75,8 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-ME-1.4 has no active implementation action. Verify `git status --short --branch` after this final handoff record is
-pushed; it must show no changes and no ahead/behind before selecting ME-1.5.
+Complete only ME-1.5B: wire the Workspace-local mixed-payment editor into all benefit operation dialogs and run its
+focused interaction checks; do not begin ME-1.5C～ME-1.5E early.
 
 ## Handoff rule
 

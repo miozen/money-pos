@@ -29,6 +29,9 @@ export function useScanner({ onEnter }) {
 
             // 如果 buffer 里有多个字符，说明是扫码枪刚以极其狂暴的速度扫完一串条码触发的 Enter！
             if (buffer.length > 3) {
+                if (typeof onEnter === 'function') {
+                    onEnter(buffer);
+                }
                 buffer = '';
                 return;
             }

@@ -18,6 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +31,7 @@ public class HomeServiceImpl implements HomeService {
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
     private final HomeMemberDistributionQuery homeMemberDistributionQuery;
+    private final HomeNonProductReceiptProjection nonProductReceiptProjection;
 
     @Override
     public HomeCountVO homeCount() {
@@ -53,11 +57,12 @@ public class HomeServiceImpl implements HomeService {
 
     private OrderCountVO executeAggregateQuery(LocalDateTime startTime, LocalDateTime endTime) {
         HomeOrderReadSnapshot snapshot = homeOrderReadQuery.summarizeHomeCount(startTime, endTime);
+        BigDecimal nonProductCollection = nonProductReceiptProjection.collectionFor(startTime, endTime);
         OrderCountVO vo = new OrderCountVO();
         vo.setOrderCount(snapshot.getOrderCount());
-        vo.setSaleCount(snapshot.getSaleCount());
+        vo.setSaleCount(snapshot.getSaleCount().add(nonProductCollection));
         vo.setCostCount(snapshot.getCostCount());
-        vo.setProfit(snapshot.getProfit());
+        vo.setProfit(snapshot.getProfit().add(nonProductCollection));
         return vo;
     }
 
@@ -87,7 +92,8 @@ public class HomeServiceImpl implements HomeService {
             endTime = null; // 查到最新
         }
 
-        chartsVO.setTrendData(toTrendChartData(homeOrderReadQuery.listSalesTrend(trendStartTime, endTime)));
+        chartsVO.setTrendData(toTrendChartData(mergeNonProductTrend(
+                homeOrderReadQuery.listSalesTrend(trendStartTime, endTime), trendStartTime, endTime)));
         chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
 
         // 会员等级是即时状态（总资产），不跟时间联动
@@ -104,6 +110,22 @@ public class HomeServiceImpl implements HomeService {
             point.setProfit(snapshot.getProfit());
             return point;
         }).collect(Collectors.toList());
+    }
+
+    private List<HomeSalesTrendSnapshot> mergeNonProductTrend(List<HomeSalesTrendSnapshot> orderTrend,
+                                                                LocalDateTime startInclusive, LocalDateTime endExclusive) {
+        Map<String, BigDecimal[]> totals = new TreeMap<>();
+        for (HomeSalesTrendSnapshot point : orderTrend) {
+            totals.put(point.getDate(), new BigDecimal[]{point.getSales(), point.getProfit()});
+        }
+        nonProductReceiptProjection.listFor(startInclusive, endExclusive).forEach(receipt -> {
+            String date = receipt.getDate().toString();
+            BigDecimal[] values = totals.computeIfAbsent(date, ignored -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            values[0] = values[0].add(receipt.getCollectionAmount());
+            values[1] = values[1].add(receipt.getCollectionAmount());
+        });
+        return totals.entrySet().stream().map(entry -> new HomeSalesTrendSnapshot(entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
+                .collect(Collectors.toList());
     }
 
     private List<BrandPieVO> toBrandPieData(List<HomeBrandSalesSnapshot> snapshots) {

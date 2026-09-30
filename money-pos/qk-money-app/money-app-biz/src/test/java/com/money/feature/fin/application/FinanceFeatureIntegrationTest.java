@@ -15,6 +15,7 @@ import com.money.contract.trade.FinanceTrafficQuery;
 import com.money.contract.trade.FinanceProductAnalysisQuery;
 import com.money.contract.trade.FinanceProfitAuditQuery;
 import com.money.contract.trade.FinanceWaterfallOrderQuery;
+import com.money.contract.trade.FinanceNonProductReceiptQuery;
 import com.money.contract.goods.FinanceWaterfallInventoryQuery;
 import com.money.contract.system.FinanceTrafficStrategyQuery;
 import com.money.feature.fin.application.analysis.OmsSalesAnalysisService;
@@ -30,6 +31,8 @@ import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCategory;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberAmountReceiptPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetReceiptPay;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.sys.infrastructure.persistence.entity.SysStrategy;
@@ -39,6 +42,8 @@ import com.money.feature.gms.infrastructure.persistence.mapper.GmsGoodsCategoryM
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderPayMapper;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberAmountReceiptPayMapper;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberTargetReceiptPayMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
 import com.money.mapper.SysStrategyMapper;
@@ -98,6 +103,8 @@ class FinanceFeatureIntegrationTest {
     @Autowired
     private FinanceWaterfallOrderQuery financeWaterfallOrderQuery;
     @Autowired
+    private FinanceNonProductReceiptQuery financeNonProductReceiptQuery;
+    @Autowired
     private FinanceWaterfallInventoryQuery financeWaterfallInventoryQuery;
     @Autowired
     private FinanceTrafficStrategyQuery financeTrafficStrategyQuery;
@@ -114,6 +121,10 @@ class FinanceFeatureIntegrationTest {
     private OmsOrderMapper orderMapper;
     @Autowired
     private OmsOrderPayMapper orderPayMapper;
+    @Autowired
+    private OmsMemberAmountReceiptPayMapper amountReceiptPayMapper;
+    @Autowired
+    private OmsMemberTargetReceiptPayMapper targetReceiptPayMapper;
     @Autowired
     private OmsOrderDetailMapper orderDetailMapper;
     @Autowired
@@ -232,6 +243,36 @@ class FinanceFeatureIntegrationTest {
         assertThat(channelMix.getCouponList().get(0)).isGreaterThanOrEqualTo(new BigDecimal("2.00"));
         assertThat(channelMix.getVoucherList().get(0)).isGreaterThanOrEqualTo(new BigDecimal("3.00"));
         assertThat(financeDashboardService.getAssetDashboard().getTodayRealCash()).isGreaterThanOrEqualTo(new BigDecimal("18.00"));
+    }
+
+    @Test
+    void nonProductReceiptProjectionSeparatesIncomeCollectionAndRefundWithoutOrders() {
+        String suffix = "NP" + (System.nanoTime() % 1_000_000_000L);
+        FinanceDashboardVO before = financeDashboardService.getDashboardData(LocalDate.now().toString());
+        insertAmountReceiptPayment(suffix + "-AMOUNT", new BigDecimal("120.00"));
+        insertAmountReceiptPayment(suffix + "-REFUND", new BigDecimal("-20.00"));
+        insertTargetReceiptPayment(suffix + "-TARGET", new BigDecimal("30.00"));
+
+        com.money.contract.trade.FinanceNonProductReceiptDailySnapshot daily = financeNonProductReceiptQuery
+                .listDailySnapshots(LocalDate.now(), LocalDate.now()).stream()
+                .filter(row -> row.getDate().equals(LocalDate.now()))
+                .reduce(new com.money.contract.trade.FinanceNonProductReceiptDailySnapshot(LocalDate.now(),
+                        BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                        (left, right) -> new com.money.contract.trade.FinanceNonProductReceiptDailySnapshot(LocalDate.now(),
+                                left.getIncomeAmount().add(right.getIncomeAmount()),
+                                left.getCollectionAmount().add(right.getCollectionAmount()),
+                                left.getRefundAmount().add(right.getRefundAmount())));
+
+        assertThat(daily.getIncomeAmount()).isGreaterThanOrEqualTo(new BigDecimal("150.00"));
+        assertThat(daily.getCollectionAmount()).isGreaterThanOrEqualTo(new BigDecimal("130.00"));
+        assertThat(daily.getRefundAmount()).isGreaterThanOrEqualTo(new BigDecimal("20.00"));
+
+        FinanceDashboardVO dashboard = financeDashboardService.getDashboardData(LocalDate.now().toString());
+        assertThat(dashboard.getTotalAmount()).isEqualByComparingTo(before.getTotalAmount().add(new BigDecimal("150.00")));
+        assertThat(dashboard.getPayAmount()).isEqualByComparingTo(before.getPayAmount().add(new BigDecimal("150.00")));
+        assertThat(dashboard.getRefundAmount()).isEqualByComparingTo(before.getRefundAmount().add(new BigDecimal("20.00")));
+        assertThat(dashboard.getNetIncome()).isEqualByComparingTo(before.getNetIncome().add(new BigDecimal("130.00")));
+        assertThat(dashboard.getExternalIncome()).isEqualByComparingTo(before.getExternalIncome().add(new BigDecimal("130.00")));
     }
 
     @Test
@@ -730,6 +771,29 @@ class FinanceFeatureIntegrationTest {
         payment.setNetAmount(netAmount);
         payment.setCreateTime(LocalDateTime.now());
         orderPayMapper.insert(payment);
+    }
+
+    private void insertAmountReceiptPayment(String receiptNo, BigDecimal amount) {
+        OmsMemberAmountReceiptPay payment = new OmsMemberAmountReceiptPay();
+        payment.setReceiptNo(receiptNo);
+        payment.setPayMethodCode("CASH");
+        payment.setPayMethodName("CASH");
+        payment.setPayAmount(amount);
+        payment.setOriginalAmount(amount);
+        payment.setNetAmount(amount);
+        payment.setChangeAllocated(BigDecimal.ZERO);
+        payment.setTenantId(0L);
+        amountReceiptPayMapper.insert(payment);
+    }
+
+    private void insertTargetReceiptPayment(String receiptNo, BigDecimal amount) {
+        OmsMemberTargetReceiptPay payment = new OmsMemberTargetReceiptPay();
+        payment.setReceiptNo(receiptNo);
+        payment.setPayMethodCode("CASH");
+        payment.setPayMethodName("CASH");
+        payment.setPayAmount(amount);
+        payment.setTenantId(0L);
+        targetReceiptPayMapper.insert(payment);
     }
 
     private void insertRiskOrder(String orderNo, String cashier, String status, BigDecimal payAmount,

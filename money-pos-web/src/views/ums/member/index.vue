@@ -24,6 +24,9 @@
                 <el-button type="success" link @click="openRecharge(scope.row)">
                     <el-icon class="mr-1"><MoneyIcon /></el-icon>业务办理
                 </el-button>
+                <el-button type="primary" link @click="$router.push({ name: 'MemberBenefit', query: { memberId: scope.row.id, memberName: scope.row.name, memberPhone: scope.row.phone } })">
+                    权益中心
+                </el-button>
                 <MoneyUD :money-crud="moneyCrud" :scope="scope" />
             </template>
         </MoneyCrudTable>

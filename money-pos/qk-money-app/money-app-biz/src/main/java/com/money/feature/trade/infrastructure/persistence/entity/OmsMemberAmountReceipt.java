@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data @TableName("oms_member_amount_receipt")
 public class OmsMemberAmountReceipt {
@@ -13,4 +14,5 @@ public class OmsMemberAmountReceipt {
     private Long amountRightId; private String sourcePickupNo; private String sourceReceiptNo;
     private BigDecimal totalAmount; private BigDecimal rightDeductAmount; private BigDecimal supplementAmount; private BigDecimal costAmount;
     private String status; private Long tenantId;
+    private LocalDateTime createTime;
 }

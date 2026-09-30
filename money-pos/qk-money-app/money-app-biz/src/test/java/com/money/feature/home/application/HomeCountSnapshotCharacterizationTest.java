@@ -16,6 +16,8 @@ import com.money.dto.Home.BrandPieVO;
 import com.money.dto.OmsOrder.OrderCountVO;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberAmountReceiptPay;
+import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetReceiptPay;
 import com.money.feature.home.application.HomeService;
 import com.money.feature.home.interfaces.rest.HomeController;
 import com.money.feature.home.infrastructure.persistence.entity.OmsDailySummary;
@@ -23,6 +25,8 @@ import com.money.mapper.OmsDailySummaryMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberAmountReceiptPayMapper;
+import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberTargetReceiptPayMapper;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +78,10 @@ class HomeCountSnapshotCharacterizationTest {
     private HomeDailySnapshotRefreshTask dailySnapshotRefreshTask;
     @Autowired
     private OmsOrderDetailMapper omsOrderDetailMapper;
+    @Autowired
+    private OmsMemberAmountReceiptPayMapper amountReceiptPayMapper;
+    @Autowired
+    private OmsMemberTargetReceiptPayMapper targetReceiptPayMapper;
     @Autowired
     private HomeDailyMemberQuery homeDailyMemberQuery;
     @Autowired
@@ -208,6 +216,21 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     @Test
+    void homeAggregatesNonProductReceiptCollectionWithoutChangingProductOrderCountOrCost() {
+        HomeCountVO before = homeService.homeCount();
+        String suffix = "HNP" + (System.nanoTime() % 1_000_000_000L);
+        insertAmountReceiptPayment(suffix + "-PURCHASE", new BigDecimal("120.00"));
+        insertAmountReceiptPayment(suffix + "-REFUND", new BigDecimal("-20.00"));
+        insertTargetReceiptPayment(suffix + "-TARGET", new BigDecimal("30.00"));
+
+        HomeCountVO after = homeService.homeCount();
+        assertThat(after.getToday().getOrderCount()).isEqualTo(before.getToday().getOrderCount());
+        assertThat(after.getToday().getCostCount()).isEqualByComparingTo(before.getToday().getCostCount());
+        assertThat(after.getToday().getSaleCount()).isEqualByComparingTo(before.getToday().getSaleCount().add(new BigDecimal("130.00")));
+        assertThat(after.getToday().getProfit()).isEqualByComparingTo(before.getToday().getProfit().add(new BigDecimal("130.00")));
+    }
+
+    @Test
     void dailySnapshotAndComprehensiveDashboardKeepTheirSeparateTradeOrderRules() {
         LocalDate today = LocalDate.now();
         LocalDateTime todayStart = today.atStartOfDay();
@@ -319,6 +342,29 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(actual.getSaleCount()).isEqualByComparingTo(expected.getSaleCount());
         assertThat(actual.getCostCount()).isEqualByComparingTo(expected.getCostCount());
         assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
+    }
+
+    private void insertAmountReceiptPayment(String receiptNo, BigDecimal amount) {
+        OmsMemberAmountReceiptPay payment = new OmsMemberAmountReceiptPay();
+        payment.setReceiptNo(receiptNo);
+        payment.setPayMethodCode("CASH");
+        payment.setPayMethodName("CASH");
+        payment.setPayAmount(amount);
+        payment.setOriginalAmount(amount);
+        payment.setNetAmount(amount);
+        payment.setChangeAllocated(BigDecimal.ZERO);
+        payment.setTenantId(0L);
+        amountReceiptPayMapper.insert(payment);
+    }
+
+    private void insertTargetReceiptPayment(String receiptNo, BigDecimal amount) {
+        OmsMemberTargetReceiptPay payment = new OmsMemberTargetReceiptPay();
+        payment.setReceiptNo(receiptNo);
+        payment.setPayMethodCode("CASH");
+        payment.setPayMethodName("CASH");
+        payment.setPayAmount(amount);
+        payment.setTenantId(0L);
+        targetReceiptPayMapper.insert(payment);
     }
 
     private String insertOrder(String status, BigDecimal finalSalesAmount, BigDecimal costAmount, LocalDateTime createTime) {

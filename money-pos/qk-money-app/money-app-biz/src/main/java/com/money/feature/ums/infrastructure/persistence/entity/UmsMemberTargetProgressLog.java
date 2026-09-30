@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("ums_member_target_progress_log")
@@ -21,4 +22,5 @@ public class UmsMemberTargetProgressLog {
     private String operatorName;
     private String reason;
     private Long tenantId;
+    private LocalDateTime createTime;
 }

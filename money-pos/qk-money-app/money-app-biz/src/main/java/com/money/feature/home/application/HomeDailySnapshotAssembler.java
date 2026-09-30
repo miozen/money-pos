@@ -18,10 +18,12 @@ public class HomeDailySnapshotAssembler {
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
     private final HomeDailyMemberQuery homeDailyMemberQuery;
+    private final HomeNonProductReceiptProjection nonProductReceiptProjection;
 
     public HomeDailySnapshotValues assemble(LocalDate date) {
         HomeDailyOrderSnapshot orderSnapshot = homeOrderReadQuery.summarizeDailySnapshot(date);
-        BigDecimal salesAmount = orderSnapshot.getSalesAmount();
+        BigDecimal nonProductCollection = nonProductReceiptProjection.collectionFor(date);
+        BigDecimal salesAmount = orderSnapshot.getSalesAmount().add(nonProductCollection);
         BigDecimal profitAmount = salesAmount.subtract(orderSnapshot.getCostAmount());
         int orderCount = orderSnapshot.getOrderCount();
         BigDecimal inventoryValue = inventoryValuationQuery.getCurrentStockValue();

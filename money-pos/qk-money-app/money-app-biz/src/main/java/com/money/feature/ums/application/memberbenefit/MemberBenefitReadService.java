@@ -1,0 +1,62 @@
+package com.money.feature.ums.application.memberbenefit;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.dto.memberbenefit.MemberBenefitOverviewVO;
+import com.money.dto.memberbenefit.MemberTargetProgressLogVO;
+import com.money.feature.ums.infrastructure.persistence.entity.*;
+import com.money.feature.ums.infrastructure.persistence.mapper.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/** UMS-owned read facade for member-benefit configuration, balances and TARGET audit history. */
+@Service
+@RequiredArgsConstructor
+public class MemberBenefitReadService {
+    private final UmsBrandBenefitTierMapper tierMapper;
+    private final UmsMemberQuantityRightMapper quantityRightMapper;
+    private final UmsMemberAmountRightMapper amountRightMapper;
+    private final UmsMemberTargetPlanMapper targetPlanMapper;
+    private final UmsMemberTargetProgressLogMapper targetLogMapper;
+
+    public MemberBenefitOverviewVO overview(Long memberId, String brandId) {
+        MemberBenefitOverviewVO result = new MemberBenefitOverviewVO();
+        LambdaQueryWrapper<UmsBrandBenefitTier> tiers = new LambdaQueryWrapper<UmsBrandBenefitTier>()
+                .orderByAsc(UmsBrandBenefitTier::getBrandId).orderByAsc(UmsBrandBenefitTier::getSortNo);
+        if (text(brandId)) tiers.eq(UmsBrandBenefitTier::getBrandId, brandId);
+        result.setTiers(tierMapper.selectList(tiers).stream().map(this::tier).collect(Collectors.toList()));
+        if (memberId == null) {
+            result.setQuantityRights(java.util.Collections.emptyList()); result.setAmountRights(java.util.Collections.emptyList());
+            result.setTargetPlans(java.util.Collections.emptyList()); return result;
+        }
+        LambdaQueryWrapper<UmsMemberQuantityRight> quantities = new LambdaQueryWrapper<UmsMemberQuantityRight>()
+                .eq(UmsMemberQuantityRight::getMemberId, memberId).orderByDesc(UmsMemberQuantityRight::getId);
+        if (text(brandId)) quantities.eq(UmsMemberQuantityRight::getBrandId, brandId);
+        result.setQuantityRights(quantityRightMapper.selectList(quantities).stream().map(this::quantity).collect(Collectors.toList()));
+        LambdaQueryWrapper<UmsMemberAmountRight> amounts = new LambdaQueryWrapper<UmsMemberAmountRight>()
+                .eq(UmsMemberAmountRight::getMemberId, memberId).orderByDesc(UmsMemberAmountRight::getId);
+        if (text(brandId)) amounts.eq(UmsMemberAmountRight::getBrandId, brandId);
+        result.setAmountRights(amountRightMapper.selectList(amounts).stream().map(this::amount).collect(Collectors.toList()));
+        LambdaQueryWrapper<UmsMemberTargetPlan> targets = new LambdaQueryWrapper<UmsMemberTargetPlan>()
+                .eq(UmsMemberTargetPlan::getMemberId, memberId).orderByDesc(UmsMemberTargetPlan::getId);
+        if (text(brandId)) targets.eq(UmsMemberTargetPlan::getBrandId, brandId);
+        result.setTargetPlans(targetPlanMapper.selectList(targets).stream().map(this::target).collect(Collectors.toList()));
+        return result;
+    }
+
+    public List<MemberTargetProgressLogVO> targetLogs(Long planId) {
+        if (planId == null) return java.util.Collections.emptyList();
+        return targetLogMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetProgressLog>()
+                .eq(UmsMemberTargetProgressLog::getPlanId, planId).orderByDesc(UmsMemberTargetProgressLog::getId))
+                .stream().map(this::log).collect(Collectors.toList());
+    }
+
+    private MemberBenefitOverviewVO.Tier tier(UmsBrandBenefitTier row) { MemberBenefitOverviewVO.Tier r = new MemberBenefitOverviewVO.Tier(); r.setBrandId(row.getBrandId()); r.setTierCode(row.getTierCode()); r.setTierName(row.getTierName()); r.setConfiguredAmount(row.getConfiguredAmount()); r.setPricingLevelCode(row.getPricingLevelCode()); r.setRankValue(row.getRankValue()); r.setEnabled(row.getEnabled()); r.setSortNo(row.getSortNo()); return r; }
+    private MemberBenefitOverviewVO.QuantityRight quantity(UmsMemberQuantityRight row) { MemberBenefitOverviewVO.QuantityRight r = new MemberBenefitOverviewVO.QuantityRight(); r.setRightId(row.getId()); r.setBrandId(row.getBrandId()); r.setGoodsId(row.getGoodsId()); r.setSourceOrderNo(row.getSourceOrderNo()); r.setGrantedQuantity(row.getGrantedQuantity()); r.setPickedQuantity(row.getPickedQuantity()); r.setRemainingQuantity(row.getRemainingQuantity()); r.setStatus(row.getStatus()); return r; }
+    private MemberBenefitOverviewVO.AmountRight amount(UmsMemberAmountRight row) { MemberBenefitOverviewVO.AmountRight r = new MemberBenefitOverviewVO.AmountRight(); r.setRightId(row.getId()); r.setBrandId(row.getBrandId()); r.setTierCode(row.getTierCodeSnapshot()); r.setTierName(row.getTierNameSnapshot()); r.setPricingLevelCode(row.getPricingLevelCodeSnapshot()); r.setGrantedAmount(row.getGrantedAmount()); r.setRemainingAmount(row.getRemainingAmount()); r.setSourceReceiptNo(row.getSourceReceiptNo()); r.setStatus(row.getStatus()); return r; }
+    private MemberBenefitOverviewVO.TargetPlan target(UmsMemberTargetPlan row) { MemberBenefitOverviewVO.TargetPlan r = new MemberBenefitOverviewVO.TargetPlan(); r.setPlanId(row.getId()); r.setBrandId(row.getBrandId()); r.setCurrentLevelCode(row.getCurrentLevelCodeSnapshot()); r.setTargetTierCode(row.getTargetTierCodeSnapshot()); r.setTargetTierName(row.getTargetTierNameSnapshot()); r.setTargetAmount(row.getTargetAmount()); r.setProgressAmount(row.getProgressAmount()); r.setStatus(row.getStatus()); r.setConfirmedTime(row.getConfirmedTime()); r.setRemark(row.getRemark()); return r; }
+    private MemberTargetProgressLogVO log(UmsMemberTargetProgressLog row) { MemberTargetProgressLogVO r = new MemberTargetProgressLogVO(); r.setId(row.getId()); r.setAction(row.getAction()); r.setAmountDelta(row.getAmountDelta()); r.setBeforeAmount(row.getBeforeAmount()); r.setAfterAmount(row.getAfterAmount()); r.setRequestNo(row.getRequestNo()); r.setSourceType(row.getSourceType()); r.setSourceNo(row.getSourceNo()); r.setOperatorName(row.getOperatorName()); r.setReason(row.getReason()); r.setCreateTime(row.getCreateTime()); return r; }
+    private boolean text(String value) { return value != null && !value.trim().isEmpty(); }
+}

@@ -53,6 +53,17 @@ const defaultRouterList = [
             }
         ]
     },
+    {
+        path: '/ums/member-benefit',
+        component: Layout,
+        children: [
+            {
+                path: '',
+                name: 'MemberBenefit',
+                component: () => import('@/views/ums/memberBenefit/index.vue'),
+            }
+        ]
+    },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }
 ]
 

@@ -19,7 +19,7 @@
 | ME-1.2 | QUANTITY 延迟履约购买与提货 | 完成 | `e44c6e9` 已完成实现，`e3928a7` 记录收口；隔离全量回归、打包和架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.3 |
 | ME-1.3 | AMOUNT 权益包、混合补差与整笔提货退款 | 完成 | `3cffdec` 实现、`f0a9781` 接力记录均已推送；隔离全量回归、打包、架构门禁通过，且 `dev...origin/dev` 为 0/0。 | ME-1.4 |
 | ME-1.4 | TARGET 专用结算、进度、补差和人工确认 | 完成 | `3dc88ec` 实现、`4e2ab06` 接力记录均已推送；隔离全量回归、打包和架构门禁通过。 | ME-1.5 |
-| ME-1.5 | FIN/HOME 投影、查询页面与总体验收 | 未开始 | - | 收口复核 |
+| ME-1.5 | 会员权益操作化收口 | 本地进行中 | FIN/HOME 投影、读 API、后台页面与 ME-1.5A POS 工作台基础已在本地；后续操作化仍以冻结实施合同为唯一执行合同。 | ME-1.5B |
 
 ## ME-1.1：品牌权益档位与 UMS 账本基础
 
@@ -142,7 +142,69 @@
 - 完成会员权益主页面：会员查询、权益列表、专用购买、提货、调整、TARGET、流水/历史。
 - 验收：权限、审计、并发、幂等、FIN/HOME 分项、普通 POS 回归和 Windows 手工冒烟全部通过。
 
+### 历史基础与实施合同
+
+> 原 ME-1.5.0～ME-1.5.5 记录的是当前本地基础实现与自动验证事实，不得被视为操作化完成结论。
+> 自 2026-09-29 起，后续 ME-1.5 唯一实施与验收合同为
+> [`MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md`](MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md)。
+> 其执行顺序为 ME-1.5A～ME-1.5E；ME-1.5A 已在本地完成，当前仅可进入 ME-1.5B。
+
+- [x] **ME-1.5.0 收口复核。** 核对 `108a866`、`dev...origin/dev=0/0` 和 ME-1.4 验证事实；盘点确认既有
+  FIN/HOME 读模型只汇总 `oms_order`，非商品凭证尚未进入投影，前端亦没有会员权益主页面。
+- [x] **ME-1.5.1 TRADE 投影契约。** 已为 FIN/HOME 提供 Entity-free 的 AMOUNT/TARGET 非商品凭证日维度
+  收入、收款、退款快照；收入/收款/退款合并，商品订单数、商品销量和商品成本仍由订单来源专属查询提供。
+- [x] **ME-1.5.2 FIN/HOME 接入。** 已将既有 FIN 仪表、支付/退款趋势、渠道构成和瀑布，以及 HOME 日快照、
+  计数、综合面板和趋势接入上述快照；未改变公开路由/字段，商品订单数、销量和成本仍不受非商品凭证污染。
+- [x] **ME-1.5.3 权益查询与历史 API。** 已在 UMS/TRADE 分别提供会员权益、档位、TARGET 进度流水、提货及
+  非商品凭证历史的受权限保护查询；跨 Feature 没有引入 Entity、Mapper 或实现类依赖。
+- [x] **ME-1.5.4 权益主页面。** 已接入会员查询、权益列表、专用购买、提货、调整、TARGET 确认及流水/历史；
+  所有写操作复用既有专用 API 与新请求号幂等，不改变普通 POS。前端生产构建已通过。
+- [ ] **ME-1.5.5（已由操作化合同重排）。** 原自动验收事实保留，但 Windows 手工冒烟、POS 权益操作化、
+  权限/菜单、档位配置、最终提交/推送/同步，均以 ME-1.5A～ME-1.5E 的验收条件为准。
+
 ## 当前实施结果
+
+### ME-1.5（2026-09-29，本地进行中）
+
+- **ME-1.5A（2026-09-30，本地完成待后续总体验证）**：已把权益页抽为可复用
+  `MemberBenefitWorkspace`；POS `HeaderBar` 新增“权益办理”，在主窗口 full-screen dialog 中挂载工作台。
+  打开时仅浅拷贝 `currentMember` 作为默认会员，工作台始终可通过既有 `MemberSmartSearch` 重搜/切换；它不调用
+  `bindMember`，也不访问 POS 的 `cartList`、`paymentList`、试算或普通结算。后台壳同样复用该 Workspace，且删除
+  操作员输入 memberId 的入口。已通过 Node `v20.20.2` Vite 生产构建和 `git diff --check`；Windows/POS 手工状态
+  隔离验证留待 ME-1.5E。
+- **ME-1.5B（2026-09-30，本地进行中）**：已补齐数量权益购买、TARGET 专用销售结算和 AMOUNT 提货整笔退款的
+  Workspace UI/API 路径；商品搜索和扫码始终只写 Workspace `pickupItems`。已新增独立
+  `BenefitPaymentEditor`（不访问 POS `paymentList`），但尚未完成把所有既有操作窗统一迁移到它及 B 的专项交互验收；
+  因此 B 不能标记完成，且不得进入 C～E。
+- 收口复核确认 `108a866` 已将 ME-1.4 文档收口同步至 `origin/dev`，开始时 `dev...origin/dev` 为 0/0；
+  Repository Handoff 的阶段字段滞后于 Git，已按仓库事实更正。
+- 新增 `FinanceNonProductReceiptQuery` 及日维度快照，由 TRADE 聚合 AMOUNT 的 `net_amount` 和 TARGET 的
+  `pay_amount`：正额为收入、代数和为净收款、负额绝对值为退款。没有向 FIN/HOME 暴露凭证 Entity 或 Mapper，
+  也没有修改任何商品订单、销量、订单数或成本统计。
+- 已通过 `mvn -q -pl qk-money-app/money-app-biz -am test-compile -DskipTests`、隔离
+  `FinanceFeatureIntegrationTest`（14 tests，0 failures/errors）及 `git diff --check`。
+- ME-1.5.2 将非商品支付按原支付方式/标签合并进 FIN 渠道和趋势；收入正额、净收款和退款分别进入核心指标和
+  瀑布。HOME 只将非商品净收款加入营业额/利润，订单数与成本仍完全来自商品订单；HOME 日快照仍只由既有启动/
+  每五分钟写入任务刷新，GET 保持纯读。
+- 已通过隔离 `FinanceFeatureIntegrationTest`（14 tests，0 failures/errors）和
+  `HomeCountSnapshotCharacterizationTest`（7 tests，0 failures/errors）；后者覆盖非商品净收款增加 HOME
+  营业额/利润但不增加订单数/成本。
+- ME-1.5.3 新增 UMS `/ums/member-benefit/overview`（档位、数量/金额权益、TARGET 计划）与
+  `/target-logs`，以及 TRADE `/member-benefit/trade-history`（提货及非商品凭证历史）。所有响应均为 API DTO，
+  三条读路由均要求 `umsMember:list`；没有扩大 POS 写权限或暴露持久化 Entity。
+- 已通过 `UmsMemberBenefitRouteContractTest`（1 test，0 failures/errors）、
+  `mvn -q -pl qk-money-app/money-app-biz -am test-compile -DskipTests` 和 `git diff --check`。
+- ME-1.5.4 已新增后台 `/ums/member-benefit` 页面及会员列表“权益中心”入口：支持权益/档位、数量与金额提货、
+  金额权益包购买、TARGET 补差/豁免/人工确认、TARGET 审计流水和 TRADE 历史。页面写操作均调用既有专用 API，
+  每次操作生成独立 `reqId`；正常 POS 路由与结算没有变动。
+- 已通过既有 Node 20 运行时的 `source /home/mio/.nvm/nvm.sh && nvm use 20 && npm run build`（Node `v20.20.2`、npm `10.8.2`）。构建仅报告既有 CSS
+  语法、静态/动态导入重复与 bundle 体积警告，没有新增构建错误。
+- ME-1.5.5 的自动验收已通过：隔离 `money_pos_test` 上 `mvn -q test` 共 130 tests、0 failures/errors；
+  `mvn -q package -DskipTests`、`bash scripts/test-architecture-scan.sh`、
+  `bash scripts/architecture-scan.sh --check-new` 和 `git diff --check` 均通过。全量回归首次暴露既有
+  `CheckoutIntegrationTest` 的 `REFUND-PARTIAL-<nanoTime>` 库存单号超过 `doc_no varchar(32)`；测试改为
+  base36 短后缀后，专项和全量回归均通过，未改变业务代码或规则。
+- Windows 手工冒烟、最终提交、推送和同步复核尚未执行；因此 ME-1.5 仍处于进行中，工作区仍为本地未提交状态。
 
 ### ME-1.1（2026-09-23）
 

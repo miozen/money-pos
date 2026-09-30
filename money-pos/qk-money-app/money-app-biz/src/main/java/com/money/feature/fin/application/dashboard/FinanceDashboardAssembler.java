@@ -7,6 +7,7 @@ import com.money.contract.member.FinanceMemberRechargeSnapshot;
 import com.money.contract.member.FinanceMemberRechargeTotalSnapshot;
 import com.money.contract.trade.FinanceChannelDiscountSnapshot;
 import com.money.contract.trade.FinanceDailyOrderMetricSnapshot;
+import com.money.contract.trade.FinanceNonProductReceiptDailySnapshot;
 import com.money.contract.trade.FinancePaymentSummarySnapshot;
 import com.money.contract.trade.FinanceRefundBaseSnapshot;
 import com.money.dto.Finance.FinanceDataVO.*;
@@ -70,6 +71,7 @@ public class FinanceDashboardAssembler {
      * 2. 组装核心交易指标 (应收/实收/退款/净收/毛利)
      */
     public void assembleCoreMetrics(FinanceDashboardVO vo, List<FinanceDailyOrderMetricSnapshot> dailyOrders,
+                                    List<FinanceNonProductReceiptDailySnapshot> nonProductReceipts,
                                     List<FinanceInventoryDocumentSnapshot> inventoryDocs) {
         BigDecimal totalAmount = BigDecimal.ZERO, totalDiscount = BigDecimal.ZERO;
         BigDecimal payAmount = BigDecimal.ZERO, refundAmount = BigDecimal.ZERO, costAmount = BigDecimal.ZERO;
@@ -96,6 +98,13 @@ public class FinanceDashboardAssembler {
             payAmount = payAmount.add(currentPay);
             refundAmount = refundAmount.add(currentPay.subtract(null2Zero(o.getFinalSalesAmount())));
             costAmount = costAmount.add(null2Zero(o.getCostAmount()));
+        }
+
+        for (FinanceNonProductReceiptDailySnapshot receipt : nonProductReceipts) {
+            BigDecimal income = null2Zero(receipt.getIncomeAmount());
+            totalAmount = totalAmount.add(income);
+            payAmount = payAmount.add(income);
+            refundAmount = refundAmount.add(null2Zero(receipt.getRefundAmount()));
         }
 
         BigDecimal netIncome = payAmount.subtract(refundAmount);
@@ -166,12 +175,17 @@ public class FinanceDashboardAssembler {
      */
     public void assembleTrendLines(FinanceDashboardVO vo, LocalDate targetDate, List<FinancePaymentSummarySnapshot> paySummary,
                                    List<FinanceMemberRechargeTotalSnapshot> rechargeSummary,
-                                   List<FinanceRefundBaseSnapshot> dailyOrderStats) {
+                                   List<FinanceRefundBaseSnapshot> dailyOrderStats,
+                                   List<FinanceNonProductReceiptDailySnapshot> nonProductReceipts) {
         Map<String, BigDecimal> historyRefundMap = new HashMap<>();
         for (FinanceRefundBaseSnapshot stat : dailyOrderStats) {
             String dStr = stat.getDate().format(FORMATTER_YYYY_MM_DD);
             BigDecimal dRefund = null2Zero(stat.getPayAmount()).subtract(null2Zero(stat.getFinalSalesAmount()));
             historyRefundMap.put(dStr, dRefund.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : dRefund);
+        }
+        for (FinanceNonProductReceiptDailySnapshot receipt : nonProductReceipts) {
+            String date = receipt.getDate().format(FORMATTER_YYYY_MM_DD);
+            historyRefundMap.merge(date, null2Zero(receipt.getRefundAmount()), BigDecimal::add);
         }
 
         Set<String> allTags = paySummary.stream().filter(r -> {

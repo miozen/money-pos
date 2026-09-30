@@ -234,7 +234,7 @@ class CheckoutIntegrationTest {
     
     @Test
     void partialRefundRestoresOnlyReturnedQuantityAndMarksOrderPartialRefunded() {
-        String suffix = String.valueOf(System.nanoTime());
+        String suffix = Long.toString(System.nanoTime(), 36);
         String orderNo = "REFUND-PARTIAL-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, goods.getId(), 3, new BigDecimal("36.00")));

@@ -25,6 +25,7 @@ public class HomeDashboardQueryService {
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
     private final HomeDailySummaryQueryService dailySummaryQueryService;
+    private final HomeNonProductReceiptProjection nonProductReceiptProjection;
 
     public Map<String, Object> getTodayDashboardWithAlerts() {
         LocalDate today = LocalDate.now();
@@ -54,11 +55,11 @@ public class HomeDashboardQueryService {
         Map<String, Object> todayData = getTodayDashboardWithAlerts();
         LocalDateTime monthStart = YearMonth.now().atDay(1).atStartOfDay();
         LocalDateTime yearStart = Year.now().atDay(1).atStartOfDay();
-        Map<String, Object> thisMonth = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(monthStart, monthStart.plusMonths(1)));
-        Map<String, Object> lastMonth = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(monthStart.minusMonths(1), monthStart));
-        Map<String, Object> thisYear = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(yearStart, yearStart.plusYears(1)));
-        Map<String, Object> lastYear = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(yearStart.minusYears(1), yearStart));
-        Map<String, Object> totalStat = toDashboardMap(homeOrderReadQuery.summarizeDashboardRange(null, null));
+        Map<String, Object> thisMonth = dashboardRange(monthStart, monthStart.plusMonths(1));
+        Map<String, Object> lastMonth = dashboardRange(monthStart.minusMonths(1), monthStart);
+        Map<String, Object> thisYear = dashboardRange(yearStart, yearStart.plusYears(1));
+        Map<String, Object> lastYear = dashboardRange(yearStart.minusYears(1), yearStart);
+        Map<String, Object> totalStat = dashboardRange(null, null);
         OmsDailySummary snapshot = (OmsDailySummary) todayData.get("todayStat");
         Map<String, String> trends = (Map<String, String>) todayData.get("trendRate");
         Map<String, Object> today = new HashMap<>();
@@ -76,6 +77,12 @@ public class HomeDashboardQueryService {
     private Map<String, Object> toDashboardMap(HomeDashboardOrderSnapshot snapshot) {
         Map<String, Object> result = new HashMap<>(); result.put("orderCount", snapshot.getOrderCount()); result.put("saleCount", snapshot.getSaleCount()); result.put("profit", snapshot.getProfit());
         result.put("asp", snapshot.getOrderCount() > 0 ? snapshot.getSaleCount().divide(new BigDecimal(snapshot.getOrderCount()), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO); return result;
+    }
+    private Map<String, Object> dashboardRange(LocalDateTime startInclusive, LocalDateTime endExclusive) {
+        HomeDashboardOrderSnapshot orders = homeOrderReadQuery.summarizeDashboardRange(startInclusive, endExclusive);
+        BigDecimal collection = nonProductReceiptProjection.collectionFor(startInclusive, endExclusive);
+        return toDashboardMap(new HomeDashboardOrderSnapshot(orders.getOrderCount(), orders.getSaleCount().add(collection),
+                orders.getProfit().add(collection)));
     }
     private void attachTrends(Map<String, Object> target, Map<String, Object> current, Map<String, Object> previous) {
         target.put("saleCount", current.get("saleCount")); target.put("orderCount", current.get("orderCount")); target.put("profit", current.get("profit"));

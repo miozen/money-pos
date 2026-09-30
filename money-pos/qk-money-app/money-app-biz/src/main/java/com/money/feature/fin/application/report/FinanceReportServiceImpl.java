@@ -6,6 +6,8 @@ import com.money.contract.goods.FinanceWaterfallInventoryQuery;
 import com.money.contract.goods.FinanceWaterfallProcurementSnapshot;
 import com.money.contract.trade.FinanceWaterfallOrderQuery;
 import com.money.contract.trade.FinanceWaterfallOrderSnapshot;
+import com.money.contract.trade.FinanceNonProductReceiptDailySnapshot;
+import com.money.contract.trade.FinanceNonProductReceiptQuery;
 import com.money.feature.fin.application.report.FinanceReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ import java.util.TreeMap;
 public class FinanceReportServiceImpl implements FinanceReportService {
 
     private final FinanceWaterfallOrderQuery financeWaterfallOrderQuery;
+    private final FinanceNonProductReceiptQuery financeNonProductReceiptQuery;
     private final FinanceWaterfallInventoryQuery financeWaterfallInventoryQuery;
 
     @Override
@@ -54,6 +57,14 @@ public class FinanceReportServiceImpl implements FinanceReportService {
             row.setRefundAmount(snapshot.getRefundAmount());
             row.setNetIncome(snapshot.getNetIncome());
         }
+        for (FinanceNonProductReceiptDailySnapshot snapshot : financeNonProductReceiptQuery
+                .listDailySnapshots(toDate(queryDTO.getStartTime()), toDate(queryDTO.getEndTime()))) {
+            FinanceWaterfallVO row = rowFor(rowsByDate, snapshot.getDate().toString());
+            row.setTotalAmount(row.getTotalAmount().add(snapshot.getIncomeAmount()));
+            row.setPayAmount(row.getPayAmount().add(snapshot.getIncomeAmount()));
+            row.setRefundAmount(row.getRefundAmount().add(snapshot.getRefundAmount()));
+            row.setNetIncome(row.getNetIncome().add(snapshot.getCollectionAmount()));
+        }
         for (FinanceWaterfallProcurementSnapshot snapshot : financeWaterfallInventoryQuery
                 .listDailyInboundProcurements(queryDTO.getStartTime(), queryDTO.getEndTime())) {
             rowFor(rowsByDate, snapshot.getDate()).setProcurementAmount(snapshot.getProcurementAmount());
@@ -76,5 +87,9 @@ public class FinanceReportServiceImpl implements FinanceReportService {
         row.setProcurementAmount(java.math.BigDecimal.ZERO);
         rowsByDate.put(date, row);
         return row;
+    }
+
+    private java.time.LocalDate toDate(java.time.LocalDateTime value) {
+        return value == null ? null : value.toLocalDate();
     }
 }
