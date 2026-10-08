@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
+import com.money.contract.goods.BrandPricingLevelQuery;
+import com.money.feature.gms.application.config.GmsBrandPricingConfigService;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
 import com.money.mapper.GmsBrandMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -18,9 +21,18 @@ import java.util.Map;
 /** GMS implementation of brand ID to name translation for external display. */
 @Service
 @RequiredArgsConstructor
-class BrandNameQueryService implements BrandNameQuery, BrandSelectionQuery {
+class BrandNameQueryService implements BrandNameQuery, BrandSelectionQuery, BrandPricingLevelQuery {
 
     private final GmsBrandMapper brandMapper;
+    private final GmsBrandPricingConfigService pricingConfigService;
+
+    @Override
+    public List<String> findEnabledLevelCodes(String brandId) {
+        com.money.dto.SysBrandConfig.BrandPricingPolicyView policy = pricingConfigService.getBrandPricingPolicy(brandId);
+        return policy == null || policy.getLevelCodes() == null
+                ? Collections.emptyList()
+                : Arrays.asList(policy.getLevelCodes());
+    }
 
     @Override
     public Map<String, String> findNamesByIds(Collection<String> brandIds) {

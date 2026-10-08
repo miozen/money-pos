@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after ME-1.5C checkpoint `fb1a1e2` was committed and pushed** |
-| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5C local implementation complete; ME-1.5D next` |
+| Working tree | **DIRTY: ME-1.5D complete locally and awaiting this checkpoint's commit/push; not yet safe for cross-computer reconstruction** |
+| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5D complete; ME-1.5E next` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -60,6 +60,10 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
 - ME-1.5C adds Flyway `V1.0.10` for the dynamic benefit menu and the frozen `operate/manage/tier` capability resources.
   Existing POS-capable roles retain daily benefit access; manage/tier remain explicit grants. Static routing is removed,
   menu registration is permission-tree-driven, and API/UI enforcement follows the new capability split.
+- ME-1.5D has local, uncommitted UMS tier CRUD backed by an Entity-free GMS brand/price-level query contract, dynamic
+  tier menu migration `V1.0.11`, tier-only REST guards and the backend tier-management page. Save validates the existing
+  GMS brand and permitted price level, non-negative amount/rank/sort and same-brand code/rank uniqueness; issued-right
+  snapshots are not changed. The V1.0.10 role-grant `INSERT ... SELECT` was corrected to select its declared `role_id`.
 
 ## Validation actually performed
 
@@ -68,6 +72,9 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
 - ME-1.5B's final Node 20 production build passed with the same pre-existing warnings. Static focused inspection found
   no `paymentList`, `bindMember`, `scanAndAddToCart` or `/pos/settleAccounts` reference in `views/ums/memberBenefit/`.
 - C: `UmsMemberBenefitRouteContractTest` passed and Node 20 production build passed (only pre-existing warnings).
+- D: after rebuilding only `money_pos_test`, Flyway migrated an empty isolated schema through `V1.0.11`; focused
+  `MemberBenefitTierServiceTest` (3/0/0) and `UmsMemberBenefitRouteContractTest` (2/0/0) passed. Node `v20.20.2` /
+  npm `10.8.2` `npm run build` passed with only the existing browser-data/CSS/dynamic-import/chunk-size warnings.
 - Isolated `money_pos_test`: `FinanceFeatureIntegrationTest` (14/0/0),
   `HomeCountSnapshotCharacterizationTest` (7/0/0), `UmsMemberBenefitRouteContractTest` (1/0/0),
   `CheckoutIntegrationTest` after fixture correction (18/0/0), and final `mvn -q test` (130/0/0) passed.
@@ -82,8 +89,8 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Commit and push this ME-1.5C checkpoint, verify `dev...origin/dev=0/0`, then implement only ME-1.5D tier management;
-do not begin ME-1.5E early.
+Commit and push this ME-1.5D checkpoint, verify `dev...origin/dev=0/0`, then begin only ME-1.5E final acceptance;
+do not report ME-1.5 complete before all E acceptance evidence exists.
 
 ## Handoff rule
 

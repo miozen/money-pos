@@ -9,7 +9,8 @@ VALUES
 -- Existing POS-capable roles retain daily benefit access after the capability split; higher-risk management and tier
 -- permissions remain explicitly assignable through the existing role-permission UI.
 INSERT INTO sys_role_permission_relation (id, permission_id, role_id, tenant_id)
-SELECT 4000000000000000000 + relation.role_id + permission.id - 2040000000000000000, permission.id, relation.tenant_id
+SELECT 4000000000000000000 + relation.role_id + permission.id - 2040000000000000000,
+       permission.id, relation.role_id, relation.tenant_id
 FROM sys_role_permission_relation relation
 JOIN sys_permission cashier ON cashier.id = relation.permission_id AND cashier.permission = 'pos:cashier'
 JOIN sys_permission permission ON permission.id IN (2040000000000000001, 2040000000000000002)
