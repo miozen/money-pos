@@ -2,12 +2,15 @@ package com.money.feature.gms.application.catalog;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandNameQuery;
+import com.money.contract.goods.GoodsNameQuery;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
 import com.money.contract.goods.BrandPricingLevelQuery;
 import com.money.feature.gms.application.config.GmsBrandPricingConfigService;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsBrand;
+import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.mapper.GmsBrandMapper;
+import com.money.mapper.GmsGoodsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +24,10 @@ import java.util.Map;
 /** GMS implementation of brand ID to name translation for external display. */
 @Service
 @RequiredArgsConstructor
-class BrandNameQueryService implements BrandNameQuery, BrandSelectionQuery, BrandPricingLevelQuery {
+class BrandNameQueryService implements BrandNameQuery, BrandSelectionQuery, BrandPricingLevelQuery, GoodsNameQuery {
 
     private final GmsBrandMapper brandMapper;
+    private final GmsGoodsMapper goodsMapper;
     private final GmsBrandPricingConfigService pricingConfigService;
 
     @Override
@@ -63,6 +67,14 @@ class BrandNameQueryService implements BrandNameQuery, BrandSelectionQuery, Bran
                 result.put(entry.getKey(), name);
             }
         }
+        return result;
+    }
+
+    @Override
+    public Map<Long, String> findNamesByGoodsIds(Collection<Long> goodsIds) {
+        if (goodsIds == null || goodsIds.isEmpty()) return Collections.emptyMap();
+        Map<Long, String> result = new LinkedHashMap<>();
+        for (GmsGoods goods : goodsMapper.selectBatchIds(goodsIds)) result.put(goods.getId(), goods.getName());
         return result;
     }
 

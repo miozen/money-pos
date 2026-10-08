@@ -15,20 +15,22 @@ public class MemberBenefitOverviewVO {
 
     @Data public static class Tier {
         private String brandId; private String tierCode; private String tierName; private BigDecimal configuredAmount;
+        private String brandName; private String pricingLevelName;
         private String pricingLevelCode; private Integer rankValue; private Boolean enabled; private Integer sortNo;
     }
     @Data public static class QuantityRight {
         private Long rightId; private String brandId; private Long goodsId; private String sourceOrderNo;
+        private String brandName; private String goodsName;
         private Integer grantedQuantity; private Integer pickedQuantity; private Integer remainingQuantity; private String status;
     }
     @Data public static class AmountRight {
         private Long rightId; private String brandId; private String tierCode; private String tierName;
-        private String pricingLevelCode; private BigDecimal grantedAmount; private BigDecimal remainingAmount;
+        private String brandName; private String pricingLevelName; private String pricingLevelCode; private BigDecimal grantedAmount; private BigDecimal remainingAmount;
         private String sourceReceiptNo; private String status;
     }
     @Data public static class TargetPlan {
         private Long planId; private String brandId; private String currentLevelCode; private String targetTierCode;
-        private String targetTierName; private BigDecimal targetAmount; private BigDecimal progressAmount; private String status;
+        private String brandName; private String targetTierName; private BigDecimal targetAmount; private BigDecimal progressAmount; private String status;
         private LocalDateTime confirmedTime; private String remark;
     }
 }

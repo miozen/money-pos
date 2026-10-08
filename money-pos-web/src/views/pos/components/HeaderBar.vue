@@ -23,7 +23,7 @@
             <div class="nav-item group" @click="$emit('action', 'recharge')">
                 <el-icon class="text-xl"><Coin /></el-icon><span>会员充值</span>
             </div>
-            <div v-if="canOperateBenefit" class="nav-item group" @click="$emit('action', 'memberBenefit')">
+            <div v-if="canAccessBenefit" class="nav-item group" @click="$emit('action', 'memberBenefit')">
                 <el-icon class="text-xl"><Present /></el-icon><span>权益办理</span>
             </div>
             <div class="nav-item group" @click="$emit('action', 'restock')">
@@ -51,7 +51,7 @@
 
 <script setup>
 import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar, SwitchButton, Present } from '@element-plus/icons-vue'
-defineProps({ cashierName: String, currentTime: String, canOperateBenefit: Boolean })
+defineProps({ cashierName: String, currentTime: String, canAccessBenefit: Boolean })
 defineEmits(['action'])
 </script>
 

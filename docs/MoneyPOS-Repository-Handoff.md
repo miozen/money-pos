@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after ME-1.5E automation checkpoint `2a8e7c0` was committed and pushed; Windows smoke evidence remains pending** |
-| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5E final acceptance in progress` |
-| Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
+| Working tree | **CLEAN after the local ME-1.6B commit; not yet pushed. Windows smoke evidence remains pending** |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6B complete; push/sync pending before ME-1.6C` |
+| Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -93,11 +93,20 @@ There is no unresolved business or architecture decision. Frozen TARGET rule: de
 brand-level price through normal immediate Checkout; only manual confirmation upgrades. Historical refunds require
 review and cannot automatically downgrade a member level.
 
+ME-1.6A has now frozen the UX and staged implementation contract in
+`MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md`. It freezes separate QUANTITY/AMOUNT
+transactions, one selected AMOUNT right per use, explicit (never automatic) TARGET plan selection from a single-brand
+normal cart, POS TARGET-plan creation, and backend-only risk actions. It is design-only and awaits user confirmation;
+implementation has been confirmed by the user and ME-1.6B is complete locally. The B work replaces the technical
+first screen with three business entries, keeps the selected member local to the workspace, hides internal identifiers
+and maps business display names through Entity-free GMS contracts. It does not alter any write route or transaction.
+
 ## Exact next action
 
-Run the five-item Windows POS smoke matrix from the ME-1.5 plan in a Windows Electron environment, record the observed
-result, then complete E documentation/commit/push and verify `dev...origin/dev=0/0`. Do not report ME-1.5 complete
-before that evidence exists.
+Push the local ME-1.6B commit using the established SSH-over-443 path and confirm `dev...origin/dev` has neither ahead
+nor behind. Then begin ME-1.6C with the AMOUNT pickup preview contract and the isolated QUANTITY/AMOUNT local carts.
+Separately retain
+the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
 
