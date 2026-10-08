@@ -7,6 +7,8 @@ import com.money.feature.ums.infrastructure.persistence.entity.PosCouponRule;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
 import com.money.mapper.GmsBrandMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
+import com.money.security.component.SecurityUserDetail;
+import com.money.security.model.RbacUser;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,8 +45,13 @@ class UmsMemberPosControllerIntegrationTest {
 
     @BeforeEach
     void authenticateTenant() {
+        RbacUser user = new RbacUser();
+        user.setUserId(1L);
+        user.setUsername("test");
+        user.setPermissions(java.util.List.of("pos:cashier"));
+        SecurityUserDetail userDetail = new SecurityUserDetail(user);
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("test", "N/A"));
+                new UsernamePasswordAuthenticationToken(userDetail, "N/A", userDetail.getAuthorities()));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Y-tenant", "0");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));

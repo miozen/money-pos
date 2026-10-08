@@ -8,26 +8,26 @@ import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Locks the public route and cashier-permission contract without changing normal POS endpoints. */
+/** Locks the public route and frozen benefit-capability contract without changing normal POS settlement. */
 class PosDeferredQuantityRouteContractTest {
     @Test
-    void deferredQuantityEndpointsAndNormalSettlementRemainCashierProtected() throws Exception {
-        assertRoute("settleAccounts", "/settleAccounts");
-        assertRoute("settleDeferredQuantity", "/deferred-quantity/settle");
-        assertRoute("pickupDeferredQuantity", "/deferred-quantity/pickup");
-        assertRoute("purchaseAmountPackage", "/amount-package/purchase");
-        assertRoute("pickupAmountPackage", "/amount-package/pickup");
-        assertRoute("refundAmountPickup", "/amount-package/pickup-refund");
-        assertRoute("settleTarget", "/target/settle");
-        assertRoute("supplementTarget", "/target/supplement");
-        assertRoute("waiveTarget", "/target/waive");
-        assertRoute("confirmTarget", "/target/confirm");
+    void benefitRoutesUseFrozenCapabilitiesWhileNormalSettlementRemainsCashierProtected() throws Exception {
+        assertRoute("settleAccounts", "/settleAccounts", "pos:cashier");
+        assertRoute("settleDeferredQuantity", "/deferred-quantity/settle", "memberBenefit:operate");
+        assertRoute("pickupDeferredQuantity", "/deferred-quantity/pickup", "memberBenefit:operate");
+        assertRoute("purchaseAmountPackage", "/amount-package/purchase", "memberBenefit:operate");
+        assertRoute("pickupAmountPackage", "/amount-package/pickup", "memberBenefit:operate");
+        assertRoute("refundAmountPickup", "/amount-package/pickup-refund", "memberBenefit:manage");
+        assertRoute("settleTarget", "/target/settle", "memberBenefit:operate");
+        assertRoute("supplementTarget", "/target/supplement", "memberBenefit:operate");
+        assertRoute("waiveTarget", "/target/waive", "memberBenefit:operate");
+        assertRoute("confirmTarget", "/target/confirm", "memberBenefit:manage");
     }
 
-    private void assertRoute(String methodName, String path) throws Exception {
+    private void assertRoute(String methodName, String path, String permission) throws Exception {
         Method method = java.util.Arrays.stream(PosController.class.getDeclaredMethods())
                 .filter(candidate -> candidate.getName().equals(methodName)).findFirst().orElseThrow();
         assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly(path);
-        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("@rbac.hasPermission('pos:cashier')");
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("@rbac.hasPermission('" + permission + "')");
     }
 }

@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after ME-1.5D checkpoint `1bcb2d4` was committed and pushed** |
-| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5D complete; ME-1.5E next` |
+| Working tree | **DIRTY: uncommitted ME-1.5E regression-test alignment and final-acceptance records; not yet safe for cross-computer reconstruction** |
+| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5E final acceptance in progress` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -75,6 +75,12 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
 - D: after rebuilding only `money_pos_test`, Flyway migrated an empty isolated schema through `V1.0.11`; focused
   `MemberBenefitTierServiceTest` (3/0/0) and `UmsMemberBenefitRouteContractTest` (2/0/0) passed. Node `v20.20.2` /
   npm `10.8.2` `npm run build` passed with only the existing browser-data/CSS/dynamic-import/chunk-size warnings.
+- E: full isolated regression initially found two stale test fixtures after ME-1.5C permission migration. The deferred
+  quantity route contract now asserts frozen `operate/manage` permissions while retaining ordinary settlement's cashier
+  guard; the POS-member integration fixture now uses an authenticated `SecurityUserDetail` with `pos:cashier`.
+  Both focused regressions pass. The full test reports after the follow-up full run contain no failures/errors; package,
+  both architecture gates, `git diff --check`, and Node 20 production build pass. Windows Electron smoke remains
+  unrun because this Linux session has no callable Windows UI session; it must be completed before ME-1.5 can close.
 - Isolated `money_pos_test`: `FinanceFeatureIntegrationTest` (14/0/0),
   `HomeCountSnapshotCharacterizationTest` (7/0/0), `UmsMemberBenefitRouteContractTest` (1/0/0),
   `CheckoutIntegrationTest` after fixture correction (18/0/0), and final `mvn -q test` (130/0/0) passed.
@@ -89,7 +95,9 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Begin only ME-1.5E final acceptance; do not report ME-1.5 complete before all E acceptance evidence exists.
+Run the five-item Windows POS smoke matrix from the ME-1.5 plan in a Windows Electron environment, record the observed
+result, then complete E documentation/commit/push and verify `dev...origin/dev=0/0`. Do not report ME-1.5 complete
+before that evidence exists.
 
 ## Handoff rule
 
