@@ -27,7 +27,10 @@ recorded as accepted or frozen.
 - New cross-feature cooperation uses `money-app-api` Entity-free contracts. Do not introduce cross-feature Entity,
   Mapper, or implementation-class dependencies.
 - Treat a phase as complete only when its code, tests, required validation, current-plan update, handoff update,
-  commit, push, and branch-sync evidence are all present. Never report unrun tests as passing.
+  commit, Codex-initiated push, and branch-sync evidence are all present. Never report unrun tests as passing.
+- After each completed phase slice, Codex commits, pushes `dev` to `origin`, fetches, and verifies
+  `dev...origin/dev` has neither ahead nor behind. Ask the user to take over only after an actual authentication,
+  network, or remote-state failure that Codex cannot resolve safely.
 
 ## Session handoff
 
