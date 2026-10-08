@@ -1,6 +1,6 @@
 # MoneyPOS ME-1.5：会员权益操作化实施合同
 
-> 状态：**Frozen contract — implementation in progress (ME-1.5B)**；冻结日期：2026-09-29；适用分支：`dev`。
+> 状态：**Frozen contract — ME-1.5B complete, ME-1.5C next**；冻结日期：2026-09-29；适用分支：`dev`。
 >
 > 本文是 ME-1.5 操作化部分的唯一实施与验收合同。它保留既有 ME-1.5 FIN/HOME 投影、读 API 和后台页面本地基础成果，
 > 并以本次冻结的 POS 前台化、后台配置化决定重新定义后续 A–E 的唯一执行顺序。本文不改变 ME-1.1～ME-1.4 的业务模型。

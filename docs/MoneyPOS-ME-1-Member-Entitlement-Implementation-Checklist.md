@@ -172,10 +172,11 @@
   `bindMember`，也不访问 POS 的 `cartList`、`paymentList`、试算或普通结算。后台壳同样复用该 Workspace，且删除
   操作员输入 memberId 的入口。已通过 Node `v20.20.2` Vite 生产构建和 `git diff --check`；Windows/POS 手工状态
   隔离验证留待 ME-1.5E。
-- **ME-1.5B（2026-09-30，本地进行中）**：已补齐数量权益购买、TARGET 专用销售结算和 AMOUNT 提货整笔退款的
-  Workspace UI/API 路径；商品搜索和扫码始终只写 Workspace `pickupItems`。已新增独立
-  `BenefitPaymentEditor`（不访问 POS `paymentList`），但尚未完成把所有既有操作窗统一迁移到它及 B 的专项交互验收；
-  因此 B 不能标记完成，且不得进入 C～E。
+- **ME-1.5B（2026-10-08，本地完成待总体验收）**：已补齐数量权益购买、TARGET 专用销售结算和 AMOUNT 提货整笔退款的
+  Workspace UI/API 路径；商品搜索和扫码始终只写 Workspace `pickupItems`。所有需收款的权益操作窗均使用独立
+  `BenefitPaymentEditor`（不访问 POS `paymentList`），可使用支付字典、聚合渠道标签和多笔金额分摊；每次关闭窗口均
+  销毁重建支付编辑状态。生产构建通过，静态检查确认 Workspace 不引用 `paymentList`、`bindMember`、
+  `scanAndAddToCart` 或 `/pos/settleAccounts`。项目没有前端组件测试基础；Windows POS 人工冒烟仍留待 ME-1.5E。
 - 收口复核确认 `108a866` 已将 ME-1.4 文档收口同步至 `origin/dev`，开始时 `dev...origin/dev` 为 0/0；
   Repository Handoff 的阶段字段滞后于 Git，已按仓库事实更正。
 - 新增 `FinanceNonProductReceiptQuery` 及日维度快照，由 TRADE 聚合 AMOUNT 的 `net_amount` 和 TARGET 的

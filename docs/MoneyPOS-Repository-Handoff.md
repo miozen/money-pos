@@ -1,6 +1,6 @@
 # MoneyPOS Repository-driven Handoff
 
-> Last updated: 2026-09-29. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
+> Last updated: 2026-10-08. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
 
 ## Recovery order
 
@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after ME-1.5A and in-progress ME-1.5B checkpoint `393221f` was committed and pushed** |
-| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5B local implementation in progress` |
+| Working tree | **DIRTY: ME-1.5B completion source and handoff updates are uncommitted** |
+| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5B local implementation complete; ME-1.5C next` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -53,14 +53,17 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
   main-window full-screen dialog, shallow-copying `currentMember` only as its initial value. The Workspace searches
   and changes only its local `selectedMember`, never calling `bindMember` or accessing cart/payment/trial state.
   The backend page reuses the same component and has no operator member-ID input.
-- ME-1.5B has local UI/API paths for QUANTITY purchase, TARGET dedicated sale settlement and AMOUNT pickup full refund.
-  Goods search/scans remain Workspace-local. `BenefitPaymentEditor` is present but not yet wired through every existing
-  benefit operation dialog, so B remains in progress and C～E have not started.
+- ME-1.5B completes local UI/API paths for QUANTITY purchase, TARGET dedicated sale settlement and AMOUNT pickup full
+  refund. Goods search/scans remain Workspace-local. All payment-bearing dialogs use `BenefitPaymentEditor`, which
+  loads the existing payment dictionary/tags, emits only local payment payloads and is destroyed on close; no Workspace
+  path reads or writes ordinary POS payment/cart/member-binding state.
 
 ## Validation actually performed
 
 - `source /home/mio/.nvm/nvm.sh && nvm use 20 && npm run build` passed under Node `v20.20.2` / npm `10.8.2`
   (only pre-existing warnings), and `git diff --check` passed after its source changes.
+- ME-1.5B's final Node 20 production build passed with the same pre-existing warnings. Static focused inspection found
+  no `paymentList`, `bindMember`, `scanAndAddToCart` or `/pos/settleAccounts` reference in `views/ums/memberBenefit/`.
 - Isolated `money_pos_test`: `FinanceFeatureIntegrationTest` (14/0/0),
   `HomeCountSnapshotCharacterizationTest` (7/0/0), `UmsMemberBenefitRouteContractTest` (1/0/0),
   `CheckoutIntegrationTest` after fixture correction (18/0/0), and final `mvn -q test` (130/0/0) passed.
@@ -75,8 +78,8 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Complete only ME-1.5B: wire the Workspace-local mixed-payment editor into all benefit operation dialogs and run its
-focused interaction checks; do not begin ME-1.5C～ME-1.5E early.
+Commit and push this ME-1.5B checkpoint, verify `dev...origin/dev=0/0`, then implement only ME-1.5C permissions and
+dynamic backend entry; do not begin ME-1.5D～ME-1.5E early.
 
 ## Handoff rule
 
