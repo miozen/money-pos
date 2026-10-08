@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after the local ME-1.6B commit; not yet pushed. Windows smoke evidence remains pending** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6B complete; push/sync pending before ME-1.6C` |
+| Working tree | **CLEAN after ME-1.6B and workflow commits were pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6C next` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -100,12 +100,11 @@ normal cart, POS TARGET-plan creation, and backend-only risk actions. It is desi
 implementation has been confirmed by the user and ME-1.6B is complete locally. The B work replaces the technical
 first screen with three business entries, keeps the selected member local to the workspace, hides internal identifiers
 and maps business display names through Entity-free GMS contracts. It does not alter any write route or transaction.
+It is committed in `fee5c30` and, together with the Codex-push workflow update `977e545`, is pushed and synchronized.
 
 ## Exact next action
 
-Push the local ME-1.6B commit using the established SSH-over-443 path and confirm `dev...origin/dev` has neither ahead
-nor behind. Then begin ME-1.6C with the AMOUNT pickup preview contract and the isolated QUANTITY/AMOUNT local carts.
-Separately retain
+Begin ME-1.6C with the AMOUNT pickup preview contract and the isolated QUANTITY/AMOUNT local carts. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
