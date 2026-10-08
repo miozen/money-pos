@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **DIRTY: uncommitted ME-1.5E regression-test alignment and final-acceptance records; not yet safe for cross-computer reconstruction** |
+| Working tree | **CLEAN after ME-1.5E automation checkpoint `2a8e7c0` was committed and pushed; Windows smoke evidence remains pending** |
 | Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5E final acceptance in progress` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
