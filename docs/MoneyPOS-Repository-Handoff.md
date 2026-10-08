@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **DIRTY: ME-1.5D complete locally and awaiting this checkpoint's commit/push; not yet safe for cross-computer reconstruction** |
+| Working tree | **CLEAN after ME-1.5D checkpoint `1bcb2d4` was committed and pushed** |
 | Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5D complete; ME-1.5E next` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -89,8 +89,7 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Commit and push this ME-1.5D checkpoint, verify `dev...origin/dev=0/0`, then begin only ME-1.5E final acceptance;
-do not report ME-1.5 complete before all E acceptance evidence exists.
+Begin only ME-1.5E final acceptance; do not report ME-1.5 complete before all E acceptance evidence exists.
 
 ## Handoff rule
 
