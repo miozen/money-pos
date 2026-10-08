@@ -23,7 +23,7 @@ public class UmsMemberBenefitController {
 
     @Operation(summary = "查询会员权益、品牌档位与TARGET计划")
     @GetMapping("/overview")
-    @PreAuthorize("@rbac.hasPermission('umsMember:list')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
     public MemberBenefitOverviewVO overview(@RequestParam(required = false) Long memberId,
                                             @RequestParam(required = false) String brandId) {
         return memberBenefitReadService.overview(memberId, brandId);
@@ -31,7 +31,7 @@ public class UmsMemberBenefitController {
 
     @Operation(summary = "查询TARGET进度审计流水")
     @GetMapping("/target-logs")
-    @PreAuthorize("@rbac.hasPermission('umsMember:list')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
     public List<MemberTargetProgressLogVO> targetLogs(@RequestParam Long planId) {
         return memberBenefitReadService.targetLogs(planId);
     }

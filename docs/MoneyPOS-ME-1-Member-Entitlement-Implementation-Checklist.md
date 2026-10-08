@@ -177,6 +177,10 @@
   `BenefitPaymentEditor`（不访问 POS `paymentList`），可使用支付字典、聚合渠道标签和多笔金额分摊；每次关闭窗口均
   销毁重建支付编辑状态。生产构建通过，静态检查确认 Workspace 不引用 `paymentList`、`bindMember`、
   `scanAndAddToCart` 或 `/pos/settleAccounts`。项目没有前端组件测试基础；Windows POS 人工冒烟仍留待 ME-1.5E。
+- **ME-1.5C（2026-10-08，本地完成待总体验收）**：`V1.0.10` 新增权益动态菜单及 `operate/manage/tier` 三项能力资源；
+  既有具备 `pos:cashier` 的角色自动获得日常办理及菜单记录，高风险管理和档位权限保持由既有角色授权页显式分配。
+  静态权益路由已移除，后台菜单由权限树注册；POS/后台入口按能力隐藏。后端路由分别强制 operate/manage，专项
+  `UmsMemberBenefitRouteContractTest` 与 Node 20 生产构建通过。
 - 收口复核确认 `108a866` 已将 ME-1.4 文档收口同步至 `origin/dev`，开始时 `dev...origin/dev` 为 0/0；
   Repository Handoff 的阶段字段滞后于 Git，已按仓库事实更正。
 - 新增 `FinanceNonProductReceiptQuery` 及日维度快照，由 TRADE 聚合 AMOUNT 的 `net_amount` 和 TARGET 的

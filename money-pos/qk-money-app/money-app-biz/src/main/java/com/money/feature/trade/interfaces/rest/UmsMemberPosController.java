@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +23,7 @@ public class UmsMemberPosController {
     private final PosService posService;
 
     @GetMapping("/pos-search")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier', 'memberBenefit:operate', 'memberBenefit:manage')")
     @Operation(summary = "POS搜会员")
     public java.util.List<com.money.dto.pos.PosMemberVO> posSearchMember(@RequestParam String keyword) {
         return posService.listMember(keyword);

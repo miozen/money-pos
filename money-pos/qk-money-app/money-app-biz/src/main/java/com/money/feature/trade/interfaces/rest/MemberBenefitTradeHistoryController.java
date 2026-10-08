@@ -20,7 +20,7 @@ public class MemberBenefitTradeHistoryController {
 
     @Operation(summary = "查询会员权益提货及非商品凭证历史")
     @GetMapping
-    @PreAuthorize("@rbac.hasPermission('umsMember:list')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
     public MemberBenefitTradeHistoryVO list(@RequestParam Long memberId) {
         return historyService.listByMember(memberId);
     }

@@ -24,7 +24,7 @@
                 <el-button type="success" link @click="openRecharge(scope.row)">
                     <el-icon class="mr-1"><MoneyIcon /></el-icon>业务办理
                 </el-button>
-                <el-button type="primary" link @click="$router.push({ name: 'MemberBenefit', query: { memberId: scope.row.id, memberName: scope.row.name, memberPhone: scope.row.phone } })">
+                <el-button v-if="userStore.hasPermission(['memberBenefit:operate', 'memberBenefit:manage'])" type="primary" link @click="$router.push({ name: 'MemberBenefit', query: { memberId: scope.row.id, memberName: scope.row.name, memberPhone: scope.row.phone } })">
                     权益中心
                 </el-button>
                 <MoneyUD :money-crud="moneyCrud" :scope="scope" />
@@ -70,8 +70,10 @@ import memberApi from "@/api/ums/member.js";
 import dictApi from "@/api/system/dict.js";
 import brandApi from "@/api/gms/brand.js";
 import { DataLine, Money as MoneyIcon } from "@element-plus/icons-vue";
+import { useUserStore } from '@/store/modules/user.js';
 
 const dict = ref({});
+const userStore = useUserStore();
 const brands = ref([]);
 const brandsKv = ref({});
 const formKey = ref(Date.now());

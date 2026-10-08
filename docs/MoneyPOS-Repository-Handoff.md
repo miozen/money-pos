@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **DIRTY: ME-1.5B completion source and handoff updates are uncommitted** |
-| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5B local implementation complete; ME-1.5C next` |
+| Working tree | **DIRTY: ME-1.5C permissions/menu source, migration, tests and handoff updates are uncommitted** |
+| Current phase | `ME-1.5 会员权益操作化收口 — ME-1.5C local implementation complete; ME-1.5D next` |
 | Current plan | `MoneyPOS-ME-1.5-Member-Benefit-Operationalization-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -57,6 +57,9 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
   refund. Goods search/scans remain Workspace-local. All payment-bearing dialogs use `BenefitPaymentEditor`, which
   loads the existing payment dictionary/tags, emits only local payment payloads and is destroyed on close; no Workspace
   path reads or writes ordinary POS payment/cart/member-binding state.
+- ME-1.5C adds Flyway `V1.0.10` for the dynamic benefit menu and the frozen `operate/manage/tier` capability resources.
+  Existing POS-capable roles retain daily benefit access; manage/tier remain explicit grants. Static routing is removed,
+  menu registration is permission-tree-driven, and API/UI enforcement follows the new capability split.
 
 ## Validation actually performed
 
@@ -64,6 +67,7 @@ frozen-tier mixed supplement pickup and full-pickup refund reversal.
   (only pre-existing warnings), and `git diff --check` passed after its source changes.
 - ME-1.5B's final Node 20 production build passed with the same pre-existing warnings. Static focused inspection found
   no `paymentList`, `bindMember`, `scanAndAddToCart` or `/pos/settleAccounts` reference in `views/ums/memberBenefit/`.
+- C: `UmsMemberBenefitRouteContractTest` passed and Node 20 production build passed (only pre-existing warnings).
 - Isolated `money_pos_test`: `FinanceFeatureIntegrationTest` (14/0/0),
   `HomeCountSnapshotCharacterizationTest` (7/0/0), `UmsMemberBenefitRouteContractTest` (1/0/0),
   `CheckoutIntegrationTest` after fixture correction (18/0/0), and final `mvn -q test` (130/0/0) passed.
@@ -78,8 +82,8 @@ review and cannot automatically downgrade a member level.
 
 ## Exact next action
 
-Commit and push this ME-1.5B checkpoint, verify `dev...origin/dev=0/0`, then implement only ME-1.5C permissions and
-dynamic backend entry; do not begin ME-1.5D～ME-1.5E early.
+Commit and push this ME-1.5C checkpoint, verify `dev...origin/dev=0/0`, then implement only ME-1.5D tier management;
+do not begin ME-1.5E early.
 
 ## Handoff rule
 

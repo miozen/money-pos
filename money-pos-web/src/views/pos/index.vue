@@ -1,6 +1,6 @@
 <template>
     <div class="pos-container absolute inset-0 z-40 flex flex-col overflow-hidden font-sans select-none bg-[#f3f4f6]">
-        <HeaderBar :cashierName="cashierName" :currentTime="currentTime" @action="handleNavAction" />
+        <HeaderBar :cashierName="cashierName" :currentTime="currentTime" :can-operate-benefit="userStore.hasPermission('memberBenefit:operate')" @action="handleNavAction" />
 
         <div class="flex-1 overflow-hidden p-2 flex flex-col gap-2">
             <el-alert

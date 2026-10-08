@@ -44,7 +44,7 @@ public class PosController {
 
     @Operation(summary = "商品列表")
     @GetMapping("/goods")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier', 'memberBenefit:operate', 'memberBenefit:manage')")
     public List<PosGoodsVO> listGoods(String barcode) {
         return posService.listGoods(barcode);
     }
@@ -65,63 +65,63 @@ public class PosController {
 
     @Operation(summary = "会员数量权益购买（延迟提货）")
     @PostMapping("/deferred-quantity/settle")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public SettleResultVO settleDeferredQuantity(@Validated @RequestBody SettleAccountsDTO settleAccountsDTO) {
         return posService.settleDeferredQuantity(settleAccountsDTO);
     }
 
     @Operation(summary = "会员数量权益提货")
     @PostMapping("/deferred-quantity/pickup")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public com.money.dto.pos.DeferredQuantityPickupVO pickupDeferredQuantity(@Validated @RequestBody com.money.dto.pos.DeferredQuantityPickupDTO dto) {
         return deferredQuantityPickupService.pickup(dto);
     }
 
     @Operation(summary = "会员金额权益包购买")
     @PostMapping("/amount-package/purchase")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public MemberAmountPackagePurchaseVO purchaseAmountPackage(@Validated @RequestBody MemberAmountPackagePurchaseDTO dto) {
         return memberAmountBenefitService.purchase(dto);
     }
 
     @Operation(summary = "会员金额权益提货与补差")
     @PostMapping("/amount-package/pickup")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public MemberAmountPickupVO pickupAmountPackage(@Validated @RequestBody MemberAmountPickupDTO dto) {
         return memberAmountBenefitService.pickup(dto);
     }
 
     @Operation(summary = "会员金额权益提货整笔退款")
     @PostMapping("/amount-package/pickup-refund")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:manage')")
     public MemberAmountPickupRefundVO refundAmountPickup(@Validated @RequestBody MemberAmountPickupRefundDTO dto) {
         return memberAmountBenefitService.refund(dto);
     }
 
     @Operation(summary = "会员TARGET即时结算")
     @PostMapping("/target/settle")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public SettleResultVO settleTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetSettleDTO dto) {
         return memberTargetBenefitService.settle(dto);
     }
 
     @Operation(summary = "会员TARGET补差")
     @PostMapping("/target/supplement")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public com.money.dto.pos.MemberTargetReceiptVO supplementTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetAdjustmentDTO dto) {
         return memberTargetBenefitService.supplement(dto);
     }
 
     @Operation(summary = "会员TARGET人工豁免")
     @PostMapping("/target/waive")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public com.money.dto.pos.MemberTargetReceiptVO waiveTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetAdjustmentDTO dto) {
         return memberTargetBenefitService.waive(dto);
     }
 
     @Operation(summary = "会员TARGET达标人工确认")
     @PostMapping("/target/confirm")
-    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:manage')")
     public com.money.dto.pos.MemberTargetConfirmVO confirmTarget(@Validated @RequestBody com.money.dto.pos.MemberTargetConfirmDTO dto) {
         return memberTargetBenefitService.confirm(dto);
     }
