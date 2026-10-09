@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **DIRTY: completed, uncommitted ME-1.6C source and documentation; no unrelated changes. Windows smoke evidence remains pending** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6C complete; commit/push pending before ME-1.6D` |
+| Working tree | **CLEAN after the ME-1.6C commit was pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6D next` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -110,8 +110,7 @@ Node 20 production build and diff check passed before this handoff update.
 
 ## Exact next action
 
-Commit and push ME-1.6C, verify `dev...origin/dev` is synchronized, then begin ME-1.6D with TARGET plan creation and
-explicit normal-Checkout plan selection. Separately retain
+Begin ME-1.6D with TARGET plan creation and explicit normal-Checkout plan selection. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
