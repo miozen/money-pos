@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after the ME-1.6D commit was pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
+| Working tree | **ME-1.6F automated gates passed locally; this handoff update is awaiting commit/push. Windows Electron smoke evidence remains pending.** |
 | Current phase | `ME-1.6 会员权益 UX — ME-1.6F next after E sync` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -118,7 +118,7 @@ checkout. Focused target/route regressions and the full isolated Maven suite, pa
 
 ## Exact next action
 
-ME-1.6E adds the independent amount-package table, legacy tier migration, package CRUD/menu and POS package selection while preserving legacy tier purchase compatibility and issued-right snapshots. Full regression, package and architecture gates passed. Begin ME-1.6F final regression and Windows acceptance. Separately retain
+ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed. The exact next action is to run and record the frozen 1280x800 POS, scanner focus, state isolation, payment retry, close/reset and customer-display/double-screen matrix on a callable Windows Electron session. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
