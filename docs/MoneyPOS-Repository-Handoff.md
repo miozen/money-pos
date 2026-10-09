@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **ME-1.6D implementation is validated locally and awaiting this commit/push; Windows smoke evidence remains pending** |
+| Working tree | **CLEAN after the ME-1.6D commit was pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
 | Current phase | `ME-1.6 会员权益 UX — ME-1.6E next after D sync` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
