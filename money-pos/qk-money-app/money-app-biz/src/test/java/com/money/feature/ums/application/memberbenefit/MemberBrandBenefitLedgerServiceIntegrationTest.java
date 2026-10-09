@@ -37,6 +37,7 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
     @Autowired private UmsMemberTargetPlanMapper targetPlanMapper;
     @Autowired private UmsMemberTargetProgressLogMapper targetLogMapper;
     @Autowired private UmsMemberBrandLevelMapper brandLevelMapper;
+    @Autowired private MemberBenefitReadService readService;
 
     @BeforeEach void auth() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("test", "N/A"));
@@ -69,6 +70,7 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
         create.setMemberId(91002L); create.setBrandId(brand); create.setTargetTierCode("T2700"); create.setInitialProgress(new BigDecimal("660"));
         create.setRequestNo("REQ-T-" + brand); create.setSourceType("HISTORY_INIT"); create.setSourceNo("INIT-1"); create.setOperatorName("tester");
         Long planId = service.createTargetPlan(create);
+        assertThat(service.createTargetPlan(create)).isEqualTo(planId);
         assertThat(targetPlanMapper.selectById(planId).getProgressAmount()).isEqualByComparingTo("660");
         assertThat(targetLogMapper.selectOne(new LambdaQueryWrapper<UmsMemberTargetProgressLog>().eq(UmsMemberTargetProgressLog::getPlanId, planId)).getAction()).isEqualTo("INITIAL_PROGRESS");
         MemberBrandBenefitLedgerCommand.TargetProgressChange contribution = new MemberBrandBenefitLedgerCommand.TargetProgressChange();
@@ -78,6 +80,7 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
         assertThat(targetPlanMapper.selectById(planId).getProgressAmount()).isEqualByComparingTo("760");
         service.activateTierIfHigher(91002L, brand, "T2700"); service.activateTierIfHigher(91002L, brand, "T660");
         assertThat(brandLevelMapper.selectOne(new LambdaQueryWrapper<UmsMemberBrandLevel>().eq(UmsMemberBrandLevel::getMemberId, 91002L).eq(UmsMemberBrandLevel::getBrand, brand)).getLevelCode()).isEqualTo("L2700");
+        assertThat(readService.targetPlanOptions(91002L, brand)).hasSize(1);
     }
 
     @Test void quantityLedgerIsAuditedIdempotentAndCannotBecomeNegative() {

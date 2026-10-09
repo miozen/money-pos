@@ -3,6 +3,7 @@ package com.money.feature.ums.interfaces.rest;
 import com.money.dto.memberbenefit.MemberBenefitOverviewVO;
 import com.money.dto.memberbenefit.MemberBenefitTierDTO;
 import com.money.dto.memberbenefit.MemberTargetProgressLogVO;
+import com.money.dto.memberbenefit.MemberTargetPlanOptionVO;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitReadService;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitTierService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,5 +61,12 @@ public class UmsMemberBenefitController {
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
     public List<MemberTargetProgressLogVO> targetLogs(@RequestParam Long planId) {
         return memberBenefitReadService.targetLogs(planId);
+    }
+
+    @Operation(summary = "查询普通结算可显式计入的TARGET计划")
+    @GetMapping("/target-plan-options")
+    @PreAuthorize("@rbac.hasPermission('pos:cashier')")
+    public List<MemberTargetPlanOptionVO> targetPlanOptions(@RequestParam Long memberId, @RequestParam String brandId) {
+        return memberBenefitReadService.targetPlanOptions(memberId, brandId);
     }
 }

@@ -5,6 +5,7 @@ import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.goods.GoodsNameQuery;
 import com.money.dto.memberbenefit.MemberBenefitOverviewVO;
 import com.money.dto.memberbenefit.MemberTargetProgressLogVO;
+import com.money.dto.memberbenefit.MemberTargetPlanOptionVO;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,23 @@ public class MemberBenefitReadService {
         return targetLogMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetProgressLog>()
                 .eq(UmsMemberTargetProgressLog::getPlanId, planId).orderByDesc(UmsMemberTargetProgressLog::getId))
                 .stream().map(this::log).collect(Collectors.toList());
+    }
+
+    /** Only in-progress plans for the explicit, single-brand normal-checkout choice. */
+    public List<MemberTargetPlanOptionVO> targetPlanOptions(Long memberId, String brandId) {
+        if (memberId == null || !text(brandId)) return java.util.Collections.emptyList();
+        String name = brandNameQuery.findNamesByIds(java.util.Collections.singleton(brandId)).get(brandId);
+        return targetPlanMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetPlan>()
+                .eq(UmsMemberTargetPlan::getMemberId, memberId).eq(UmsMemberTargetPlan::getBrandId, brandId)
+                .eq(UmsMemberTargetPlan::getStatus, "IN_PROGRESS").orderByDesc(UmsMemberTargetPlan::getId))
+                .stream().map(row -> {
+                    MemberTargetPlanOptionVO option = new MemberTargetPlanOptionVO();
+                    option.setPlanId(row.getId()); option.setBrandId(row.getBrandId()); option.setBrandName(name);
+                    option.setTargetTierName(row.getTargetTierNameSnapshot()); option.setTargetAmount(row.getTargetAmount());
+                    option.setProgressAmount(row.getProgressAmount());
+                    option.setRemainingAmount(row.getTargetAmount().subtract(row.getProgressAmount()).max(java.math.BigDecimal.ZERO));
+                    return option;
+                }).collect(Collectors.toList());
     }
 
     private MemberBenefitOverviewVO.Tier tier(UmsBrandBenefitTier row) { MemberBenefitOverviewVO.Tier r = new MemberBenefitOverviewVO.Tier(); r.setBrandId(row.getBrandId()); r.setTierCode(row.getTierCode()); r.setTierName(row.getTierName()); r.setConfiguredAmount(row.getConfiguredAmount()); r.setPricingLevelCode(row.getPricingLevelCode()); r.setRankValue(row.getRankValue()); r.setEnabled(row.getEnabled()); r.setSortNo(row.getSortNo()); return r; }

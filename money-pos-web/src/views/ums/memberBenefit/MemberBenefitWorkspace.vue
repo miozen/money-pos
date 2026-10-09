@@ -23,7 +23,7 @@
 
         <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
         <AmountBenefitPanel v-else-if="activeTab === 'amount'" ref="amountPanel" :rights="overview.amountRights" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
-        <TargetBenefitPanel v-else :plans="overview.targetPlans" @back="activeTab = 'home'" />
+        <TargetBenefitPanel v-else :plans="overview.targetPlans" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
       </div>
     </template>
 

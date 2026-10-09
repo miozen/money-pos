@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after the ME-1.6C commit was pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6D next` |
+| Working tree | **ME-1.6D implementation is validated locally and awaiting this commit/push; Windows smoke evidence remains pending** |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6E next after D sync` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -108,9 +108,17 @@ one selected right, enforces its brand, displays preview totals/deduction/supple
 existing pickup transaction for final revalidation. The full isolated Maven test, package, both architecture gates,
 Node 20 production build and diff check passed before this handoff update.
 
+ME-1.6D adds UMS-owned `POST /pos/target/plans`, which validates the member and delegates creation/idempotency to the
+existing Entity-free TARGET ledger command. `GET /ums/member-benefit/target-plan-options` exposes only the selected
+member/brand's `IN_PROGRESS` plans to ordinary POS checkout. The checkout dialog now offers this explicit choice only
+for a single-brand cart: no choice retains `/pos/settleAccounts`; a selected choice calls the existing
+`/pos/target/settle` with the unchanged settlement payload. Mixed-brand carts disable selection and remain normal
+checkout. Focused target/route regressions and the full isolated Maven suite, package, both architecture gates, Node
+20 production build, and diff check passed.
+
 ## Exact next action
 
-Begin ME-1.6D with TARGET plan creation and explicit normal-Checkout plan selection. Separately retain
+Begin ME-1.6E with the frozen backend rule configuration, amount-package model decision and permission/page work. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule

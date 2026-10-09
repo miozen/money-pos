@@ -18,6 +18,8 @@ class UmsMemberBenefitRouteContractTest {
     void benefitReadsUseOperateOrManageAndHighRiskWritesUseManage() throws Exception {
         assertRoute(UmsMemberBenefitController.class, "overview", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/overview");
         assertRoute(UmsMemberBenefitController.class, "targetLogs", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/target-logs");
+        assertRoute(UmsMemberBenefitController.class, "targetPlanOptions", "@rbac.hasPermission('pos:cashier')", "/target-plan-options");
+        assertPostRoute(PosMemberTargetPlanController.class, "create", "@rbac.hasPermission('memberBenefit:operate')", "/plans");
         assertRoute(MemberBenefitTradeHistoryController.class, "list", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')");
         assertRoute(PosController.class, "refundAmountPickup", "@rbac.hasPermission('memberBenefit:manage')");
         assertRoute(PosController.class, "confirmTarget", "@rbac.hasPermission('memberBenefit:manage')");
@@ -48,5 +50,11 @@ class UmsMemberBenefitRouteContractTest {
     private Method method(Class<?> controller, String methodName) {
         return java.util.Arrays.stream(controller.getDeclaredMethods())
                 .filter(candidate -> candidate.getName().equals(methodName)).findFirst().orElseThrow();
+    }
+
+    private void assertPostRoute(Class<?> controller, String methodName, String permission, String path) throws Exception {
+        Method method = method(controller, methodName);
+        assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly(path);
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo(permission);
     }
 }

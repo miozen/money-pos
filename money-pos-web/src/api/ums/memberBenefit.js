@@ -2,6 +2,8 @@ import { req } from '../index.js'
 
 export default {
   overview: (params) => req({ url: '/ums/member-benefit/overview', method: 'GET', params }),
+  targetPlanOptions: (params) => req({ url: '/ums/member-benefit/target-plan-options', method: 'GET', params }),
+  createTargetPlan: (data) => req({ url: '/pos/target/plans', method: 'POST', data }),
   targetLogs: (planId) => req({ url: '/ums/member-benefit/target-logs', method: 'GET', params: { planId } }),
   tradeHistory: (memberId) => req({ url: '/member-benefit/trade-history', method: 'GET', params: { memberId } }),
   quantityPurchase: (data) => req({ url: '/pos/deferred-quantity/settle', method: 'POST', data }),
