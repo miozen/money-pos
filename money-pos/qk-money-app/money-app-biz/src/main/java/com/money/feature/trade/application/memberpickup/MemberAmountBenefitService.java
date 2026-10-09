@@ -83,6 +83,21 @@ public class MemberAmountBenefitService {
         return pickupResult(pickupNo, receiptNo, rightDeduct, supplement);
     }
 
+    /** Prices a selected right without writes; pickup repeats this validation inside its transaction. */
+    public MemberAmountPickupPreviewVO preview(MemberAmountPickupPreviewDTO dto) {
+        require(dto != null && dto.getMemberId() != null && dto.getAmountRightId() != null && dto.getLines() != null && !dto.getLines().isEmpty(), "金额权益提货预览请求不完整");
+        MemberAmountRightSnapshot right = amountRightQuery.findAvailableForPickup(dto.getMemberId(), dto.getAmountRightId());
+        require(right != null, "金额权益不存在或不可用");
+        Map<Long, CheckoutGoodsSnapshot> goods = goodsQuery.findByIds(goodsIds(dto.getLines()));
+        List<PickupLine> lines = pickupLines(dto.getLines(), goods, right);
+        BigDecimal total = sum(lines, false); BigDecimal deduct = min(total, right.getRemainingAmount());
+        MemberAmountPickupPreviewVO result = new MemberAmountPickupPreviewVO(); result.setGoodsAmount(total); result.setRightDeductAmount(deduct);
+        result.setSupplementAmount(scale(total.subtract(deduct))); result.setRemainingAmountAfter(scale(right.getRemainingAmount().subtract(deduct)));
+        List<MemberAmountPickupPreviewVO.Line> display = new ArrayList<>();
+        for (PickupLine line : lines) { MemberAmountPickupPreviewVO.Line item = new MemberAmountPickupPreviewVO.Line(); item.setGoodsId(line.goods.getId()); item.setGoodsName(line.goods.getName()); item.setQuantity(line.quantity); item.setUnitPrice(line.unitPrice); item.setAmount(line.amount); display.add(item); }
+        result.setLines(display); return result;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public MemberAmountPickupRefundVO refund(MemberAmountPickupRefundDTO dto) {
         require(dto != null && text(dto.getPickupNo()) && text(dto.getReqId()), "金额权益提货退款请求不完整");
@@ -121,7 +136,7 @@ public class MemberAmountBenefitService {
     private List<StockMutationLine> stockLines(List<PickupLine> lines) { List<StockMutationLine> result = new ArrayList<>(); for (PickupLine l : lines) { StockMutationLine s = new StockMutationLine(); s.setGoodsId(l.goods.getId()); s.setGoodsName(l.goods.getName()); s.setGoodsBarcode(l.goods.getBarcode()); s.setQuantity(l.quantity); s.setPurchasePrice(l.goods.getPurchasePrice()); s.setCombo(l.goods.getIsCombo() != null && l.goods.getIsCombo() == 1); result.add(s); } return result; }
     private List<StockMutationLine> returnLines(List<OmsMemberAmountPickupItem> items, Map<Long, CheckoutGoodsSnapshot> goods) { List<StockMutationLine> result = new ArrayList<>(); for (OmsMemberAmountPickupItem i : items) { CheckoutGoodsSnapshot g = goods.get(i.getGoodsId()); require(g != null, "退货商品不存在"); StockMutationLine s = new StockMutationLine(); s.setGoodsId(g.getId()); s.setGoodsName(g.getName()); s.setGoodsBarcode(g.getBarcode()); s.setQuantity(i.getQuantity()); s.setPurchasePrice(i.getPurchasePrice()); result.add(s); } return result; }
     private List<Payment> payments(List<SettleAccountsDTO.PaymentItem> raw, BigDecimal expected) { if (!positive(expected)) { require(raw == null || raw.isEmpty(), "权益足额抵扣时不得录入补差支付"); return Collections.emptyList(); } require(raw != null && !raw.isEmpty(), "补差支付明细为空"); List<Payment> result = new ArrayList<>(); BigDecimal total = BigDecimal.ZERO; for (SettleAccountsDTO.PaymentItem p : raw) { require(p != null && positive(p.getPayAmount()) && text(p.getPayMethodCode()), "支付明细不合法"); PayMethodEnum method = PayMethodEnum.fromCode(p.getPayMethodCode().trim().toUpperCase()); require(method != null && (method != PayMethodEnum.AGGREGATE || text(p.getPayTag())), "支付方式或渠道标签不合法"); BigDecimal amount = scale(p.getPayAmount()); result.add(new Payment(method.getCode(), p.getPayMethodName() == null ? method.getCode() : p.getPayMethodName(), p.getPayTag(), amount)); total = total.add(amount); } require(scale(total).compareTo(scale(expected)) == 0, "支付金额必须等于业务凭证应收金额"); return result; }
-    private List<Long> goodsIds(List<MemberAmountPickupDTO.Line> lines) { return lines.stream().map(MemberAmountPickupDTO.Line::getGoodsId).collect(java.util.stream.Collectors.toList()); }
+    private List<Long> goodsIds(List<? extends MemberAmountPickupDTO.Line> lines) { return lines.stream().map(MemberAmountPickupDTO.Line::getGoodsId).collect(java.util.stream.Collectors.toList()); }
     private BigDecimal sum(List<PickupLine> lines, boolean cost) { BigDecimal total = BigDecimal.ZERO; for (PickupLine line : lines) total = total.add(cost ? line.cost : line.amount); return scale(total); }
     private MemberAmountPackagePurchaseVO purchaseResult(OmsMemberAmountReceipt receipt) { return purchaseResult(receipt.getReceiptNo(), receipt.getAmountRightId(), receipt.getTotalAmount()); }
     private MemberAmountPackagePurchaseVO purchaseResult(String no, Long rightId, BigDecimal amount) { MemberAmountPackagePurchaseVO r = new MemberAmountPackagePurchaseVO(); r.setReceiptNo(no); r.setAmountRightId(rightId); r.setAmount(amount); return r; }

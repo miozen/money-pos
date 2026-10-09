@@ -23,6 +23,7 @@ class UmsMemberBenefitRouteContractTest {
         assertRoute(PosController.class, "confirmTarget", "@rbac.hasPermission('memberBenefit:manage')");
         assertRoute(PosController.class, "settleDeferredQuantity", "@rbac.hasPermission('memberBenefit:operate')");
         assertRoute(PosController.class, "settleTarget", "@rbac.hasPermission('memberBenefit:operate')");
+        assertRoute(PosController.class, "previewAmountPackagePickup", "@rbac.hasPermission('memberBenefit:operate')");
     }
 
     @Test

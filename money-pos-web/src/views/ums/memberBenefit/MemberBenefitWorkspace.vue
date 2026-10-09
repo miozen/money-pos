@@ -21,8 +21,8 @@
           <el-card shadow="hover" class="cursor-pointer" @click="activeTab = 'target'"><template #header><b>会员升级计划</b></template><div class="text-2xl font-bold">{{ overview.targetPlans.length }} 个</div><div class="mt-2 text-sm text-gray-500">查看目标、当前进度和剩余金额。</div></el-card>
         </div>
 
-        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" :rights="overview.quantityRights" @back="activeTab = 'home'" />
-        <AmountBenefitPanel v-else-if="activeTab === 'amount'" :rights="overview.amountRights" @back="activeTab = 'home'" />
+        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
+        <AmountBenefitPanel v-else-if="activeTab === 'amount'" ref="amountPanel" :rights="overview.amountRights" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
         <TargetBenefitPanel v-else :plans="overview.targetPlans" @back="activeTab = 'home'" />
       </div>
     </template>
@@ -43,6 +43,8 @@ const selectedMember = ref(null)
 const memberSearchId = ref(null)
 const loading = ref(false)
 const activeTab = ref('home')
+const quantityPanel = ref(null)
+const amountPanel = ref(null)
 const overview = ref({ tiers: [], quantityRights: [], amountRights: [], targetPlans: [] })
 const amountBalance = computed(() => overview.value.amountRights.reduce((sum, row) => sum + Number(row.remainingAmount || 0), 0).toFixed(2))
 
@@ -64,4 +66,6 @@ const load = async () => {
 }
 watch(() => props.initialMember, resetWorkspace, { immediate: true })
 watch(() => selectedMember.value?.id, (id) => { if (id) load() }, { immediate: true })
+const handleBarcode = (barcode) => { if (activeTab.value === 'quantity') return quantityPanel.value?.handleBarcode(barcode); if (activeTab.value === 'amount') return amountPanel.value?.handleBarcode(barcode) }
+defineExpose({ handleBarcode })
 </script>

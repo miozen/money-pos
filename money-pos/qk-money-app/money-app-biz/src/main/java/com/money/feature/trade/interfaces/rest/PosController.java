@@ -9,6 +9,8 @@ import com.money.dto.pos.MemberAmountPackagePurchaseDTO;
 import com.money.dto.pos.MemberAmountPackagePurchaseVO;
 import com.money.dto.pos.MemberAmountPickupDTO;
 import com.money.dto.pos.MemberAmountPickupVO;
+import com.money.dto.pos.MemberAmountPickupPreviewDTO;
+import com.money.dto.pos.MemberAmountPickupPreviewVO;
 import com.money.dto.pos.MemberAmountPickupRefundDTO;
 import com.money.dto.pos.MemberAmountPickupRefundVO;
 import com.money.dto.pos.SettleTrialReqDTO;
@@ -89,6 +91,13 @@ public class PosController {
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public MemberAmountPickupVO pickupAmountPackage(@Validated @RequestBody MemberAmountPickupDTO dto) {
         return memberAmountBenefitService.pickup(dto);
+    }
+
+    @Operation(summary = "会员金额权益提货预览")
+    @PostMapping("/amount-package/pickup-preview")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public MemberAmountPickupPreviewVO previewAmountPackagePickup(@Validated @RequestBody MemberAmountPickupPreviewDTO dto) {
+        return memberAmountBenefitService.preview(dto);
     }
 
     @Operation(summary = "会员金额权益提货整笔退款")

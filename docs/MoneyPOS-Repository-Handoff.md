@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **CLEAN after ME-1.6B and workflow commits were pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6C next` |
+| Working tree | **DIRTY: completed, uncommitted ME-1.6C source and documentation; no unrelated changes. Windows smoke evidence remains pending** |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6C complete; commit/push pending before ME-1.6D` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -102,9 +102,16 @@ first screen with three business entries, keeps the selected member local to the
 and maps business display names through Entity-free GMS contracts. It does not alter any write route or transaction.
 It is committed in `fee5c30` and, together with the Codex-push workflow update `977e545`, is pushed and synchronized.
 
+ME-1.6C adds an AMOUNT pickup preview with no persistence writes, then wires QUANTITY and AMOUNT into independent
+member-benefit carts, barcode dispatch and local payment state. QUANTITY supports multi-line pickup; AMOUNT requires
+one selected right, enforces its brand, displays preview totals/deduction/supplement/balance-after, and reuses the
+existing pickup transaction for final revalidation. The full isolated Maven test, package, both architecture gates,
+Node 20 production build and diff check passed before this handoff update.
+
 ## Exact next action
 
-Begin ME-1.6C with the AMOUNT pickup preview contract and the isolated QUANTITY/AMOUNT local carts. Separately retain
+Commit and push ME-1.6C, verify `dev...origin/dev` is synchronized, then begin ME-1.6D with TARGET plan creation and
+explicit normal-Checkout plan selection. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule

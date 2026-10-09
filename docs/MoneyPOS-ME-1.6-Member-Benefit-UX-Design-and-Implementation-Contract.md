@@ -1,6 +1,6 @@
 # MoneyPOS ME-1.6：会员权益 UX 设计与分阶段实施合同
 
-> 状态：**Frozen implementation contract — ME-1.6B complete, ME-1.6C next**；冻结日期：2026-10-08；适用分支：`dev`。
+> 状态：**Frozen implementation contract — ME-1.6C complete, ME-1.6D next**；冻结日期：2026-10-08；适用分支：`dev`。
 >
 > 本文是 ME-1.6 的唯一设计与后续实施合同。它基于 ME-1.5 已提交实现和 ME-1.6 审查结果，
 > 只收敛操作体验与必要的配置模型；不改变 QUANTITY、AMOUNT、TARGET 已冻结的交易、库存、收入、

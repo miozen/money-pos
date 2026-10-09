@@ -69,6 +69,18 @@ class MemberAmountBenefitServiceIntegrationTest {
         assertThat(inventoryDocMapper.selectOne(new LambdaQueryWrapper<GmsInventoryDoc>().eq(GmsInventoryDoc::getDocNo, "MP-" + pickup.getPickupNo())).getDocType()).isEqualTo("MEMBER_PICKUP");
     }
 
+    @Test void previewUsesFrozenTierPriceWithoutChangingRightOrStock() {
+        Setup s = setup(5); MemberAmountPackagePurchaseVO right = service.purchase(purchaseRequest("BUY-" + s.suffix, s.member.getId(), s.brand, s.tierCode, new BigDecimal("100")));
+        MemberAmountPickupPreviewDTO request = new MemberAmountPickupPreviewDTO(); request.setMemberId(s.member.getId()); request.setAmountRightId(right.getAmountRightId());
+        MemberAmountPickupDTO.Line line = new MemberAmountPickupDTO.Line(); line.setGoodsId(s.goods.getId()); line.setQuantity(1); request.setLines(Collections.singletonList(line));
+        MemberAmountPickupPreviewVO preview = service.preview(request);
+        assertThat(preview).extracting(MemberAmountPickupPreviewVO::getGoodsAmount, MemberAmountPickupPreviewVO::getRightDeductAmount, MemberAmountPickupPreviewVO::getSupplementAmount, MemberAmountPickupPreviewVO::getRemainingAmountAfter)
+                .containsExactly(new BigDecimal("150.00"), new BigDecimal("100.00"), new BigDecimal("50.00"), new BigDecimal("0.00"));
+        assertThat(preview.getLines()).singleElement().extracting(MemberAmountPickupPreviewVO.Line::getGoodsName, MemberAmountPickupPreviewVO.Line::getUnitPrice).containsExactly(s.goods.getName(), new BigDecimal("150.00"));
+        assertThat(rightMapper.selectById(right.getAmountRightId()).getRemainingAmount()).isEqualByComparingTo("100");
+        assertThat(goodsMapper.selectById(s.goods.getId()).getStock()).isEqualTo(5L);
+    }
+
     @Test void fullPickupRefundRestoresRightStockAndSupplementExactlyOnce() {
         Setup s = setup(5); MemberAmountPackagePurchaseVO right = service.purchase(purchaseRequest("BUY-" + s.suffix, s.member.getId(), s.brand, s.tierCode, new BigDecimal("100")));
         MemberAmountPickupVO pickup = service.pickup(pickupRequest("PICK-" + s.suffix, s.member.getId(), right.getAmountRightId(), s.goods.getId(), 1, new BigDecimal("50")));
