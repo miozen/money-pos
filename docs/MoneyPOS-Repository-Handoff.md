@@ -15,8 +15,8 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **ME-1.6F automated gates passed locally; this handoff update is awaiting commit/push. Windows Electron smoke evidence remains pending.** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6F next after E sync` |
-| Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
+| Current phase | `ME-1.6G 商品寄存试算与局部混合收银 — implementation next` |
+| Current plan | `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -118,7 +118,11 @@ checkout. Focused target/route regressions and the full isolated Maven suite, pa
 
 ## Exact next action
 
-ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed. The exact next action is to run and record the frozen 1280x800 POS, scanner focus, state isolation, payment retry, close/reset and customer-display/double-screen matrix on a callable Windows Electron session. Separately retain
+ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
+
+ME-1.6G is frozen in `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md`. It adds only QUANTITY pre-submit deferred pricing, local whole-order discount and Checkout-equivalent local payment allocation; normal POS state remains isolated and physical stock remains a pickup-only concern.
+
+The exact next action is to implement the protected deferred-quantity trial route and the isolated QUANTITY checkout UI. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
