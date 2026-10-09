@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **CLEAN after the ME-1.6D commit was pushed; `dev...origin/dev` is synchronized. Windows smoke evidence remains pending** |
-| Current phase | `ME-1.6 会员权益 UX — ME-1.6E next after D sync` |
+| Current phase | `ME-1.6 会员权益 UX — ME-1.6F next after E sync` |
 | Current plan | `MoneyPOS-ME-1.6-Member-Benefit-UX-Design-and-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -118,7 +118,7 @@ checkout. Focused target/route regressions and the full isolated Maven suite, pa
 
 ## Exact next action
 
-Begin ME-1.6E with the frozen backend rule configuration, amount-package model decision and permission/page work. Separately retain
+ME-1.6E adds the independent amount-package table, legacy tier migration, package CRUD/menu and POS package selection while preserving legacy tier purchase compatibility and issued-right snapshots. Full regression, package and architecture gates passed. Begin ME-1.6F final regression and Windows acceptance. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule

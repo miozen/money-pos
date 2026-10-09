@@ -1,0 +1,3 @@
+package com.money.dto.memberbenefit;
+import lombok.Data; import javax.validation.constraints.*; import java.math.BigDecimal;
+@Data public class MemberAmountPackageDTO { private Long id; @NotBlank(groups=Create.class) private String brandId; @NotBlank(groups=Create.class) private String packageCode; @NotBlank(groups=Create.class) private String packageName; @NotNull(groups=Create.class) private BigDecimal purchaseAmount; @NotNull(groups=Create.class) private BigDecimal benefitAmount; @NotBlank(groups=Create.class) private String pricingLevelCode; @NotNull(groups=Create.class) private Boolean enabled; @NotNull(groups=Create.class) private Integer sortNo; private String remark; private String legacyTierCode; public interface Create {} }

@@ -29,6 +29,7 @@ public class MemberAmountBenefitService {
     private final OmsMemberAmountReceiptPayMapper receiptPayMapper;
     private final OmsMemberAmountPickupMapper pickupMapper;
     private final OmsMemberAmountPickupItemMapper pickupItemMapper;
+    private final MemberAmountPackageQuery packageQuery;
     private final MemberBrandBenefitTierQuery tierQuery;
     private final MemberBrandBenefitLedgerCommandHandler ledgerCommandHandler;
     private final MemberAmountRightQuery amountRightQuery;
@@ -44,19 +45,20 @@ public class MemberAmountBenefitService {
         require(dto != null && dto.getMemberId() != null && text(dto.getBrandId()) && text(dto.getTierCode()) && text(dto.getReqId()), "金额权益包购买请求不完整");
         OmsMemberAmountReceipt existing = receiptMapper.selectOne(new LambdaQueryWrapper<OmsMemberAmountReceipt>().eq(OmsMemberAmountReceipt::getRequestNo, dto.getReqId()));
         if (existing != null) return purchaseResult(existing);
-        MemberBrandBenefitTierSnapshot tier = tierQuery.findEnabled(dto.getBrandId(), dto.getTierCode());
-        require(tier != null && positive(tier.getConfiguredAmount()), "品牌金额权益档位不存在或未启用");
-        List<Payment> payments = payments(dto.getPayments(), tier.getConfiguredAmount());
+        MemberAmountPackageSnapshot tier = packageQuery.findEnabled(dto.getBrandId(), dto.getTierCode()); boolean legacyPackage = tier == null;
+        if (tier == null) { MemberBrandBenefitTierSnapshot legacy = tierQuery.findEnabled(dto.getBrandId(), dto.getTierCode()); if (legacy != null) { tier = new MemberAmountPackageSnapshot(); tier.setBrandId(legacy.getBrandId()); tier.setPackageCode(legacy.getTierCode()); tier.setPackageName(legacy.getTierName()); tier.setPurchaseAmount(legacy.getConfiguredAmount()); tier.setBenefitAmount(legacy.getConfiguredAmount()); } }
+        require(tier != null && positive(tier.getBenefitAmount()) && tier.getPurchaseAmount().compareTo(BigDecimal.ZERO) >= 0, "品牌金额权益包不存在或未启用");
+        List<Payment> payments = payments(dto.getPayments(), tier.getPurchaseAmount());
         String receiptNo = no("MAR");
         OmsMemberAmountReceipt receipt = receipt(receiptNo, dto.getReqId(), "AMOUNT_PACKAGE_PURCHASE", dto.getMemberId(), dto.getBrandId(),
-                tier.getConfiguredAmount(), BigDecimal.ZERO, tier.getConfiguredAmount(), BigDecimal.ZERO, "COMPLETED");
+                tier.getPurchaseAmount(), BigDecimal.ZERO, tier.getPurchaseAmount(), BigDecimal.ZERO, "COMPLETED");
         receiptMapper.insert(receipt); writePayments(receiptNo, dto.getMemberId(), dto.getReqId(), payments, false);
         MemberBrandBenefitLedgerCommand.AmountGrant grant = new MemberBrandBenefitLedgerCommand.AmountGrant();
         grant.setMemberId(dto.getMemberId()); grant.setBrandId(dto.getBrandId()); grant.setTierCode(dto.getTierCode()); grant.setSourceReceiptNo(receiptNo);
-        grant.setAmount(tier.getConfiguredAmount()); grant.setRequestNo(dto.getReqId()); grant.setReason("AMOUNT_PACKAGE_PURCHASE");
+        grant.setAmount(tier.getBenefitAmount()); if (!legacyPackage) { grant.setTierNameSnapshot(tier.getPackageName()); grant.setPricingLevelCodeSnapshot(tier.getPricingLevelCode()); } grant.setRequestNo(dto.getReqId()); grant.setReason("AMOUNT_PACKAGE_PURCHASE");
         Long rightId = ledgerCommandHandler.grantAmount(grant);
         OmsMemberAmountReceipt update = new OmsMemberAmountReceipt(); update.setId(receipt.getId()); update.setAmountRightId(rightId); receiptMapper.updateById(update);
-        return purchaseResult(receiptNo, rightId, tier.getConfiguredAmount());
+        return purchaseResult(receiptNo, rightId, tier.getPurchaseAmount());
     }
 
     @Transactional(rollbackFor = Exception.class)

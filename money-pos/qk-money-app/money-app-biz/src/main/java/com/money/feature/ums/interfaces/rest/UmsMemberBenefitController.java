@@ -4,6 +4,8 @@ import com.money.dto.memberbenefit.MemberBenefitOverviewVO;
 import com.money.dto.memberbenefit.MemberBenefitTierDTO;
 import com.money.dto.memberbenefit.MemberTargetProgressLogVO;
 import com.money.dto.memberbenefit.MemberTargetPlanOptionVO;
+import com.money.dto.memberbenefit.MemberAmountPackageDTO;
+import com.money.feature.ums.application.memberbenefit.MemberAmountPackageService;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitReadService;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitTierService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +31,11 @@ import java.util.List;
 public class UmsMemberBenefitController {
     private final MemberBenefitReadService memberBenefitReadService;
     private final MemberBenefitTierService memberBenefitTierService;
+    private final MemberAmountPackageService memberAmountPackageService;
+
+    @GetMapping("/amount-packages") @PreAuthorize("@rbac.hasPermission('memberBenefit:tier')") public List<MemberAmountPackageDTO> amountPackages() { return memberAmountPackageService.list(); }
+    @PostMapping("/amount-packages") @PreAuthorize("@rbac.hasPermission('memberBenefit:tier')") public void saveAmountPackage(@Validated(MemberAmountPackageDTO.Create.class) @RequestBody MemberAmountPackageDTO dto) { memberAmountPackageService.save(dto); }
+    @DeleteMapping("/amount-packages/{id}") @PreAuthorize("@rbac.hasPermission('memberBenefit:tier')") public void deleteAmountPackage(@PathVariable Long id) { memberAmountPackageService.delete(id); }
 
     @GetMapping("/tiers")
     @PreAuthorize("@rbac.hasPermission('memberBenefit:tier')")

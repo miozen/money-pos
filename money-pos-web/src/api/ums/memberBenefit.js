@@ -2,6 +2,9 @@ import { req } from '../index.js'
 
 export default {
   overview: (params) => req({ url: '/ums/member-benefit/overview', method: 'GET', params }),
+  amountPackages: () => req({ url: '/ums/member-benefit/amount-packages', method: 'GET' }),
+  saveAmountPackage: (data) => req({ url: '/ums/member-benefit/amount-packages', method: 'POST', data }),
+  deleteAmountPackage: (id) => req({ url: `/ums/member-benefit/amount-packages/${id}`, method: 'DELETE' }),
   targetPlanOptions: (params) => req({ url: '/ums/member-benefit/target-plan-options', method: 'GET', params }),
   createTargetPlan: (data) => req({ url: '/pos/target/plans', method: 'POST', data }),
   targetLogs: (planId) => req({ url: '/ums/member-benefit/target-logs', method: 'GET', params: { planId } }),

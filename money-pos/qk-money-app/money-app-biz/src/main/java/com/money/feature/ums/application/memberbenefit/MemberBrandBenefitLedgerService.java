@@ -95,11 +95,11 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         UmsMemberAmountRight existing = amountRightMapper.selectOne(new LambdaQueryWrapper<UmsMemberAmountRight>()
                 .eq(UmsMemberAmountRight::getCreateRequestNo, c.getRequestNo()));
         if (existing != null) return existing.getId();
-        UmsBrandBenefitTier tier = enabledTier(c.getBrandId(), c.getTierCode());
+        UmsBrandBenefitTier tier = text(c.getTierNameSnapshot()) && text(c.getPricingLevelCodeSnapshot()) ? null : enabledTier(c.getBrandId(), c.getTierCode());
         UmsMemberAmountRight right = new UmsMemberAmountRight();
         right.setMemberId(c.getMemberId()); right.setBrandId(c.getBrandId());
-        right.setTierCodeSnapshot(tier.getTierCode()); right.setTierNameSnapshot(tier.getTierName());
-        right.setPricingLevelCodeSnapshot(tier.getPricingLevelCode()); right.setGrantedAmount(c.getAmount());
+        right.setTierCodeSnapshot(c.getTierCode()); right.setTierNameSnapshot(tier == null ? c.getTierNameSnapshot() : tier.getTierName());
+        right.setPricingLevelCodeSnapshot(tier == null ? c.getPricingLevelCodeSnapshot() : tier.getPricingLevelCode()); right.setGrantedAmount(c.getAmount());
         right.setRemainingAmount(c.getAmount()); right.setSourceReceiptNo(c.getSourceReceiptNo());
         right.setCreateRequestNo(c.getRequestNo()); right.setStatus("ACTIVE"); amountRightMapper.insert(right);
         amountLogMapper.insert(amountLog(right.getId(), "GRANT", c.getAmount(), BigDecimal.ZERO, c.getAmount(), c.getRequestNo(),

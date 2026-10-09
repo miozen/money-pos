@@ -23,6 +23,7 @@ public final class MemberBrandBenefitLedgerCommand {
     public static class AmountGrant {
         private Long memberId; private String brandId; private String tierCode; private String sourceReceiptNo;
         private BigDecimal amount; private String requestNo; private String operatorName; private String reason;
+        private String tierNameSnapshot; private String pricingLevelCodeSnapshot;
     }
     @Data
     public static class AmountChange {
