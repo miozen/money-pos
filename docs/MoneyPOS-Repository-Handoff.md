@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **ME-1.6G implementation is validated locally and awaiting this commit/push. Windows Electron smoke evidence remains pending.** |
-| Current phase | `ME-1.6G 商品寄存试算与局部混合收银 — implementation next` |
+| Working tree | **Clean. ME-1.6G implementation and its request-ID length fix are committed and pushed; Windows Electron smoke evidence remains pending.** |
+| Current phase | `ME-1.6G 商品寄存试算与局部混合收银 — completed implementation; product follow-ups recorded` |
 | Current plan | `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -116,14 +116,40 @@ for a single-brand cart: no choice retains `/pos/settleAccounts`; a selected cho
 checkout. Focused target/route regressions and the full isolated Maven suite, package, both architecture gates, Node
 20 production build, and diff check passed.
 
+ME-1.6G adds a protected QUANTITY deferred-pricing trial route, an isolated deposit cart with normal-cart price
+labels, local whole-order discount, and Checkout-equivalent local payment allocation. `1bba18c` is the implementation
+commit. `e7d01fe` shortens the UI-generated deposit request ID below `oms_order.order_no varchar(32)`; it fixes the
+confirmed insert failure without changing final transaction-side pricing or payment validation.
+
+The following product follow-ups are intentionally recorded only and are **not implemented**:
+
+- Deposit orders currently use a short `MB-QUANTITY-BUY-*` idempotency request ID while ordinary checkout uses
+  `REQ${Date.now()}`. A later change should align the deposit *order request ID* to the ordinary `REQ` style while
+  keeping it within 32 characters. Quantity pickup is a separate pickup document: its `request_no` is idempotency
+  data and its `MP*` pickup number is the business trace number, so any desired display/identifier unification needs
+  an explicit scope decision.
+- Quantity pickup persists a pickup business document and items, updates the member right, and writes inventory
+  documents/logs. `MEMBER_PICKUP` is the current internal inventory movement code. The requested business wording is
+  "会员提货" (or equivalent) in display/dictionaries; do not rewrite the internal code or historic data without a
+  dedicated compatibility plan.
+- Deposit is an `OmsOrder`, but the deferred-quantity submission does not call ordinary checkout's
+  `/oms-order/hardware/checkout-receipt` automatic-print endpoint. Pickup is not an `OmsOrder` and has no dedicated
+  pickup-receipt route/template. Therefore neither flow currently has confirmed automatic receipt printing; deposit
+  can later reuse the existing order-receipt capability, while pickup requires its own receipt contract.
+
 ## Exact next action
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
-ME-1.6G is frozen in `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md`. It adds only QUANTITY pre-submit deferred pricing, local whole-order discount and Checkout-equivalent local payment allocation; normal POS state remains isolated and physical stock remains a pickup-only concern. The protected trial route uses the existing no-stock-check pricing path; final settlement still recalculates in its transaction. Focused and full isolated Maven regressions plus Node 20 build passed.
+ME-1.6G is completed in `1bba18c` and its `oms_order.order_no` length follow-up is in `e7d01fe`. It adds only
+QUANTITY pre-submit deferred pricing, local whole-order discount and Checkout-equivalent local payment allocation;
+normal POS state remains isolated and physical stock remains a pickup-only concern. The protected trial route uses
+the existing no-stock-check pricing path; final settlement still recalculates in its transaction. Focused and full
+isolated Maven regressions plus Node 20 build passed.
 
-The exact next action is to implement the protected deferred-quantity trial route and the isolated QUANTITY checkout UI. Separately retain
-the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
+The exact next action is to await direction on the three recorded product follow-ups; no business-code change is
+authorized by this record-only request. Separately retain the ME-1.5E five-item Windows POS smoke matrix as an
+outstanding close condition.
 
 ## Handoff rule
 
