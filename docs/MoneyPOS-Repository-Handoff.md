@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **ME-1.6F automated gates passed locally; this handoff update is awaiting commit/push. Windows Electron smoke evidence remains pending.** |
+| Working tree | **ME-1.6G implementation is validated locally and awaiting this commit/push. Windows Electron smoke evidence remains pending.** |
 | Current phase | `ME-1.6G 商品寄存试算与局部混合收银 — implementation next` |
 | Current plan | `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -120,7 +120,7 @@ checkout. Focused target/route regressions and the full isolated Maven suite, pa
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
-ME-1.6G is frozen in `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md`. It adds only QUANTITY pre-submit deferred pricing, local whole-order discount and Checkout-equivalent local payment allocation; normal POS state remains isolated and physical stock remains a pickup-only concern.
+ME-1.6G is frozen in `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md`. It adds only QUANTITY pre-submit deferred pricing, local whole-order discount and Checkout-equivalent local payment allocation; normal POS state remains isolated and physical stock remains a pickup-only concern. The protected trial route uses the existing no-stock-check pricing path; final settlement still recalculates in its transaction. Focused and full isolated Maven regressions plus Node 20 build passed.
 
 The exact next action is to implement the protected deferred-quantity trial route and the isolated QUANTITY checkout UI. Separately retain
 the ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.

@@ -21,7 +21,7 @@
           <el-card shadow="hover" class="cursor-pointer" @click="activeTab = 'target'"><template #header><b>会员升级计划</b></template><div class="text-2xl font-bold">{{ overview.targetPlans.length }} 个</div><div class="mt-2 text-sm text-gray-500">查看目标、当前进度和剩余金额。</div></el-card>
         </div>
 
-        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
+        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" :member-balance="selectedMember.balance" @back="activeTab = 'home'" @refresh="load" />
         <AmountBenefitPanel v-else-if="activeTab === 'amount'" ref="amountPanel" :rights="overview.amountRights" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
         <TargetBenefitPanel v-else :plans="overview.targetPlans" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
       </div>

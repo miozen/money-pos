@@ -10,6 +10,7 @@ export default {
   targetLogs: (planId) => req({ url: '/ums/member-benefit/target-logs', method: 'GET', params: { planId } }),
   tradeHistory: (memberId) => req({ url: '/member-benefit/trade-history', method: 'GET', params: { memberId } }),
   quantityPurchase: (data) => req({ url: '/pos/deferred-quantity/settle', method: 'POST', data }),
+  quantityTrial: (data) => req({ url: '/pos/deferred-quantity/trial', method: 'POST', data }),
   quantityPickup: (data) => req({ url: '/pos/deferred-quantity/pickup', method: 'POST', data }),
   amountPurchase: (data) => req({ url: '/pos/amount-package/purchase', method: 'POST', data }),
   amountPickupPreview: (data) => req({ url: '/pos/amount-package/pickup-preview', method: 'POST', data }),

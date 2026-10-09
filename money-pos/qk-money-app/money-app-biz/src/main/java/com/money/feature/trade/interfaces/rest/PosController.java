@@ -72,6 +72,13 @@ public class PosController {
         return posService.settleDeferredQuantity(settleAccountsDTO);
     }
 
+    @Operation(summary = "会员数量权益寄存试算（不校验实体库存）")
+    @PostMapping("/deferred-quantity/trial")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public PricingResult trialDeferredQuantity(@RequestBody SettleTrialReqDTO dto) {
+        return posPricingFacade.priceDeferredQuantity(dto);
+    }
+
     @Operation(summary = "会员数量权益提货")
     @PostMapping("/deferred-quantity/pickup")
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")

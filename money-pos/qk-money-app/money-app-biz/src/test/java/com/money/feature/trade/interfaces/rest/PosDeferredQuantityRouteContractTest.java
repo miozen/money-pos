@@ -14,6 +14,7 @@ class PosDeferredQuantityRouteContractTest {
     void benefitRoutesUseFrozenCapabilitiesWhileNormalSettlementRemainsCashierProtected() throws Exception {
         assertRoute("settleAccounts", "/settleAccounts", "pos:cashier");
         assertRoute("settleDeferredQuantity", "/deferred-quantity/settle", "memberBenefit:operate");
+        assertRoute("trialDeferredQuantity", "/deferred-quantity/trial", "memberBenefit:operate");
         assertRoute("pickupDeferredQuantity", "/deferred-quantity/pickup", "memberBenefit:operate");
         assertRoute("purchaseAmountPackage", "/amount-package/purchase", "memberBenefit:operate");
         assertRoute("pickupAmountPackage", "/amount-package/pickup", "memberBenefit:operate");
