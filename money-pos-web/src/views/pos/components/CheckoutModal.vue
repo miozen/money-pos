@@ -62,11 +62,14 @@
 
                     <div class="flex flex-col mt-2">
                         <div v-if="currentMember.id" class="border-t border-dashed border-gray-300 pt-3 mb-1">
-                            <div class="text-sm font-bold text-indigo-700">会员升级计划</div>
-                            <el-select v-model="targetPlanId" class="w-full mt-1" clearable :disabled="targetPlanUnavailable" placeholder="不选择：按普通销售结算">
-                                <el-option v-for="plan in targetPlanOptions" :key="plan.planId" :value="plan.planId" :label="`${plan.brandName || '品牌'} / ${plan.targetTierName} / 还差￥${plan.remainingAmount}`" />
-                            </el-select>
-                            <div v-if="targetPlanUnavailable" class="text-[11px] text-gray-500 mt-1">混合品牌购物车不可计入单一计划；请拆单或按普通销售结算。</div>
+                            <div class="text-sm font-bold text-indigo-700">会员升级计划（自动计入）</div>
+                            <div v-if="targetPlanOptions.length" class="mt-1 space-y-1 text-[11px] text-gray-600">
+                                <div v-for="plan in targetPlanOptions" :key="plan.planId" class="rounded bg-indigo-50 px-2 py-1">
+                                    {{ plan.brandName || '品牌' }} / {{ plan.targetTierName }}：本单计入约￥{{ targetContribution(plan).toFixed(2) }}
+                                    <span class="text-gray-500">；不计入：{{ notContributingGoods(plan) || '无' }}</span>
+                                </div>
+                            </div>
+                            <div v-else class="text-[11px] text-gray-500 mt-1">本单没有可自动计入的升级计划；其他品牌商品不计入计划。</div>
                         </div>
                         <div class="flex justify-between items-center text-blue-600 border-t border-gray-200 pt-3">
                             <span class="font-bold whitespace-nowrap">🏷️ 整单优惠:</span>
@@ -182,12 +185,11 @@ const submitLoading = ref(false)
 const localPayTagDict = ref([]) // 🌟 纯净的数据源存放点
 const stockErrorMessage = ref('')
 const targetPlanOptions = ref([])
-const targetPlanId = ref(null)
 
 const {
     cartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
     totalAmount, actualCouponUsed, finalPayAmount, theoreticalCouponUsed, participatingAmount,
-    reqId, prepareCheckout, clearAll, submitOrder, runTrial, isTrialing
+    reqId, prepareCheckout, clearAll, submitOrder, runTrial, isTrialing, trialResult
 } = usePosStore();
 
 const isSubmitDisabled = computed(() => {
@@ -195,17 +197,32 @@ const isSubmitDisabled = computed(() => {
            unpaidAmount.value > 0 ||
            (!isWaiveCoupon.value && currentMember.value.id && currentMember.value.coupon < theoreticalCouponUsed.value);
 })
-const checkoutBrandId = computed(() => {
-    const brands = [...new Set(cartList.value.map(item => item.brandId).filter(id => id !== null && id !== undefined).map(String))]
-    return brands.length === 1 ? brands[0] : null
-})
-const targetPlanUnavailable = computed(() => !checkoutBrandId.value)
 const loadTargetPlanOptions = async () => {
-    targetPlanId.value = null; targetPlanOptions.value = []
-    if (!currentMember.value.id || !checkoutBrandId.value) return
-    const res = await benefitApi.targetPlanOptions({ memberId: currentMember.value.id, brandId: checkoutBrandId.value })
-    targetPlanOptions.value = res.data || res || []
+    targetPlanOptions.value = []
+    if (!currentMember.value.id) return
+    const brands = [...new Set(cartList.value.map(item => item.brandId).filter(id => id !== null && id !== undefined).map(String))]
+    const rows = await Promise.all(brands.map(async brandId => {
+        const res = await benefitApi.targetPlanOptions({ memberId: currentMember.value.id, brandId })
+        return res.data || res || []
+    }))
+    targetPlanOptions.value = rows.flat()
 }
+const targetContribution = (plan) => {
+    const items = trialResult.value?.items || []
+    const brandBase = cartList.value.reduce((sum, item) => {
+        if (String(item.brandId) !== String(plan.brandId)) return sum
+        const line = items.find(row => String(row.goodsId) === String(item.id))
+        const member = new Big(line?.subTotalMember || 0)
+        const coupon = new Big(line?.actualSubTotalCoupon || 0)
+        return sum.plus(member.minus(coupon).gt(0) ? member.minus(coupon) : 0)
+    }, new Big(0))
+    const allBase = items.reduce((sum, row) => sum.plus(new Big(row.subTotalMember || 0).minus(row.actualSubTotalCoupon || 0).gt(0) ? new Big(row.subTotalMember || 0).minus(row.actualSubTotalCoupon || 0) : 0), new Big(0))
+    const orderDiscount = new Big(trialResult.value?.voucherDeduct || 0).plus(trialResult.value?.manualDeduct || 0)
+    if (!allBase.gt(0)) return 0
+    const contribution = brandBase.minus(orderDiscount.times(brandBase).div(allBase))
+    return contribution.gt(0) ? contribution.toNumber() : 0
+}
+const notContributingGoods = (plan) => cartList.value.filter(item => String(item.brandId) !== String(plan.brandId)).map(item => item.name).filter(Boolean).join('、')
 
 const handleFocus = (event) => {
     event.target.select();
@@ -269,7 +286,6 @@ const changeAmount = computed(() => {
 watch(visible, (newVal) => {
     if (newVal) {
         stockErrorMessage.value = ''
-        loadTargetPlanOptions().catch(() => { targetPlanOptions.value = [] })
         prepareCheckout();
         usedCouponCount.value = 0;
 
@@ -284,7 +300,12 @@ watch(visible, (newVal) => {
             activeTag: (dict.value === 'AGGREGATE' && localPayTagDict.value.length > 0) ? localPayTagDict.value[0].value : null
         }))
         recalculatePayments();
+        loadTargetPlanOptions().catch(() => { targetPlanOptions.value = [] })
     }
+})
+
+watch(() => `${currentMember.value.id || ''}:${cartList.value.map(item => item.brandId).join(',')}`, () => {
+    if (visible.value) loadTargetPlanOptions().catch(() => { targetPlanOptions.value = [] })
 })
 
 const handleDiscountChange = async () => {
@@ -326,7 +347,6 @@ const handleClosed = () => {
     manualDiscount.value = 0;
     isWaiveCoupon.value = false;
     selectedCouponRule.value = null;
-    targetPlanId.value = null;
     targetPlanOptions.value = [];
     runTrial();
     emit('closed');
@@ -360,9 +380,7 @@ const submitOrderAction = async () => {
             orderDetail: orderDetails,
             payments: validPayments
         };
-        const res = targetPlanId.value
-            ? await req({ url: '/pos/target/settle', method: 'POST', data: { targetPlanId: targetPlanId.value, settle: payload }, handledBusinessCodes: [30002] })
-            : await submitOrder(payload, { handledBusinessCodes: [30002] })
+        const res = await submitOrder(payload, { handledBusinessCodes: [30002] })
         ElMessage.success('收款成功！订单已真实入库！')
         try {
             const orderNoToPrint = (res && res.data && res.data.orderNo) || (res && res.orderNo) || (typeof res === 'string' ? res : null);

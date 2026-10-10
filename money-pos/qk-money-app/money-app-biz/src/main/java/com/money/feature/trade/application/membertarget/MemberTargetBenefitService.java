@@ -49,7 +49,7 @@ public class MemberTargetBenefitService {
         require(dto != null && dto.getSettle() != null && dto.getTargetPlanId() != null, "TARGET结算请求不完整");
         MemberTargetPlanSnapshot plan = active(dto.getTargetPlanId());
         require(plan.getMemberId().equals(dto.getSettle().getMember()), "TARGET计划与结算会员不一致");
-        SettleResultVO result = checkoutOrchestrator.orchestrate(dto.getSettle());
+        SettleResultVO result = checkoutOrchestrator.orchestrateWithoutAutomaticTargetContribution(dto.getSettle());
         OmsMemberTargetSaleContribution old = contributionMapper.selectOne(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>()
                 .eq(OmsMemberTargetSaleContribution::getTargetPlanId, plan.getPlanId()).eq(OmsMemberTargetSaleContribution::getOrderNo, result.getOrderNo()));
         if (old != null) return result;

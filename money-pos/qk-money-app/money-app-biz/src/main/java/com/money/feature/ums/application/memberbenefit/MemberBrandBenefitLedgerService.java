@@ -210,6 +210,22 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         snapshot.setProgressAmount(plan.getProgressAmount()); snapshot.setStatus(plan.getStatus()); return snapshot;
     }
 
+    @Override
+    public List<MemberTargetPlanSnapshot> findEligibleForAutomaticContribution(Long memberId, java.util.Collection<String> brandIds) {
+        if (memberId == null || brandIds == null || brandIds.isEmpty()) return java.util.Collections.emptyList();
+        return targetPlanMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetPlan>()
+                        .eq(UmsMemberTargetPlan::getMemberId, memberId)
+                        .in(UmsMemberTargetPlan::getBrandId, brandIds)
+                        .eq(UmsMemberTargetPlan::getStatus, "IN_PROGRESS"))
+                .stream().filter(row -> row.getProgressAmount().compareTo(row.getTargetAmount()) < 0)
+                .map(row -> {
+                    MemberTargetPlanSnapshot snapshot = new MemberTargetPlanSnapshot();
+                    snapshot.setPlanId(row.getId()); snapshot.setMemberId(row.getMemberId()); snapshot.setBrandId(row.getBrandId());
+                    snapshot.setTargetTierCode(row.getTargetTierCodeSnapshot()); snapshot.setTargetAmount(row.getTargetAmount());
+                    snapshot.setProgressAmount(row.getProgressAmount()); snapshot.setStatus(row.getStatus()); return snapshot;
+                }).collect(Collectors.toList());
+    }
+
     /** Only this method may promote the current member-brand level from a configured benefit tier. */
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -10,6 +10,7 @@ import com.money.contract.member.MemberBrandBenefitLedgerCommandHandler;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderLog;
 import com.money.feature.trade.domain.order.OmsOrderLogService;
+import com.money.feature.trade.application.membertarget.AutomaticTargetContributionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,20 +35,24 @@ public class CheckoutOrchestrator {
     private final CheckoutMemberAssetService memberAssetService;
     private final CheckoutPaymentService paymentService;
     private final MemberBrandBenefitLedgerCommandHandler memberBrandBenefitLedgerCommandHandler;
+    private final AutomaticTargetContributionService automaticTargetContributionService;
     private final OmsOrderLogService omsOrderLogService;
 
     @Transactional(rollbackFor = Exception.class)
     public SettleResultVO orchestrate(SettleAccountsDTO request) {
-        return orchestrate(request, false);
+        return orchestrate(request, false, true);
     }
+
+    /** Compatibility path for the legacy explicit single-plan endpoint. */
+    public SettleResultVO orchestrateWithoutAutomaticTargetContribution(SettleAccountsDTO request) { return orchestrate(request, false, false); }
 
     /** Deferred quantity purchase: records the sale and payment but grants fulfilment rights instead of deducting stock. */
     @Transactional(rollbackFor = Exception.class)
     public SettleResultVO orchestrateDeferredQuantity(SettleAccountsDTO request) {
-        return orchestrate(request, true);
+        return orchestrate(request, true, false);
     }
 
-    private SettleResultVO orchestrate(SettleAccountsDTO request, boolean deferredQuantity) {
+    private SettleResultVO orchestrate(SettleAccountsDTO request, boolean deferredQuantity, boolean automaticTargetContribution) {
         log.info("🚀 启动结算流水线，单号: {}", request.getReqId());
 
         CheckoutContext context = new CheckoutContext();
@@ -85,6 +90,7 @@ public class CheckoutOrchestrator {
         paymentService.handlePayment(context);
 
         saveAuditLog(context);
+        if (automaticTargetContribution) automaticTargetContributionService.contribute(context.getOrder(), context.getOrderDetails());
 
         return buildFinalResult(context);
     }

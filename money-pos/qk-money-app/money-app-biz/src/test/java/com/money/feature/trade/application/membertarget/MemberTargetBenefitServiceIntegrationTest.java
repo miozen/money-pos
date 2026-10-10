@@ -7,6 +7,8 @@ import com.money.dto.pos.MemberTargetAdjustmentDTO;
 import com.money.dto.pos.MemberTargetConfirmDTO;
 import com.money.dto.pos.MemberTargetSettleDTO;
 import com.money.dto.pos.SettleAccountsDTO;
+import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
+import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.trade.application.refund.OmsOrderRefundService;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetReceipt;
@@ -33,13 +35,16 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Transactional
 class MemberTargetBenefitServiceIntegrationTest {
     @Autowired private MemberTargetBenefitService service;
+    @Autowired private PosService posService;
     @Autowired private OmsOrderRefundService refundService;
     @Autowired private MemberBrandBenefitLedgerCommandHandler ledger;
     @Autowired private TradeFixture fixture;
@@ -74,6 +79,47 @@ class MemberTargetBenefitServiceIntegrationTest {
         MemberTargetAdjustmentDTO supplement = adjustment(planId, "SUP-" + suffix, "20.00", true); service.supplement(supplement); MemberTargetAdjustmentDTO waiver = adjustment(planId, "WAI-" + suffix, "5.00", false); service.waive(waiver);
         assertThat(receiptMapper.selectList(null)).extracting(OmsMemberTargetReceipt::getReceiptType).containsExactlyInAnyOrder("SUPPLEMENT", "WAIVER");
         assertThat(planMapper.selectById(planId).getProgressAmount()).isEqualByComparingTo("25.00");
+    }
+
+    @Test void ordinaryMixedBrandCheckoutContributesOnlyEachPlanBrandAfterOrderDiscountAndRefundNeedsReview() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        GmsGoods first = fixture.createSellableGoods(suffix + "a", 3, new BigDecimal("12.00")); first.setBrandId(1L); goodsMapper.updateById(first);
+        GmsGoods second = fixture.createSellableGoods(suffix + "b", 3, new BigDecimal("8.00")); second.setBrandId(2L); goodsMapper.updateById(second);
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = fixture.createMember(suffix, BigDecimal.ZERO);
+        Long firstPlan = createPlan(member.getId(), "1", suffix + "a"); Long secondPlan = createPlan(member.getId(), "2", suffix + "b");
+        SettleAccountsDTO settle = fixture.cashSettlement("MIX-" + suffix, first.getId(), 1, new BigDecimal("18.00"));
+        OmsOrderDetailDTO secondLine = new OmsOrderDetailDTO(); secondLine.setGoodsId(second.getId()); secondLine.setQuantity(1);
+        settle.setOrderDetail(Arrays.asList(settle.getOrderDetail().get(0), secondLine)); settle.setMember(member.getId()); settle.setManualDiscountAmount(new BigDecimal("2.00"));
+        posService.settleAccounts(settle);
+        assertThat(contributionMapper.selectList(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, settle.getReqId())))
+                .extracting(OmsMemberTargetSaleContribution::getTargetPlanId, OmsMemberTargetSaleContribution::getContributionAmount)
+                .containsExactlyInAnyOrder(org.assertj.core.groups.Tuple.tuple(firstPlan, new BigDecimal("10.80")), org.assertj.core.groups.Tuple.tuple(secondPlan, new BigDecimal("7.20")));
+        refundService.returnOrder("REFUND-" + suffix, settle.getReqId());
+        assertThat(planMapper.selectById(firstPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(planMapper.selectById(secondPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
+    }
+
+    @Test void ordinaryCheckoutRejectsAmbiguousEligiblePlansForSameBrand() {
+        String suffix = Long.toString(System.nanoTime(), 36); GmsGoods goods = fixture.createSellableGoods(suffix, 3, new BigDecimal("12.00")); goods.setBrandId(1L); goodsMapper.updateById(goods);
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = fixture.createMember(suffix, BigDecimal.ZERO);
+        createPlan(member.getId(), "1", suffix + "a", 1); createPlan(member.getId(), "1", suffix + "b", 2);
+        SettleAccountsDTO settle = fixture.cashSettlement("AMB-" + suffix, goods.getId(), 1, new BigDecimal("12.00")); settle.setMember(member.getId());
+        assertThatThrownBy(() -> posService.settleAccounts(settle)).hasMessageContaining("多个可计入TARGET计划");
+    }
+
+    @Test void ordinaryCheckoutDoesNotContributeToTargetCompletePlanAwaitingManualConfirmation() {
+        String suffix = Long.toString(System.nanoTime(), 36); GmsGoods goods = fixture.createSellableGoods(suffix, 3, new BigDecimal("12.00")); goods.setBrandId(1L); goodsMapper.updateById(goods);
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = fixture.createMember(suffix, BigDecimal.ZERO); Long planId = createPlan(member.getId(), "1", suffix);
+        UmsMemberTargetPlan plan = planMapper.selectById(planId); plan.setProgressAmount(plan.getTargetAmount()); planMapper.updateById(plan);
+        SettleAccountsDTO settle = fixture.cashSettlement("DONE-" + suffix, goods.getId(), 1, new BigDecimal("12.00")); settle.setMember(member.getId()); posService.settleAccounts(settle);
+        assertThat(contributionMapper.selectCount(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, settle.getReqId()))).isZero();
+        assertThat(planMapper.selectById(planId).getStatus()).isEqualTo("IN_PROGRESS");
+    }
+
+    private Long createPlan(Long memberId, String brand, String suffix) { return createPlan(memberId, brand, suffix, 1); }
+    private Long createPlan(Long memberId, String brand, String suffix, int rank) {
+        UmsBrandBenefitTier tier = new UmsBrandBenefitTier(); tier.setBrandId(brand); tier.setTierCode("T" + suffix); tier.setTierName("Target"); tier.setConfiguredAmount(new BigDecimal("100.00")); tier.setPricingLevelCode("TARGET-L" + suffix); tier.setRankValue(rank); tier.setEnabled(true); tier.setSortNo(rank); tierMapper.insert(tier);
+        MemberBrandBenefitLedgerCommand.TargetPlanCreate create = new MemberBrandBenefitLedgerCommand.TargetPlanCreate(); create.setMemberId(memberId); create.setBrandId(brand); create.setTargetTierCode(tier.getTierCode()); create.setRequestNo("PLAN-" + suffix); create.setSourceType("TEST"); return ledger.createTargetPlan(create);
     }
 
     private MemberTargetAdjustmentDTO adjustment(Long planId, String request, String amount, boolean paid) { MemberTargetAdjustmentDTO dto = new MemberTargetAdjustmentDTO(); dto.setTargetPlanId(planId); dto.setReqId(request); dto.setAmount(new BigDecimal(amount)); if (paid) { SettleAccountsDTO.PaymentItem pay = new SettleAccountsDTO.PaymentItem(); pay.setPayMethodCode("CASH"); pay.setPayMethodName("Cash"); pay.setPayAmount(new BigDecimal(amount)); dto.setPayments(Collections.singletonList(pay)); } return dto; }

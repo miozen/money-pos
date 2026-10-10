@@ -197,11 +197,12 @@ invalidates the preview. The actual pickup still uses its existing atomic transa
 validation. Focused tests (7 pickup-service + 1 route-contract) and the full isolated `money_pos_test` Maven suite
 (68 reports, 136 tests, 0 failures/errors), package, Node 20 build, both architecture gates and `git diff --check`
 passed. ME-1.6I-B is complete in `2111dc2`: TARGET cancellation is an auditable `CANCELLED` state, never deletion;
-it records request/operator/time/reason and rejects every plan with a post-initial business flow. The exact next action
-is I-C: permit one ordinary mixed-brand checkout to auto-link one eligible TARGET plan per brand, persist/recompute
-brand-specific contribution from order details, and stop contribution once a plan is target-complete pending manual
-confirmation. Establishing a TARGET plan continues to use the current level price; only manual confirmation upgrades
-the member brand level. ME-1.6H Windows acceptance remains outstanding and must not be reported complete.
+it records request/operator/time/reason and rejects every plan with a post-initial business flow. ME-1.6I-C is complete:
+ordinary checkout automatically contributes each eligible brand's persisted order-detail net amount to its one TARGET
+plan in the same transaction. Ambiguous same-brand plans reject checkout, target-complete plans await manual confirmation,
+and linked refunds still require review. The exact next action is I-D: add the Entity-free, read-only member-profile
+asset-and-benefit history, QDP order-detail routing, and AMOUNT pickup receipt printing. ME-1.6H Windows acceptance
+remains outstanding and must not be reported complete.
 
 ## Handoff rule
 

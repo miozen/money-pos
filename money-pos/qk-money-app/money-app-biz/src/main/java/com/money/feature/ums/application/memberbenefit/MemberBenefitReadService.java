@@ -65,14 +65,15 @@ public class MemberBenefitReadService {
                 .stream().map(this::log).collect(Collectors.toList());
     }
 
-    /** Only in-progress plans for the explicit, single-brand normal-checkout choice. */
+    /** Only automatically eligible plans for a normal checkout brand. */
     public List<MemberTargetPlanOptionVO> targetPlanOptions(Long memberId, String brandId) {
         if (memberId == null || !text(brandId)) return java.util.Collections.emptyList();
         String name = brandNameQuery.findNamesByIds(java.util.Collections.singleton(brandId)).get(brandId);
         return targetPlanMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetPlan>()
                 .eq(UmsMemberTargetPlan::getMemberId, memberId).eq(UmsMemberTargetPlan::getBrandId, brandId)
                 .eq(UmsMemberTargetPlan::getStatus, "IN_PROGRESS").orderByDesc(UmsMemberTargetPlan::getId))
-                .stream().map(row -> {
+                .stream().filter(row -> row.getProgressAmount().compareTo(row.getTargetAmount()) < 0)
+                .map(row -> {
                     MemberTargetPlanOptionVO option = new MemberTargetPlanOptionVO();
                     option.setPlanId(row.getId()); option.setBrandId(row.getBrandId()); option.setBrandName(name);
                     option.setTargetTierName(row.getTargetTierNameSnapshot()); option.setTargetAmount(row.getTargetAmount());
