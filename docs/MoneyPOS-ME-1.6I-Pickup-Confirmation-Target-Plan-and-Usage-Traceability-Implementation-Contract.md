@@ -1,6 +1,6 @@
 # MoneyPOS ME-1.6I：提货确认、升级计划与权益使用可追溯性实施合同
 
-> 状态：**I-A complete; I-B～I-D frozen and queued**；确认日期：2026-10-10；适用分支：`dev`。
+> 状态：**I-A～I-B complete; I-C～I-D frozen and queued**；确认日期：2026-10-10；适用分支：`dev`。
 >
 > 本合同记录已确认的下一轮权益调整，并授权按第 3 节顺序实施。ME-1.6H 的 Windows Electron/POS
 > 手工验收仍是该阶段的关闭条件；它不阻断本合同已确认的后续实现，但不得被误报为已完成。

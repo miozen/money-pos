@@ -83,6 +83,29 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
         assertThat(readService.targetPlanOptions(91002L, brand)).hasSize(1);
     }
 
+    @Test void targetPlanCancellationIsAuditedIdempotentAndRejectsPostInitialBusinessFlows() {
+        String brand = "ME1-" + Long.toString(System.nanoTime(), 36);
+        createTier(brand, "T100", "L100", 1, "100.00");
+        MemberBrandBenefitLedgerCommand.TargetPlanCreate create = new MemberBrandBenefitLedgerCommand.TargetPlanCreate();
+        create.setMemberId(91002L); create.setBrandId(brand); create.setTargetTierCode("T100"); create.setInitialProgress(BigDecimal.ZERO);
+        create.setRequestNo("REQ-CANCEL-" + brand); create.setSourceType("POS_TARGET_PLAN");
+        Long cancellable = service.createTargetPlan(create);
+        service.cancelTargetPlan(cancellable, "REQ-CANCELLED-" + brand, "tester", "录入有误");
+        service.cancelTargetPlan(cancellable, "REQ-CANCELLED-" + brand, "tester", "录入有误");
+        assertThat(targetPlanMapper.selectById(cancellable)).extracting(UmsMemberTargetPlan::getStatus, UmsMemberTargetPlan::getCancelReason)
+                .containsExactly("CANCELLED", "录入有误");
+        assertThat(targetLogMapper.selectList(new LambdaQueryWrapper<UmsMemberTargetProgressLog>().eq(UmsMemberTargetProgressLog::getPlanId, cancellable)))
+                .extracting(UmsMemberTargetProgressLog::getAction).containsExactlyInAnyOrder("INITIAL_PROGRESS", "CANCELLED");
+
+        create.setRequestNo("REQ-CANCEL-BLOCK-" + brand);
+        Long blocked = service.createTargetPlan(create);
+        MemberBrandBenefitLedgerCommand.TargetProgressChange contribution = new MemberBrandBenefitLedgerCommand.TargetProgressChange();
+        contribution.setPlanId(blocked); contribution.setDelta(new BigDecimal("1")); contribution.setAction("SALE_CONTRIBUTION"); contribution.setRequestNo("REQ-CANCEL-SALE-" + brand); contribution.setSourceType("TRADE_ORDER");
+        service.changeTargetProgress(contribution);
+        assertThatThrownBy(() -> service.cancelTargetPlan(blocked, "REQ-CANCEL-REJECT-" + brand, "tester", "不可取消"))
+                .isInstanceOf(BaseException.class).hasMessageContaining("后续业务流水");
+    }
+
     @Test void quantityLedgerIsAuditedIdempotentAndCannotBecomeNegative() {
         String brand = "ME1-" + Long.toString(System.nanoTime(), 36);
         MemberBrandBenefitLedgerCommand.QuantityGrant grant = new MemberBrandBenefitLedgerCommand.QuantityGrant();

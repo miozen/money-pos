@@ -19,4 +19,6 @@ public interface UmsMemberTargetPlanMapper extends BaseMapper<UmsMemberTargetPla
     int confirm(@Param("id") Long id, @Param("operatorName") String operatorName, @Param("reason") String reason);
     @Update("UPDATE ums_member_target_plan SET status = 'REVIEW_REQUIRED', update_time = NOW() WHERE id = #{id} AND status <> 'REVIEW_REQUIRED'")
     int markReviewRequired(@Param("id") Long id);
+    @Update("UPDATE ums_member_target_plan SET status = 'CANCELLED', cancelled_by = #{operatorName}, cancelled_time = NOW(), cancel_request_no = #{requestNo}, cancel_reason = #{reason}, update_time = NOW() WHERE id = #{id} AND status = 'IN_PROGRESS'")
+    int cancel(@Param("id") Long id, @Param("requestNo") String requestNo, @Param("operatorName") String operatorName, @Param("reason") String reason);
 }

@@ -23,6 +23,10 @@ public class UmsMemberTargetPlan {
     private String status;
     private String confirmedBy;
     private LocalDateTime confirmedTime;
+    private String cancelledBy;
+    private LocalDateTime cancelledTime;
+    private String cancelRequestNo;
+    private String cancelReason;
     private String remark;
     private String createRequestNo;
     private Long tenantId;

@@ -185,6 +185,22 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelTargetPlan(Long planId, String requestNo, String operatorName, String reason) {
+        require(planId != null && text(requestNo) && text(reason), "TARGET取消请求不完整");
+        UmsMemberTargetPlan plan = targetPlanMapper.selectByIdForUpdate(planId);
+        require(plan != null, "TARGET计划不存在");
+        if ("CANCELLED".equals(plan.getStatus()) && requestNo.equals(plan.getCancelRequestNo())) return;
+        require("IN_PROGRESS".equals(plan.getStatus()), "TARGET计划不存在或不可取消");
+        boolean hasBusinessFlow = targetLogMapper.exists(new LambdaQueryWrapper<UmsMemberTargetProgressLog>()
+                .eq(UmsMemberTargetProgressLog::getPlanId, planId).ne(UmsMemberTargetProgressLog::getAction, "INITIAL_PROGRESS"));
+        require(!hasBusinessFlow, "TARGET计划已有后续业务流水，不能取消");
+        require(targetPlanMapper.cancel(planId, requestNo, blank(operatorName), reason.trim()) == 1, "TARGET计划取消失败");
+        targetLogMapper.insert(targetLog(planId, "CANCELLED", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
+                "TARGET_PLAN", String.valueOf(planId), operatorName, reason));
+    }
+
+    @Override
     public MemberTargetPlanSnapshot findById(Long planId) {
         UmsMemberTargetPlan plan = planId == null ? null : targetPlanMapper.selectById(planId);
         if (plan == null) return null;

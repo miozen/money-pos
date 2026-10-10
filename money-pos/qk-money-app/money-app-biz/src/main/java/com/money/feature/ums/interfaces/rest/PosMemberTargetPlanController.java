@@ -1,6 +1,7 @@
 package com.money.feature.ums.interfaces.rest;
 
 import com.money.dto.memberbenefit.MemberTargetPlanCreateDTO;
+import com.money.dto.memberbenefit.MemberTargetPlanCancelDTO;
 import com.money.feature.ums.application.memberbenefit.MemberTargetPlanApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,5 +22,10 @@ public class PosMemberTargetPlanController {
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public Long create(@Validated @RequestBody MemberTargetPlanCreateDTO dto) {
         return targetPlanApplicationService.create(dto);
+    }
+    @PostMapping("/plans/cancel")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:manage')")
+    public void cancel(@Validated @RequestBody MemberTargetPlanCancelDTO dto) {
+        targetPlanApplicationService.cancel(dto);
     }
 }

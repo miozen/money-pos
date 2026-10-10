@@ -3,6 +3,7 @@ package com.money.feature.ums.application.memberbenefit;
 import com.money.contract.member.MemberBrandBenefitLedgerCommand;
 import com.money.contract.member.MemberBrandBenefitLedgerCommandHandler;
 import com.money.dto.memberbenefit.MemberTargetPlanCreateDTO;
+import com.money.dto.memberbenefit.MemberTargetPlanCancelDTO;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.mapper.UmsMemberMapper;
 import com.money.web.exception.BaseException;
@@ -28,5 +29,8 @@ public class MemberTargetPlanApplicationService {
         command.setRequestNo(dto.getReqId().trim()); command.setReason(dto.getReason());
         command.setSourceType("POS_TARGET_PLAN");
         return ledger.createTargetPlan(command);
+    }
+    public void cancel(MemberTargetPlanCancelDTO dto) {
+        ledger.cancelTargetPlan(dto.getPlanId(), dto.getReqId().trim(), null, dto.getReason().trim());
     }
 }
