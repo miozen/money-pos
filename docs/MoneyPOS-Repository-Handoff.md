@@ -161,9 +161,13 @@ or an explicit draft change. GMS stock-log filtering, tags and audit titles disp
 `MEMBER_PICKUP_RETURN` as “会员提货退回”, while all persisted codes remain unchanged. The deterministic formatter
 check and Node 20 production build passed (only the established frontend warnings), as did `git diff --check`.
 
-The exact next action is ME-1.6H-B after completing H-A: reuse the ordinary order receipt-print call after a
-successful QUANTITY deposit without allowing print failure to affect the completed order. Separately retain the
-ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
+ME-1.6H-B is complete. A successful QUANTITY deposit now extracts its returned `OmsOrder` number and invokes the
+existing ordinary checkout receipt endpoint as a non-blocking post-commit effect. Missing order numbers and print
+errors only log a warning: neither can turn a successful deposit into a failed one or cause an automatic reprint.
+
+The exact next action is ME-1.6H-C: introduce the dedicated, non-sales QUANTITY member-pickup receipt read/print
+contract and trigger it after a successful pickup. Separately retain the ME-1.5E five-item Windows POS smoke matrix
+as an outstanding close condition.
 
 ## Handoff rule
 
