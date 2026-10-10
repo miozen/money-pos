@@ -173,19 +173,16 @@ The receipt prints its pickup number, member ID, items, quantities, time, curren
 notice; it never opens the cash drawer. The successful pickup UI calls it asynchronously, so a print error cannot
 rollback or misreport the completed pickup.
 
-H-C validation actually run: `PosDeferredQuantityRouteContractTest`, Node 20 production build, Maven
-`package -DskipTests`, both architecture scans and `git diff --check` passed. The first full-suite attempt was
-incorrectly started without the documented isolated-test environment variables and therefore passed the unresolved
-literal `${MONEY_TEST_DB_URL}` to the MySQL driver; that is an execution error, not an unavailable configuration.
-The documented command was then run unchanged with credentials extracted from `application-dev.yml` and the fixed
-`127.0.0.1:3306/money_pos_test` URL. Flyway successfully applied V1.0.13, but the MariaDB connection subsequently
-dropped during context startup (`Communications link failure`), leaving multiple unrelated integration contexts in
-error. No full-suite success is claimed; the exact next action is to restore a stable local `money_pos_test` MariaDB
-connection and rerun that documented command before H-D can close.
+ME-1.6H-D automated validation is complete. The documented command, with credentials extracted from
+`application-dev.yml` and fixed `127.0.0.1:3306/money_pos_test`, completed the isolated full Maven regression:
+68 reports, 135 tests, 0 failures and 0 errors. `mvn -q package -DskipTests`, Node 20 production build, both
+architecture gates and `git diff --check` also passed. The frontend build retains only its pre-existing
+Browserslist/CSS/dynamic-import/chunk-size warnings. An initial attempt without the documented environment variables
+and a later overlapping attempt are invalid diagnostic history, not validation evidence.
 
-The exact next action is ME-1.6H-D: after the isolated test database is stable, rerun the complete automated
-regression, then complete the available Windows Electron/POS smoke evidence. Windows remains an outstanding close
-condition until actually run.
+The exact next action is the remaining ME-1.6H-D Windows Electron/POS manual matrix: verify 1280×800 POS, normal-cart
+isolation, deposit quote/payment/order/receipt, pickup/stock deduction/pickup receipt, failure-and-retry behavior,
+and existing AMOUNT/TARGET paths. Windows remains an outstanding close condition until actually run.
 
 ## Handoff rule
 

@@ -1,6 +1,6 @@
 # MoneyPOS ME-1.6H：商品寄存与提货可追溯性、小票实施合同
 
-> 状态：**Frozen implementation contract — approved to implement**；冻结日期：2026-10-10；适用分支：`dev`。
+> 状态：**Implementation complete; Windows Electron/POS acceptance outstanding**；冻结日期：2026-10-10；适用分支：`dev`。
 >
 > 本合同承接已完成的 ME-1.6G，只处理 QUANTITY 商品寄存/提货的订单请求号一致性、业务显示名称和
 > 小票能力，以及最终 Windows 验收。它不改变收入确认、库存扣减时点、支付、退款、既有订单结构或权限边界。
@@ -96,6 +96,11 @@ QUANTITY 提货不是普通销售订单。一次成功提货会同时写入：�
   打印、失败提示和重试不重复打印，以及既有 AMOUNT/TARGET 成功与拒绝路径。
 - **完成条件**：每项验证有实际结果；本合同和 handoff 记录事实；每个完成切片由 Codex 提交、推送、fetch，且
   `dev...origin/dev` 无 ahead/behind。Windows 验收未完成时不得宣称 ME-1.6 最终关闭。
+
+自动化验证实际结果：隔离 `money_pos_test` 的完整 `mvn -q test` 已通过（68 reports、135 tests、0 failures、
+0 errors），`mvn -q package -DskipTests`、Node 20 `npm run build`、`bash scripts/test-architecture-scan.sh`、
+`bash scripts/architecture-scan.sh --check-new` 及 `git diff --check` 均通过。前端构建仅保留既有的
+Browserslist、CSS 语法、动态导入与 chunk-size 警告。Windows Electron/POS 手工矩阵尚未执行。
 
 ## 4. 不可变架构与数据边界
 
