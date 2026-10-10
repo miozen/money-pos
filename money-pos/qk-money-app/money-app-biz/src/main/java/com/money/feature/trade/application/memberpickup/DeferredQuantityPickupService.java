@@ -12,6 +12,8 @@ import com.money.contract.member.MemberQuantityPickupCommandHandler;
 import com.money.contract.member.MemberQuantityRightQuery;
 import com.money.contract.member.MemberQuantityRightSnapshot;
 import com.money.dto.pos.DeferredQuantityPickupDTO;
+import com.money.dto.pos.DeferredQuantityPickupPreviewDTO;
+import com.money.dto.pos.DeferredQuantityPickupPreviewVO;
 import com.money.dto.pos.DeferredQuantityPickupVO;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickup;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickupItem;
@@ -36,6 +38,29 @@ public class DeferredQuantityPickupService {
     private final MemberQuantityPickupCommandHandler quantityPickupCommandHandler;
     private final CheckoutGoodsQuery checkoutGoodsQuery;
     private final MemberPickupStockCommandHandler memberPickupStockCommandHandler;
+
+    /** Validates the current right snapshot only; no right, stock or pickup record is mutated here. */
+    @Transactional(readOnly = true)
+    public DeferredQuantityPickupPreviewVO preview(DeferredQuantityPickupPreviewDTO dto) {
+        if (dto == null || dto.getMemberId() == null || dto.getLines() == null || dto.getLines().isEmpty()) {
+            throw new BaseException("会员提货预览请求不完整");
+        }
+        HashSet<Long> uniqueRightIds = new HashSet<>();
+        for (DeferredQuantityPickupPreviewDTO.Line line : dto.getLines()) {
+            if (line == null || line.getRightId() == null || line.getQuantity() == null || line.getQuantity() <= 0
+                    || !uniqueRightIds.add(line.getRightId())) {
+                throw new BaseException("提货数量不合法或重复");
+            }
+        }
+        List<Long> rightIds = dto.getLines().stream().map(DeferredQuantityPickupPreviewDTO.Line::getRightId).collect(Collectors.toList());
+        List<MemberQuantityRightSnapshot> rights = quantityRightQuery.findAvailableForPickup(dto.getMemberId(), rightIds);
+        if (rights.size() != dto.getLines().size()) throw new BaseException("存在不可提货的数量权益");
+        Map<Long, MemberQuantityRightSnapshot> rightMap = rights.stream().collect(Collectors.toMap(MemberQuantityRightSnapshot::getRightId, right -> right));
+        Map<Long, CheckoutGoodsSnapshot> goodsMap = checkoutGoodsQuery.findByIds(rights.stream().map(MemberQuantityRightSnapshot::getGoodsId).collect(Collectors.toList()));
+        DeferredQuantityPickupPreviewVO result = new DeferredQuantityPickupPreviewVO();
+        result.setLines(dto.getLines().stream().map(line -> previewLine(line, rightMap, goodsMap)).collect(Collectors.toList()));
+        return result;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public DeferredQuantityPickupVO pickup(DeferredQuantityPickupDTO dto) {
@@ -88,6 +113,22 @@ public class DeferredQuantityPickupService {
         MemberQuantityRightSnapshot right = rights.get(line.getRightId());
         if (right == null || line.getQuantity() == null || line.getQuantity() <= 0 || right.getRemainingQuantity() < line.getQuantity()) throw new BaseException("数量权益不足");
         MemberQuantityPickupCommand.Line result = new MemberQuantityPickupCommand.Line(); result.setRightId(line.getRightId()); result.setQuantity(line.getQuantity()); return result;
+    }
+    private DeferredQuantityPickupPreviewVO.Line previewLine(DeferredQuantityPickupPreviewDTO.Line line,
+                                                               Map<Long, MemberQuantityRightSnapshot> rights,
+                                                               Map<Long, CheckoutGoodsSnapshot> goodsMap) {
+        MemberQuantityRightSnapshot right = rights.get(line.getRightId());
+        if (right == null || right.getRemainingQuantity() == null || right.getRemainingQuantity() < line.getQuantity()) {
+            throw new BaseException("数量权益不足");
+        }
+        CheckoutGoodsSnapshot goods = goodsMap.get(right.getGoodsId());
+        if (goods == null) throw new BaseException("提货商品不存在");
+        DeferredQuantityPickupPreviewVO.Line result = new DeferredQuantityPickupPreviewVO.Line();
+        result.setRightId(right.getRightId()); result.setGoodsId(right.getGoodsId()); result.setGoodsName(goods.getName());
+        result.setGrantedQuantity(right.getGrantedQuantity()); result.setPickedQuantity(right.getPickedQuantity());
+        result.setPickupQuantity(line.getQuantity()); result.setRemainingQuantity(right.getRemainingQuantity());
+        result.setRemainingAfterPickup(right.getRemainingQuantity() - line.getQuantity());
+        return result;
     }
     private StockMutationLine toStockLine(DeferredQuantityPickupDTO.Line line, Map<Long, MemberQuantityRightSnapshot> rights, Map<Long, CheckoutGoodsSnapshot> goodsMap) {
         CheckoutGoodsSnapshot goods = goodsMap.get(rights.get(line.getRightId()).getGoodsId());

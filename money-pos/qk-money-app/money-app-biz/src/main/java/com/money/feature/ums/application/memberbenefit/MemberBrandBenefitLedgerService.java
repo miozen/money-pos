@@ -227,7 +227,8 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
                     MemberQuantityRightSnapshot snapshot = new MemberQuantityRightSnapshot();
                     snapshot.setRightId(right.getId()); snapshot.setMemberId(right.getMemberId()); snapshot.setBrandId(right.getBrandId());
                     snapshot.setGoodsId(right.getGoodsId()); snapshot.setSourceOrderNo(right.getSourceOrderNo());
-                    snapshot.setSourceOrderDetailId(right.getSourceOrderDetailId()); snapshot.setRemainingQuantity(right.getRemainingQuantity());
+                    snapshot.setSourceOrderDetailId(right.getSourceOrderDetailId()); snapshot.setGrantedQuantity(right.getGrantedQuantity());
+                    snapshot.setPickedQuantity(right.getPickedQuantity()); snapshot.setRemainingQuantity(right.getRemainingQuantity());
                     return snapshot;
                 }).collect(Collectors.toList());
     }

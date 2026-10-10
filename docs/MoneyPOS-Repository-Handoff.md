@@ -184,11 +184,20 @@ The exact next action is the remaining ME-1.6H-D Windows Electron/POS manual mat
 isolation, deposit quote/payment/order/receipt, pickup/stock deduction/pickup receipt, failure-and-retry behavior,
 and existing AMOUNT/TARGET paths. Windows remains an outstanding close condition until actually run.
 
-The user has frozen, but expressly deferred implementation of, ME-1.6I-A～I-C in
-`MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md`: QUANTITY
-pickup preview/confirmation; auditable TARGET cancellation rather than physical deletion; mixed-cart contribution
-only from the selected plan brand's settled detail amount. I-D records a separate usage-record/receipt proposal
-awaiting business confirmation. Neither item supersedes the outstanding ME-1.6H Windows acceptance.
+ME-1.6I is an accepted implementation contract in
+`MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md`. It orders
+QUANTITY pickup preview/confirmation, auditable TARGET cancellation rather than physical deletion, mixed-cart
+contribution only from the selected plan brand's settled detail amount, then member-profile asset-and-benefit history
+with QDP order-detail routing and AMOUNT pickup receipt printing. I-D uses an Entity-free, read-only aggregation and
+does not write synthetic entries into the legacy balance/coupon log or replace GMS inventory traceability.
+
+ME-1.6I-A is complete locally: `POST /pos/deferred-quantity/pickup-preview` reads the current QUANTITY right and
+goods snapshot without a write, and the standalone QUANTITY UI now requires “预览提货 → 确认提货”; any quantity change
+invalidates the preview. The actual pickup still uses its existing atomic transaction for final right and physical-stock
+validation. Focused tests (7 pickup-service + 1 route-contract) and the full isolated `money_pos_test` Maven suite
+(68 reports, 136 tests, 0 failures/errors), package, Node 20 build, both architecture gates and `git diff --check`
+passed. The exact next action is I-B: add auditable TARGET cancellation, rejecting plans with post-initial business
+flows. ME-1.6H Windows acceptance remains outstanding and must not be reported complete.
 
 ## Handoff rule
 

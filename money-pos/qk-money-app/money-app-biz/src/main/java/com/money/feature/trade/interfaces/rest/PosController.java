@@ -91,6 +91,13 @@ public class PosController {
         return deferredQuantityPickupService.pickup(dto);
     }
 
+    @Operation(summary = "会员数量权益提货预览（不扣权益、不扣库存）")
+    @PostMapping("/deferred-quantity/pickup-preview")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public com.money.dto.pos.DeferredQuantityPickupPreviewVO previewDeferredQuantityPickup(@Validated @RequestBody com.money.dto.pos.DeferredQuantityPickupPreviewDTO dto) {
+        return deferredQuantityPickupService.preview(dto);
+    }
+
     @Operation(summary = "打印会员数量权益提货单")
     @PostMapping("/deferred-quantity/pickup-receipt")
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")

@@ -16,6 +16,7 @@ class PosDeferredQuantityRouteContractTest {
         assertRoute("settleDeferredQuantity", "/deferred-quantity/settle", "memberBenefit:operate");
         assertRoute("trialDeferredQuantity", "/deferred-quantity/trial", "memberBenefit:operate");
         assertRoute("pickupDeferredQuantity", "/deferred-quantity/pickup", "memberBenefit:operate");
+        assertRoute("previewDeferredQuantityPickup", "/deferred-quantity/pickup-preview", "memberBenefit:operate");
         assertRoute("printDeferredQuantityPickupReceipt", "/deferred-quantity/pickup-receipt", "memberBenefit:operate");
         assertRoute("purchaseAmountPackage", "/amount-package/purchase", "memberBenefit:operate");
         assertRoute("pickupAmountPackage", "/amount-package/pickup", "memberBenefit:operate");

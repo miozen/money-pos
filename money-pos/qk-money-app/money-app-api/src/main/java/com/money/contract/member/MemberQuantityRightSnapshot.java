@@ -11,5 +11,7 @@ public class MemberQuantityRightSnapshot {
     private Long goodsId;
     private String sourceOrderNo;
     private Long sourceOrderDetailId;
+    private Integer grantedQuantity;
+    private Integer pickedQuantity;
     private Integer remainingQuantity;
 }

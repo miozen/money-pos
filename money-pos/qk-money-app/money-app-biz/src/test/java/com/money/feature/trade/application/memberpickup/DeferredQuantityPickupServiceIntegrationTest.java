@@ -2,6 +2,8 @@ package com.money.feature.trade.application.memberpickup;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.pos.DeferredQuantityPickupDTO;
+import com.money.dto.pos.DeferredQuantityPickupPreviewDTO;
+import com.money.dto.pos.DeferredQuantityPickupPreviewVO;
 import com.money.dto.pos.DeferredQuantityPickupVO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
@@ -82,6 +84,26 @@ class DeferredQuantityPickupServiceIntegrationTest {
         assertThat(inventoryDocMapper.selectOne(new LambdaQueryWrapper<GmsInventoryDoc>()
                 .eq(GmsInventoryDoc::getDocNo, "MP-" + first.getPickupNo())))
                 .extracting(GmsInventoryDoc::getDocType).isEqualTo("MEMBER_PICKUP");
+    }
+
+    @Test
+    void previewShowsRemainingQuantityWithoutCreatingPickupOrMutatingRightOrStock() {
+        Fixture fixture = purchaseRight(5, 8);
+        DeferredQuantityPickupPreviewVO preview = pickupService.preview(previewRequest(fixture.member.getId(), fixture.right.getId(), 2));
+
+        assertThat(preview.getLines()).singleElement().extracting(
+                DeferredQuantityPickupPreviewVO.Line::getGoodsId,
+                DeferredQuantityPickupPreviewVO.Line::getGrantedQuantity,
+                DeferredQuantityPickupPreviewVO.Line::getPickedQuantity,
+                DeferredQuantityPickupPreviewVO.Line::getPickupQuantity,
+                DeferredQuantityPickupPreviewVO.Line::getRemainingAfterPickup)
+                .containsExactly(fixture.goods.getId(), 5, 0, 2, 3);
+        assertThat(rightMapper.selectById(fixture.right.getId()))
+                .extracting(UmsMemberQuantityRight::getRemainingQuantity, UmsMemberQuantityRight::getPickedQuantity)
+                .containsExactly(5, 0);
+        assertThat(goodsMapper.selectById(fixture.goods.getId()).getStock()).isEqualTo(8L);
+        assertThat(pickupMapper.selectCount(new LambdaQueryWrapper<OmsMemberQuantityPickup>()
+                .eq(OmsMemberQuantityPickup::getMemberId, fixture.member.getId()))).isZero();
     }
 
     @Test
@@ -182,6 +204,14 @@ class DeferredQuantityPickupServiceIntegrationTest {
         request.setReqId(requestNo);
         request.setMemberId(memberId);
         request.setLines(Collections.singletonList(line));
+        return request;
+    }
+
+    private DeferredQuantityPickupPreviewDTO previewRequest(Long memberId, Long rightId, int quantity) {
+        DeferredQuantityPickupPreviewDTO.Line line = new DeferredQuantityPickupPreviewDTO.Line();
+        line.setRightId(rightId); line.setQuantity(quantity);
+        DeferredQuantityPickupPreviewDTO request = new DeferredQuantityPickupPreviewDTO();
+        request.setMemberId(memberId); request.setLines(Collections.singletonList(line));
         return request;
     }
 
