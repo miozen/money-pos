@@ -132,10 +132,10 @@ The following product follow-ups are intentionally recorded only and are **not i
   documents/logs. `MEMBER_PICKUP` is the current internal inventory movement code. The requested business wording is
   "会员提货" (or equivalent) in display/dictionaries; do not rewrite the internal code or historic data without a
   dedicated compatibility plan.
-- Deposit is an `OmsOrder`, but the deferred-quantity submission does not call ordinary checkout's
-  `/oms-order/hardware/checkout-receipt` automatic-print endpoint. Pickup is not an `OmsOrder` and has no dedicated
-  pickup-receipt route/template. Therefore neither flow currently has confirmed automatic receipt printing; deposit
-  can later reuse the existing order-receipt capability, while pickup requires its own receipt contract.
+- Deposit is an `OmsOrder` and now invokes ordinary checkout receipt printing as a non-blocking post-success effect.
+  QUANTITY pickup has its own non-sales receipt route/template and automatic-print setting. AMOUNT pickup persists
+  a pickup document and a supplement receipt but has no pickup-receipt print effect yet; TARGET normal sales use the
+  ordinary order receipt and have no separate TARGET receipt.
 
 ## Exact next action
 
@@ -183,6 +183,12 @@ and a later overlapping attempt are invalid diagnostic history, not validation e
 The exact next action is the remaining ME-1.6H-D Windows Electron/POS manual matrix: verify 1280×800 POS, normal-cart
 isolation, deposit quote/payment/order/receipt, pickup/stock deduction/pickup receipt, failure-and-retry behavior,
 and existing AMOUNT/TARGET paths. Windows remains an outstanding close condition until actually run.
+
+The user has frozen, but expressly deferred implementation of, ME-1.6I-A～I-C in
+`MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md`: QUANTITY
+pickup preview/confirmation; auditable TARGET cancellation rather than physical deletion; mixed-cart contribution
+only from the selected plan brand's settled detail amount. I-D records a separate usage-record/receipt proposal
+awaiting business confirmation. Neither item supersedes the outstanding ME-1.6H Windows acceptance.
 
 ## Handoff rule
 
