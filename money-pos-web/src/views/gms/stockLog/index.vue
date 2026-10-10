@@ -17,6 +17,8 @@
                 <el-option label="📦 采购入库 (INBOUND)" value="INBOUND" />
                 <el-option label="⚖️ 盘点校准 (CHECK)" value="CHECK" />
                 <el-option label="🗑️ 报损出库 (SCRAP)" value="SCRAP" />
+                <el-option label="🤝 会员提货" value="MEMBER_PICKUP" />
+                <el-option label="↩️ 会员提货退回" value="MEMBER_PICKUP_RETURN" />
             </el-select>
         </MoneyRR>
 
@@ -27,6 +29,8 @@
                 <el-tag v-else-if="scope.row.type === 'INBOUND'" type="success" effect="light" class="w-[100px] text-center font-bold">📦 入库</el-tag>
                 <el-tag v-else-if="scope.row.type === 'CHECK'" type="primary" effect="light" class="w-[100px] text-center font-bold">⚖️ 盘点</el-tag>
                 <el-tag v-else-if="scope.row.type === 'SCRAP'" type="info" effect="dark" class="w-[100px] text-center font-bold">🗑️ 报损</el-tag>
+                <el-tag v-else-if="scope.row.type === 'MEMBER_PICKUP'" type="warning" effect="light" class="w-[100px] text-center font-bold">🤝 会员提货</el-tag>
+                <el-tag v-else-if="scope.row.type === 'MEMBER_PICKUP_RETURN'" type="success" effect="light" class="w-[100px] text-center font-bold">↩️ 提货退回</el-tag>
                 <span v-else>{{ scope.row.type }}</span>
             </template>
 
@@ -158,7 +162,7 @@ const showDetail = async (row) => {
     if (row.type === 'SALE' || row.type === 'RETURN') {
         orderDetailVisible.value = true;
     } else {
-        const typeName = { 'INBOUND': '采购入库单', 'CHECK': '盘点单', 'SCRAP': '报损单' }[row.type] || '单据'
+        const typeName = { 'INBOUND': '采购入库单', 'CHECK': '盘点单', 'SCRAP': '报损单', 'MEMBER_PICKUP': '会员提货单', 'MEMBER_PICKUP_RETURN': '会员提货退回单' }[row.type] || '单据'
         detailTitle.value = `📊 ${typeName}审计 - ${row.orderNo}`
         otherDetailVisible.value = true;
         detailLoading.value = true;

@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue';
+import { localRequestId } from '@/utils/requestId.js';
 import { req } from "@/api/index.js";
 import Big from 'big.js';
 
@@ -248,7 +249,7 @@ export function usePosStore() {
         };
     });
 
-    const prepareCheckout = () => { reqId.value = `REQ${Date.now()}`; };
+    const prepareCheckout = () => { reqId.value = localRequestId('REQ'); };
 
     const addToCart = (goods) => {
         const existIndex = cartList.value.findIndex(item => item.id === goods.id);

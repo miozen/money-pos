@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **ME-1.6H implementation contract is newly frozen; no ME-1.6H source implementation has started. Windows Electron smoke evidence remains pending.** |
-| Current phase | `ME-1.6H 商品寄存与提货可追溯性、小票 — implementation next` |
+| Working tree | **Clean after ME-1.6H-A implementation and validation; Windows Electron smoke evidence remains pending.** |
+| Current phase | `ME-1.6H 商品寄存与提货可追溯性、小票 — H-A complete, H-B next` |
 | Current plan | `MoneyPOS-ME-1.6H-Deferred-Quantity-Traceability-and-Receipt-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -148,13 +148,21 @@ the existing no-stock-check pricing path; final settlement still recalculates in
 isolated Maven regressions plus Node 20 build passed.
 
 ME-1.6H is frozen in `MoneyPOS-ME-1.6H-Deferred-Quantity-Traceability-and-Receipt-Implementation-Contract.md`.
-It turns the recorded follow-ups into four ordered slices: align QUANTITY deposit request IDs with ordinary `REQ`
-epoch-millisecond request IDs, display the internal `MEMBER_PICKUP` movement as "会员提货", reuse ordinary order
-receipt printing after deposit, then add an explicitly non-sales quantity-pickup receipt. It preserves `MP*` pickup
-business numbers, transaction ownership and historical internal codes.
+It turns the recorded follow-ups into four ordered slices: use local readable request IDs — ordinary POS
+`REQyyyyMMddHHmmssSSS`, QUANTITY deposit `QDPyyyyMMddHHmmssSSS`, and QUANTITY pickup
+`QPKyyyyMMddHHmmssSSS`; display the internal `MEMBER_PICKUP` movement as "会员提货"; reuse ordinary order receipt
+printing after deposit; then add an explicitly non-sales quantity-pickup receipt. It preserves `MP*` pickup business
+numbers, transaction ownership and historical internal codes.
 
-The exact next action is to implement ME-1.6H-A: make the isolated QUANTITY deposit request-ID lifecycle use the
-ordinary `REQ${Date.now()}` shape and map the pickup technical code to business display text. Separately retain the
+ME-1.6H-A is complete. A shared local request-ID formatter now emits `yyyyMMddHHmmssSSS` using the cashier
+workstation's local clock: normal checkout uses `REQ`, quantity deposit uses `QDP`, and quantity pickup uses `QPK`.
+The quantity flows cache their request ID for an unchanged failed retry and discard it on success, cancellation/close,
+or an explicit draft change. GMS stock-log filtering, tags and audit titles display `MEMBER_PICKUP` as “会员提货” and
+`MEMBER_PICKUP_RETURN` as “会员提货退回”, while all persisted codes remain unchanged. The deterministic formatter
+check and Node 20 production build passed (only the established frontend warnings), as did `git diff --check`.
+
+The exact next action is ME-1.6H-B after completing H-A: reuse the ordinary order receipt-print call after a
+successful QUANTITY deposit without allowing print failure to affect the completed order. Separately retain the
 ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
