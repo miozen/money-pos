@@ -174,12 +174,18 @@ notice; it never opens the cash drawer. The successful pickup UI calls it asynch
 rollback or misreport the completed pickup.
 
 H-C validation actually run: `PosDeferredQuantityRouteContractTest`, Node 20 production build, Maven
-`package -DskipTests`, both architecture scans and `git diff --check` passed. A full `mvn -q test` was attempted but
-did not start because this shell lacks `MONEY_TEST_DB_URL`; the test profile passed the unresolved literal
-`${MONEY_TEST_DB_URL}` to the MySQL driver. No full-suite success is claimed from this environment.
+`package -DskipTests`, both architecture scans and `git diff --check` passed. The first full-suite attempt was
+incorrectly started without the documented isolated-test environment variables and therefore passed the unresolved
+literal `${MONEY_TEST_DB_URL}` to the MySQL driver; that is an execution error, not an unavailable configuration.
+The documented command was then run unchanged with credentials extracted from `application-dev.yml` and the fixed
+`127.0.0.1:3306/money_pos_test` URL. Flyway successfully applied V1.0.13, but the MariaDB connection subsequently
+dropped during context startup (`Communications link failure`), leaving multiple unrelated integration contexts in
+error. No full-suite success is claimed; the exact next action is to restore a stable local `money_pos_test` MariaDB
+connection and rerun that documented command before H-D can close.
 
-The exact next action is ME-1.6H-D: run the complete automated regression/package/architecture gates and the
-available Windows Electron/POS smoke evidence. Windows remains an outstanding close condition until actually run.
+The exact next action is ME-1.6H-D: after the isolated test database is stable, rerun the complete automated
+regression, then complete the available Windows Electron/POS smoke evidence. Windows remains an outstanding close
+condition until actually run.
 
 ## Handoff rule
 
