@@ -94,7 +94,7 @@
                             </el-table-column>
                             <el-table-column prop="orderNo" label="关联单据" min-width="120">
                                 <template #default="{row}">
-                                    <el-link v-if="row.orderNo" type="primary" :underline="false" @click="showOrderDetail(row)" class="font-mono text-xs">
+                                    <el-link v-if="canOpenDetail(row)" type="primary" :underline="false" @click="showOrderDetail(row)" class="font-mono text-xs">
                                         {{ row.orderNo }}
                                     </el-link>
                                     <span v-else class="text-gray-300">-</span>
@@ -110,8 +110,8 @@
         <RechargeOrderDetail v-model="rechargeDetailVisible" :order-no="currentOrderNo" @refresh="refreshAfterVoid" />
         <OrderDetailModal v-model="salesDetailVisible" :order-no="currentOrderNo" />
         <el-dialog v-model="pickupReceiptVisible" title="会员提货单" width="560px" append-to-body>
-            <el-descriptions v-if="pickupReceipt" :column="2" border><el-descriptions-item label="提货单号">{{ pickupReceipt.pickupNo }}</el-descriptions-item><el-descriptions-item label="会员编号">{{ pickupReceipt.memberId }}</el-descriptions-item><el-descriptions-item label="办理时间">{{ pickupReceipt.pickupTime }}</el-descriptions-item><el-descriptions-item label="操作员">{{ pickupReceipt.operatorName }}</el-descriptions-item></el-descriptions>
-            <el-table v-if="pickupReceipt" class="mt-3" :data="pickupReceipt.lines || []" border><el-table-column prop="goodsName" label="商品"/><el-table-column prop="goodsBarcode" label="条码"/><el-table-column prop="quantity" label="数量" width="80"/></el-table>
+            <el-descriptions v-if="pickupReceipt" :column="1" :label-width="88" border class="receipt-descriptions"><el-descriptions-item label="提货单号">{{ pickupReceipt.pickupNo }}</el-descriptions-item><el-descriptions-item label="会员 ID">{{ pickupReceipt.memberId }}</el-descriptions-item><el-descriptions-item label="办理时间">{{ pickupReceipt.pickupTime }}</el-descriptions-item><el-descriptions-item label="操作员">{{ pickupReceipt.operatorName }}</el-descriptions-item></el-descriptions>
+            <el-table v-if="pickupReceipt" class="mt-3" :data="pickupReceipt.lines || []" border><el-table-column prop="goodsName" label="商品" min-width="220" show-overflow-tooltip/><el-table-column prop="goodsBarcode" label="条码" min-width="150" show-overflow-tooltip/><el-table-column prop="quantity" label="数量" width="70" align="center"/></el-table>
         </el-dialog>
     </el-dialog>
 </template>
@@ -236,7 +236,7 @@ const fetchLogs = async (memberId) => {
 }
 
 const showOrderDetail = (row) => {
-    if (!row?.orderNo) return
+    if (!canOpenDetail(row)) return
     if (row.detailTarget === 'PICKUP') return previewPickupReceipt(row)
     currentOrderNo.value = row.orderNo
     if (row.detailTarget === 'RECHARGE' || (!row.detailTarget && row.operateType === 'RECHARGE')) {
@@ -245,6 +245,8 @@ const showOrderDetail = (row) => {
         salesDetailVisible.value = true
     }
 }
+
+const canOpenDetail = (row) => Boolean(row?.orderNo && ['ORDER', 'RECHARGE', 'PICKUP'].includes(row.detailTarget))
 
 const previewPickupReceipt = async (row) => {
     const url = row.type === 'AMOUNT' ? '/pos/amount-package/pickup-receipt' : '/pos/deferred-quantity/pickup-receipt'
@@ -275,4 +277,5 @@ const getLevelName = (levelCode) => props.levelsDict[levelCode] || levelCode
 <style scoped>
 .member-profile-dialog :deep(.el-dialog__body) { padding-top: 10px; }
 .custom-tabs :deep(.el-tabs__nav-wrap::after) { height: 1px; }
+.receipt-descriptions :deep(.el-descriptions__content) { white-space: nowrap; word-break: keep-all; }
 </style>

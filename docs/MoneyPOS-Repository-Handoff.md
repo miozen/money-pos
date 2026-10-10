@@ -219,6 +219,13 @@ they mixed a non-contract clean invocation with reports from a later focused run
 environment. The documented, credential-injected `mvn -q test` was rerun and passed with 68 reports, 140 tests, 0 errors
 and 0 failures.
 
+ME-1.6I follow-up display repair is locally validated and awaits commit/push. The TARGET cancellation reason label is
+kept on one line; asset-and-benefit records expose a clickable document only when the backend explicitly supplies an
+`ORDER`, `RECHARGE` or `PICKUP` detail target, so TARGET/TRADE records without a readable document display `-` rather
+than opening normal-order detail. Pickup receipts use a single-row description layout for long values and label the
+returned `memberId` accurately as “会员 ID” (the database primary key, not a member card number). The Node 20 production
+build and `git diff --check` passed.
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a

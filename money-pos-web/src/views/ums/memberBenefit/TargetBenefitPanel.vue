@@ -15,7 +15,7 @@
       <el-form label-width="94px"><el-form-item label="升级目标"><el-select v-model="targetTierCode" class="w-full" placeholder="选择目标"><el-option v-for="tier in enabledTiers" :key="tier.tierCode" :value="tier.tierCode" :label="`${tier.brandName || '品牌'} / ${tier.tierName} / 目标￥${tier.configuredAmount}`"/></el-select></el-form-item><el-form-item label="初始进度"><el-input-number v-model="initialProgress" :min="0" :max="Number(selectedTier?.configuredAmount || 0)" :precision="2" class="w-full"/></el-form-item><el-form-item label="原因"><el-input v-model="reason" maxlength="200" show-word-limit placeholder="可选备注"/></el-form-item></el-form>
       <template #footer><el-button @click="createVisible=false">取消</el-button><el-button type="primary" :disabled="!selectedTier" :loading="submitting" @click="createPlan">确认建立</el-button></template>
     </el-dialog>
-    <el-dialog v-model="cancelVisible" title="取消升级计划" width="480px" append-to-body destroy-on-close><el-alert title="仅无后续销售、补差或豁免流水的进行中计划可以取消；取消后保留完整审计记录。" type="warning" :closable="false"/><el-form class="mt-3" label-width="70px"><el-form-item label="取消原因" required><el-input v-model="cancelReason" maxlength="200" placeholder="请说明取消原因"/></el-form-item></el-form><template #footer><el-button @click="cancelVisible=false">返回</el-button><el-button type="danger" :disabled="!cancelReason.trim()" :loading="submitting" @click="cancelPlan">确认取消</el-button></template></el-dialog>
+    <el-dialog v-model="cancelVisible" title="取消升级计划" width="480px" append-to-body destroy-on-close><el-alert title="仅无后续销售、补差或豁免流水的进行中计划可以取消；取消后保留完整审计记录。" type="warning" :closable="false"/><el-form class="cancel-reason-form mt-3" label-width="80px"><el-form-item label="取消原因" required><el-input v-model="cancelReason" maxlength="200" class="w-full" placeholder="请说明取消原因"/></el-form-item></el-form><template #footer><el-button @click="cancelVisible=false">返回</el-button><el-button type="danger" :disabled="!cancelReason.trim()" :loading="submitting" @click="cancelPlan">确认取消</el-button></template></el-dialog>
   </section>
 </template>
 
@@ -35,3 +35,7 @@ const cancelPlan = async () => { if (!cancellingPlan.value || !cancelReason.valu
 const remainingAmount = (plan) => Math.max(0, Number(plan.targetAmount || 0) - Number(plan.progressAmount || 0)).toFixed(2)
 const statusText = (status) => ({ IN_PROGRESS: '进行中', PENDING_CONFIRM: '待确认', REVIEW_REQUIRED: '待复核', COMPLETED: '已完成', CANCELLED: '已取消' }[status] || '已结束')
 </script>
+
+<style scoped>
+.cancel-reason-form :deep(.el-form-item__label) { white-space: nowrap; }
+</style>
