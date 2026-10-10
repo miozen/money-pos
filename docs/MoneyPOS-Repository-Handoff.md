@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after the ME-1.6I usability/traceability repair commit; full Maven regression baseline and Windows Electron/POS manual acceptance remain pending.** |
-| Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D complete; repair code validated by focused gates, full-regression baseline blocked` |
+| Working tree | **Clean after the ME-1.6I usability/traceability repair and validation-record correction commits; Windows Electron/POS manual acceptance remains pending.** |
+| Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
 | Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -180,11 +180,10 @@ architecture gates and `git diff --check` also passed. The frontend build retain
 Browserslist/CSS/dynamic-import/chunk-size warnings. An initial attempt without the documented environment variables
 and a later overlapping attempt are invalid diagnostic history, not validation evidence.
 
-The exact next action is to restore the isolated full Maven regression baseline (53 Spring test bootstrap errors and 3
-failures after `clean test`) without weakening test coverage; after it passes, run the remaining ME-1.6H-D Windows
-Electron/POS manual matrix: verify 1280×800 POS, normal-cart isolation, deposit quote/payment/order/receipt,
-pickup/stock deduction/pickup receipt, failure-and-retry behavior, and existing AMOUNT/TARGET paths. Windows remains
-an outstanding close condition until actually run.
+The exact next action is the remaining ME-1.6H-D Windows Electron/POS manual matrix: verify 1280×800 POS,
+normal-cart isolation, deposit quote/payment/order/receipt, pickup/stock deduction/pickup receipt,
+failure-and-retry behavior, and existing AMOUNT/TARGET paths. Windows remains an outstanding close condition until
+actually run.
 
 ME-1.6I is an accepted implementation contract in
 `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md`. It orders
@@ -215,9 +214,10 @@ asset/benefit dimensions and known business summaries in Chinese, and opens MP/M
 pickup receipt dialog instead of normal order detail. The protected GET pickup-receipt routes share the existing receipt
 snapshot services and do not print. Checkout limits the automatic TARGET-plan list to its own scroll area so it cannot
 cover the whole-order discount controls. Focused route-contract tests, package, Node 20 production build, both architecture
-gates and `git diff --check` passed. A clean isolated full Maven run is not passing: it reports 53 pre-existing Spring test
-bootstrap errors and 3 failures (including a missing `BizErrorStatus` class); it is recorded as a regression-baseline blocker,
-not as validation evidence for this repair.
+gates and `git diff --check` passed. The initially recorded `clean test` errors were not the accepted validation entry:
+they mixed a non-contract clean invocation with reports from a later focused run that omitted the required `MONEY_TEST_DB_*`
+environment. The documented, credential-injected `mvn -q test` was rerun and passed with 68 reports, 140 tests, 0 errors
+and 0 failures.
 
 ## Handoff rule
 
