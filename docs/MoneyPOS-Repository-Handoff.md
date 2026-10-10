@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean. ME-1.6G implementation and its request-ID length fix are committed and pushed; Windows Electron smoke evidence remains pending.** |
-| Current phase | `ME-1.6G 商品寄存试算与局部混合收银 — completed implementation; product follow-ups recorded` |
-| Current plan | `MoneyPOS-ME-1.6G-Deferred-Quantity-Pricing-and-Payment-Implementation-Contract.md` |
+| Working tree | **ME-1.6H implementation contract is newly frozen; no ME-1.6H source implementation has started. Windows Electron smoke evidence remains pending.** |
+| Current phase | `ME-1.6H 商品寄存与提货可追溯性、小票 — implementation next` |
+| Current plan | `MoneyPOS-ME-1.6H-Deferred-Quantity-Traceability-and-Receipt-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -147,9 +147,15 @@ normal POS state remains isolated and physical stock remains a pickup-only conce
 the existing no-stock-check pricing path; final settlement still recalculates in its transaction. Focused and full
 isolated Maven regressions plus Node 20 build passed.
 
-The exact next action is to await direction on the three recorded product follow-ups; no business-code change is
-authorized by this record-only request. Separately retain the ME-1.5E five-item Windows POS smoke matrix as an
-outstanding close condition.
+ME-1.6H is frozen in `MoneyPOS-ME-1.6H-Deferred-Quantity-Traceability-and-Receipt-Implementation-Contract.md`.
+It turns the recorded follow-ups into four ordered slices: align QUANTITY deposit request IDs with ordinary `REQ`
+epoch-millisecond request IDs, display the internal `MEMBER_PICKUP` movement as "会员提货", reuse ordinary order
+receipt printing after deposit, then add an explicitly non-sales quantity-pickup receipt. It preserves `MP*` pickup
+business numbers, transaction ownership and historical internal codes.
+
+The exact next action is to implement ME-1.6H-A: make the isolated QUANTITY deposit request-ID lifecycle use the
+ordinary `REQ${Date.now()}` shape and map the pickup technical code to business display text. Separately retain the
+ME-1.5E five-item Windows POS smoke matrix as an outstanding close condition.
 
 ## Handoff rule
 
