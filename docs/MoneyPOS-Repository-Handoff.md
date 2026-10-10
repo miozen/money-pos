@@ -191,13 +191,17 @@ contribution only from the selected plan brand's settled detail amount, then mem
 with QDP order-detail routing and AMOUNT pickup receipt printing. I-D uses an Entity-free, read-only aggregation and
 does not write synthetic entries into the legacy balance/coupon log or replace GMS inventory traceability.
 
-ME-1.6I-A is complete locally: `POST /pos/deferred-quantity/pickup-preview` reads the current QUANTITY right and
+ME-1.6I-A is complete: `POST /pos/deferred-quantity/pickup-preview` reads the current QUANTITY right and
 goods snapshot without a write, and the standalone QUANTITY UI now requires “预览提货 → 确认提货”; any quantity change
 invalidates the preview. The actual pickup still uses its existing atomic transaction for final right and physical-stock
 validation. Focused tests (7 pickup-service + 1 route-contract) and the full isolated `money_pos_test` Maven suite
 (68 reports, 136 tests, 0 failures/errors), package, Node 20 build, both architecture gates and `git diff --check`
-passed. The exact next action is I-B: add auditable TARGET cancellation, rejecting plans with post-initial business
-flows. ME-1.6H Windows acceptance remains outstanding and must not be reported complete.
+passed. ME-1.6I-B is complete in `2111dc2`: TARGET cancellation is an auditable `CANCELLED` state, never deletion;
+it records request/operator/time/reason and rejects every plan with a post-initial business flow. The exact next action
+is I-C: permit one ordinary mixed-brand checkout to auto-link one eligible TARGET plan per brand, persist/recompute
+brand-specific contribution from order details, and stop contribution once a plan is target-complete pending manual
+confirmation. Establishing a TARGET plan continues to use the current level price; only manual confirmation upgrades
+the member brand level. ME-1.6H Windows acceptance remains outstanding and must not be reported complete.
 
 ## Handoff rule
 
