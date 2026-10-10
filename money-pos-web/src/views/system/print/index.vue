@@ -22,6 +22,10 @@
                         <el-switch v-model="form.autoPrint" active-text="结账后自动打印" inactive-text="手动打印" />
                     </el-form-item>
 
+                    <el-form-item label="会员提货单">
+                        <el-switch v-model="form.memberPickupAutoPrint" active-text="提货后自动打印" inactive-text="不自动打印" />
+                    </el-form-item>
+
                     <el-form-item label="自动弹开钱箱">
                         <el-switch v-model="form.openDrawer" active-text="现金收款后自动弹开" inactive-text="不自动弹开" />
                     </el-form-item>
@@ -158,6 +162,7 @@ const form = ref({
     headerMsg: '',
     footerMsg: '谢谢惠顾，欢迎下次光临！',
     autoPrint: true,
+    memberPickupAutoPrint: true,
     openDrawer: true
 })
 

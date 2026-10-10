@@ -165,9 +165,21 @@ ME-1.6H-B is complete. A successful QUANTITY deposit now extracts its returned `
 existing ordinary checkout receipt endpoint as a non-blocking post-commit effect. Missing order numbers and print
 errors only log a warning: neither can turn a successful deposit into a failed one or cause an automatic reprint.
 
-The exact next action is ME-1.6H-C: introduce the dedicated, non-sales QUANTITY member-pickup receipt read/print
-contract and trigger it after a successful pickup. Separately retain the ME-1.5E five-item Windows POS smoke matrix
-as an outstanding close condition.
+ME-1.6H-C is complete. Flyway `V1.0.13` adds `sys_print_config.member_pickup_auto_print` (default enabled), and the
+existing backend “小票打印与硬件设置” page exposes it as an independent “会员提货单” switch while retaining the same
+printer, store heading/contact/footer configuration. A protected TRADE-owned pickup-receipt read/print route builds
+a non-sales receipt from the completed pickup and its item records through the Entity-free goods snapshot contract.
+The receipt prints its pickup number, member ID, items, quantities, time, current operator and explicit no-revenue
+notice; it never opens the cash drawer. The successful pickup UI calls it asynchronously, so a print error cannot
+rollback or misreport the completed pickup.
+
+H-C validation actually run: `PosDeferredQuantityRouteContractTest`, Node 20 production build, Maven
+`package -DskipTests`, both architecture scans and `git diff --check` passed. A full `mvn -q test` was attempted but
+did not start because this shell lacks `MONEY_TEST_DB_URL`; the test profile passed the unresolved literal
+`${MONEY_TEST_DB_URL}` to the MySQL driver. No full-suite success is claimed from this environment.
+
+The exact next action is ME-1.6H-D: run the complete automated regression/package/architecture gates and the
+available Windows Electron/POS smoke evidence. Windows remains an outstanding close condition until actually run.
 
 ## Handoff rule
 

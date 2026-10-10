@@ -5,6 +5,7 @@ import com.money.contract.member.MemberCouponCountQuery;
 import com.money.dto.Finance.FinanceDataVO;
 import com.money.dto.OmsOrder.OrderDetailVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailVO;
+import com.money.dto.pos.MemberQuantityPickupReceiptVO;
 import com.money.entity.SysDictDetail;
 import com.money.feature.sys.infrastructure.persistence.entity.SysPrintConfig;
 import com.money.mapper.SysDictDetailMapper;
@@ -168,6 +169,25 @@ public class PosPrinterService {
         } catch (Exception e) {
             log.error("❌ 硬件打印指令执行失败: ", e);
         }
+    }
+
+    /** Prints a non-sales member pickup receipt; it never opens the cash drawer. */
+    public void printMemberQuantityPickupReceipt(MemberQuantityPickupReceiptVO receipt) {
+        try {
+            SysPrintConfig config = sysPrintConfigMapper.selectById(1L);
+            if (config == null || !Boolean.TRUE.equals(config.getMemberPickupAutoPrint())) return;
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(); bos.write(EscPosUtil.INIT); bos.write(EscPosUtil.ALIGN_CENTER);
+            if (StringUtils.hasText(config.getShopName())) { bos.write(EscPosUtil.BOLD_ON); bos.write(EscPosUtil.TEXT_LARGE); writeText(bos, config.getShopName() + "\n"); bos.write(EscPosUtil.TEXT_NORMAL); bos.write(EscPosUtil.BOLD_OFF); }
+            if (StringUtils.hasText(config.getHeaderMsg())) writeText(bos, config.getHeaderMsg() + "\n");
+            bos.write(EscPosUtil.BOLD_ON); writeText(bos, "会员提货单\n"); bos.write(EscPosUtil.BOLD_OFF); bos.write(EscPosUtil.ALIGN_LEFT);
+            writeText(bos, "提货单号: " + receipt.getPickupNo() + "\n"); writeText(bos, "会员编号: " + receipt.getMemberId() + "\n");
+            writeText(bos, "办理时间: " + receipt.getPickupTime() + "\n"); writeText(bos, "操作员: " + receipt.getOperatorName() + "\n--------------------------------\n");
+            int total = 0; for (MemberQuantityPickupReceiptVO.Line line : receipt.getLines()) { total += line.getQuantity(); writeText(bos, line.getGoodsName() + " x" + line.getQuantity() + "\n"); }
+            writeText(bos, "--------------------------------\n提货件数: " + total + "\n本次提货不产生销售收入\n");
+            if (StringUtils.hasText(config.getShopPhone())) writeText(bos, "门店热线: " + config.getShopPhone() + "\n");
+            if (StringUtils.hasText(config.getShopAddress())) writeText(bos, "门店地址: " + config.getShopAddress() + "\n");
+            bos.write(EscPosUtil.ALIGN_CENTER); if (StringUtils.hasText(config.getFooterMsg())) writeText(bos, "\n" + config.getFooterMsg() + "\n"); writeText(bos, "\n\n\n\n\n"); executeHardwareCommand(bos.toByteArray());
+        } catch (Exception e) { log.error("会员提货单打印失败", e); }
     }
 
     /** 收银台手动开箱，不依赖“现金收款后自动弹开”配置。 */

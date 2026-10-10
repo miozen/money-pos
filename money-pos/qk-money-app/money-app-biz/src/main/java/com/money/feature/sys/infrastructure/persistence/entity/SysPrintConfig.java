@@ -19,5 +19,6 @@ public class SysPrintConfig extends BaseEntity {
     private String headerMsg;
     private String footerMsg;
     private Boolean autoPrint;
+    private Boolean memberPickupAutoPrint;
     private Boolean openDrawer;
 }

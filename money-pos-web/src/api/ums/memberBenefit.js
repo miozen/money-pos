@@ -12,6 +12,7 @@ export default {
   quantityPurchase: (data) => req({ url: '/pos/deferred-quantity/settle', method: 'POST', data }),
   quantityTrial: (data) => req({ url: '/pos/deferred-quantity/trial', method: 'POST', data }),
   quantityPickup: (data) => req({ url: '/pos/deferred-quantity/pickup', method: 'POST', data }),
+  quantityPickupReceipt: (pickupNo) => req({ url: '/pos/deferred-quantity/pickup-receipt', method: 'POST', params: { pickupNo } }),
   amountPurchase: (data) => req({ url: '/pos/amount-package/purchase', method: 'POST', data }),
   amountPickupPreview: (data) => req({ url: '/pos/amount-package/pickup-preview', method: 'POST', data }),
   amountPickup: (data) => req({ url: '/pos/amount-package/pickup', method: 'POST', data }),

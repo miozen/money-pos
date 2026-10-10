@@ -16,9 +16,11 @@ import com.money.dto.pos.MemberAmountPickupRefundVO;
 import com.money.dto.pos.SettleTrialReqDTO;
 import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.trade.application.memberpickup.DeferredQuantityPickupService;
+import com.money.feature.trade.application.memberpickup.MemberQuantityPickupReceiptService;
 import com.money.feature.trade.application.memberpickup.MemberAmountBenefitService;
 import com.money.feature.trade.application.membertarget.MemberTargetBenefitService;
 import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
+import com.money.service.printer.PosPrinterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -40,6 +43,8 @@ public class PosController {
 
     private final PosService posService;
     private final DeferredQuantityPickupService deferredQuantityPickupService;
+    private final MemberQuantityPickupReceiptService memberQuantityPickupReceiptService;
+    private final PosPrinterService posPrinterService;
     private final MemberAmountBenefitService memberAmountBenefitService;
     private final MemberTargetBenefitService memberTargetBenefitService;
     private final PosPricingFacade posPricingFacade;
@@ -84,6 +89,14 @@ public class PosController {
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public com.money.dto.pos.DeferredQuantityPickupVO pickupDeferredQuantity(@Validated @RequestBody com.money.dto.pos.DeferredQuantityPickupDTO dto) {
         return deferredQuantityPickupService.pickup(dto);
+    }
+
+    @Operation(summary = "打印会员数量权益提货单")
+    @PostMapping("/deferred-quantity/pickup-receipt")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public Boolean printDeferredQuantityPickupReceipt(@RequestParam String pickupNo) {
+        posPrinterService.printMemberQuantityPickupReceipt(memberQuantityPickupReceiptService.receipt(pickupNo));
+        return true;
     }
 
     @Operation(summary = "会员金额权益包购买")
