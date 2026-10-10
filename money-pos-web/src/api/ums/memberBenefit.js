@@ -18,6 +18,7 @@ export default {
   amountPurchase: (data) => req({ url: '/pos/amount-package/purchase', method: 'POST', data }),
   amountPickupPreview: (data) => req({ url: '/pos/amount-package/pickup-preview', method: 'POST', data }),
   amountPickup: (data) => req({ url: '/pos/amount-package/pickup', method: 'POST', data }),
+  amountPickupReceipt: (pickupNo) => req({ url: '/pos/amount-package/pickup-receipt', method: 'POST', params: { pickupNo } }),
   amountPickupRefund: (data) => req({ url: '/pos/amount-package/pickup-refund', method: 'POST', data }),
   targetSettle: (data) => req({ url: '/pos/target/settle', method: 'POST', data }),
   targetSupplement: (data) => req({ url: '/pos/target/supplement', method: 'POST', data }),

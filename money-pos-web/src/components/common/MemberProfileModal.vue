@@ -75,7 +75,7 @@
 
                 <el-tab-pane name="logs">
                     <template #label>
-                        <span class="flex items-center gap-1"><el-icon><List /></el-icon> 资产变动流水</span>
+                        <span class="flex items-center gap-1"><el-icon><List /></el-icon> 资产与权益变动</span>
                     </template>
                     <div class="mt-2">
                         <el-table :data="logList" size="small" height="420px" border stripe v-loading="logLoading">
@@ -94,7 +94,7 @@
                             </el-table-column>
                             <el-table-column prop="orderNo" label="关联单据" min-width="120">
                                 <template #default="{row}">
-                                    <el-link v-if="row.orderNo" type="primary" :underline="false" @click="showOrderDetail(row.orderNo)" class="font-mono text-xs">
+                                    <el-link v-if="row.orderNo" type="primary" :underline="false" @click="showOrderDetail(row)" class="font-mono text-xs">
                                         {{ row.orderNo }}
                                     </el-link>
                                     <span v-else class="text-gray-300">-</span>
@@ -217,19 +217,20 @@ const fetchTopGoods = async (memberId) => {
 const fetchLogs = async (memberId) => {
     logLoading.value = true
     try {
-        const res = await req({ url: '/ums/member/logs', method: 'GET', params: { memberId } })
-        logList.value = res.data || res || []
+        const res = await req({ url: '/ums/member/asset-benefit-history', method: 'GET', params: { memberId } })
+        const records = (res.data || res || {}).records || []
+        logList.value = records.map(row => ({ ...row, type: row.dimension, amount: Number(row.delta || 0), orderNo: row.referenceNo, remark: row.summary, operateType: row.businessType }))
     } finally {
         logLoading.value = false
     }
 }
 
-const showOrderDetail = (orderNo) => {
-    if (!orderNo) return
-    currentOrderNo.value = orderNo
-    if (orderNo.startsWith('RC')) {
+const showOrderDetail = (row) => {
+    if (!row?.orderNo) return
+    currentOrderNo.value = row.orderNo
+    if (row.detailTarget === 'RECHARGE' || (!row.detailTarget && row.operateType === 'RECHARGE')) {
         rechargeDetailVisible.value = true
-    } else if (orderNo.startsWith('RE')) {
+    } else {
         salesDetailVisible.value = true
     }
 }

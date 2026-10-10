@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("ums_member_quantity_right_log")
@@ -20,4 +21,5 @@ public class UmsMemberQuantityRightLog {
     private String operatorName;
     private String reason;
     private Long tenantId;
+    private LocalDateTime createTime;
 }

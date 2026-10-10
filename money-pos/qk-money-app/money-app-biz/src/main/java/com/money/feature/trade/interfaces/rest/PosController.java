@@ -17,6 +17,7 @@ import com.money.dto.pos.SettleTrialReqDTO;
 import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.trade.application.memberpickup.DeferredQuantityPickupService;
 import com.money.feature.trade.application.memberpickup.MemberQuantityPickupReceiptService;
+import com.money.feature.trade.application.memberpickup.MemberAmountPickupReceiptService;
 import com.money.feature.trade.application.memberpickup.MemberAmountBenefitService;
 import com.money.feature.trade.application.membertarget.MemberTargetBenefitService;
 import com.money.feature.trade.application.boundary.facade.PosPricingFacade;
@@ -44,6 +45,7 @@ public class PosController {
     private final PosService posService;
     private final DeferredQuantityPickupService deferredQuantityPickupService;
     private final MemberQuantityPickupReceiptService memberQuantityPickupReceiptService;
+    private final MemberAmountPickupReceiptService memberAmountPickupReceiptService;
     private final PosPrinterService posPrinterService;
     private final MemberAmountBenefitService memberAmountBenefitService;
     private final MemberTargetBenefitService memberTargetBenefitService;
@@ -119,6 +121,8 @@ public class PosController {
     public MemberAmountPickupVO pickupAmountPackage(@Validated @RequestBody MemberAmountPickupDTO dto) {
         return memberAmountBenefitService.pickup(dto);
     }
+    @PostMapping("/amount-package/pickup-receipt") @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public Boolean printAmountPickupReceipt(@RequestParam String pickupNo) { posPrinterService.printMemberQuantityPickupReceipt(memberAmountPickupReceiptService.receipt(pickupNo)); return true; }
 
     @Operation(summary = "会员金额权益提货预览")
     @PostMapping("/amount-package/pickup-preview")

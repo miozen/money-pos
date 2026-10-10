@@ -2,6 +2,7 @@ package com.money.feature.trade.application.memberpickup;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.memberbenefit.MemberBenefitTradeHistoryVO;
+import com.money.contract.member.MemberBenefitTradeHistoryQuery;
 import com.money.feature.trade.infrastructure.persistence.entity.*;
 import com.money.feature.trade.infrastructure.persistence.mapper.*;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.List;
 /** TRADE-owned history read model; UMS entities and mappers never cross this boundary. */
 @Service
 @RequiredArgsConstructor
-public class MemberBenefitTradeHistoryService {
+public class MemberBenefitTradeHistoryService implements MemberBenefitTradeHistoryQuery {
     private final OmsMemberQuantityPickupMapper quantityPickupMapper;
     private final OmsMemberAmountPickupMapper amountPickupMapper;
     private final OmsMemberAmountReceiptMapper amountReceiptMapper;

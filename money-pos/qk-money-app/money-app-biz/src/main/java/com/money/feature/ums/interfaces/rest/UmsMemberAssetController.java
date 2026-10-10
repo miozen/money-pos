@@ -5,6 +5,8 @@ import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
 import com.money.feature.ums.application.memberasset.UmsMemberAssetService; // 🌟 引入标准的资产服务
 import com.money.feature.ums.application.member.UmsMemberService;
+import com.money.feature.ums.application.memberbenefit.MemberAssetBenefitHistoryService;
+import com.money.dto.memberbenefit.MemberAssetBenefitHistoryVO;
 import com.money.web.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +27,12 @@ public class UmsMemberAssetController {
 
     private final UmsMemberService umsMemberService;
     private final UmsMemberAssetService umsMemberAssetService; // 🌟 架构规范化：由 Service 全面接管数据层
+    private final MemberAssetBenefitHistoryService memberAssetBenefitHistoryService;
+
+    @GetMapping("/asset-benefit-history")
+    @Operation(summary = "查询会员资产与权益变动流水")
+    @PreAuthorize("@rbac.hasPermission('umsMember:list')")
+    public MemberAssetBenefitHistoryVO assetBenefitHistory(@RequestParam Long memberId) { return memberAssetBenefitHistoryService.list(memberId); }
 
     @GetMapping("/logs")
     @Operation(summary = "查询会员资产流水")

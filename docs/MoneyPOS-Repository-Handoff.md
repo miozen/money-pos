@@ -200,9 +200,12 @@ passed. ME-1.6I-B is complete in `2111dc2`: TARGET cancellation is an auditable 
 it records request/operator/time/reason and rejects every plan with a post-initial business flow. ME-1.6I-C is complete:
 ordinary checkout automatically contributes each eligible brand's persisted order-detail net amount to its one TARGET
 plan in the same transaction. Ambiguous same-brand plans reject checkout, target-complete plans await manual confirmation,
-and linked refunds still require review. The exact next action is I-D: add the Entity-free, read-only member-profile
-asset-and-benefit history, QDP order-detail routing, and AMOUNT pickup receipt printing. ME-1.6H Windows acceptance
-remains outstanding and must not be reported complete.
+and linked refunds still require review. ME-1.6I-D is complete: UMS exposes an Entity-free, read-only member asset-and-benefit
+history which combines legacy asset logs, its own entitlement ledgers and TRADE document snapshots; QDP uses an explicit ordinary-order
+detail target, and AMOUNT pickup now asynchronously prints the same non-sales pickup receipt without opening the drawer. The I-D full
+isolated regression reports 68 reports, 140 tests, 0 failures/errors; package, Node 20 build and architecture gates passed. The exact
+next action is the remaining ME-1.6H-D Windows Electron/POS manual matrix. It is the only outstanding ME-1.6 close condition and must
+not be reported complete until actually run.
 
 ## Handoff rule
 
