@@ -38,7 +38,7 @@
                     <el-icon :size="40" class="mb-2"><UserFilled /></el-icon><p class="tracking-widest font-bold">普通散客，无会员特权</p>
                 </div>
 
-                <div class="flex-1 bg-gray-50 p-3.5 rounded-lg border flex flex-col justify-between">
+                <div class="flex-1 min-h-0 bg-gray-50 p-3.5 rounded-lg border flex flex-col justify-between">
                     <div class="flex flex-col gap-2 text-orange-600">
                         <div class="flex justify-between items-center">
                             <span class="font-bold flex items-center gap-1 whitespace-nowrap"><el-icon><Ticket /></el-icon> 满减券</span>
@@ -63,8 +63,8 @@
                     <div class="flex flex-col mt-2">
                         <div v-if="currentMember.id" class="border-t border-dashed border-gray-300 pt-3 mb-1">
                             <div class="text-sm font-bold text-indigo-700">会员升级计划（自动计入）</div>
-                            <div v-if="targetPlanOptions.length" class="mt-1 space-y-1 text-[11px] text-gray-600">
-                                <div v-for="plan in targetPlanOptions" :key="plan.planId" class="rounded bg-indigo-50 px-2 py-1">
+                            <div v-if="targetPlanOptions.length" class="mt-1 max-h-[96px] space-y-1 overflow-y-auto pr-1 text-[11px] text-gray-600">
+                                <div v-for="plan in targetPlanOptions" :key="plan.planId" class="rounded bg-indigo-50 px-2 py-1 break-words">
                                     {{ plan.brandName || '品牌' }} / {{ plan.targetTierName }}：本单计入约￥{{ targetContribution(plan).toFixed(2) }}
                                     <span class="text-gray-500">；不计入：{{ notContributingGoods(plan) || '无' }}</span>
                                 </div>

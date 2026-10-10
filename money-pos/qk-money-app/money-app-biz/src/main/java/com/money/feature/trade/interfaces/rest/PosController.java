@@ -107,6 +107,8 @@ public class PosController {
         posPrinterService.printMemberQuantityPickupReceipt(memberQuantityPickupReceiptService.receipt(pickupNo));
         return true;
     }
+    @GetMapping("/deferred-quantity/pickup-receipt") @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public com.money.dto.pos.MemberQuantityPickupReceiptVO previewDeferredQuantityPickupReceipt(@RequestParam String pickupNo) { return memberQuantityPickupReceiptService.receipt(pickupNo); }
 
     @Operation(summary = "会员金额权益包购买")
     @PostMapping("/amount-package/purchase")
@@ -123,6 +125,8 @@ public class PosController {
     }
     @PostMapping("/amount-package/pickup-receipt") @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
     public Boolean printAmountPickupReceipt(@RequestParam String pickupNo) { posPrinterService.printMemberQuantityPickupReceipt(memberAmountPickupReceiptService.receipt(pickupNo)); return true; }
+    @GetMapping("/amount-package/pickup-receipt") @PreAuthorize("@rbac.hasPermission('memberBenefit:operate')")
+    public com.money.dto.pos.MemberQuantityPickupReceiptVO previewAmountPickupReceipt(@RequestParam String pickupNo) { return memberAmountPickupReceiptService.receipt(pickupNo); }
 
     @Operation(summary = "会员金额权益提货预览")
     @PostMapping("/amount-package/pickup-preview")

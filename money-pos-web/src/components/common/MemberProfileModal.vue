@@ -80,7 +80,7 @@
                     <div class="mt-2">
                         <el-table :data="logList" size="small" height="420px" border stripe v-loading="logLoading">
                             <el-table-column prop="createTime" label="变动时间" width="140" align="center" />
-                            <el-table-column prop="type" label="资产" width="90" align="center">
+                            <el-table-column prop="type" label="资产/权益" width="105" align="center">
                                 <template #default="{row}">
                                     <el-tag size="small" :type="getAssetTagType(row.type)">{{ getAssetTypeName(row.type) }}</el-tag>
                                 </template>
@@ -109,10 +109,15 @@
 
         <RechargeOrderDetail v-model="rechargeDetailVisible" :order-no="currentOrderNo" @refresh="refreshAfterVoid" />
         <OrderDetailModal v-model="salesDetailVisible" :order-no="currentOrderNo" />
+        <el-dialog v-model="pickupReceiptVisible" title="会员提货单" width="560px" append-to-body>
+            <el-descriptions v-if="pickupReceipt" :column="2" border><el-descriptions-item label="提货单号">{{ pickupReceipt.pickupNo }}</el-descriptions-item><el-descriptions-item label="会员编号">{{ pickupReceipt.memberId }}</el-descriptions-item><el-descriptions-item label="办理时间">{{ pickupReceipt.pickupTime }}</el-descriptions-item><el-descriptions-item label="操作员">{{ pickupReceipt.operatorName }}</el-descriptions-item></el-descriptions>
+            <el-table v-if="pickupReceipt" class="mt-3" :data="pickupReceipt.lines || []" border><el-table-column prop="goodsName" label="商品"/><el-table-column prop="goodsBarcode" label="条码"/><el-table-column prop="quantity" label="数量" width="80"/></el-table>
+        </el-dialog>
     </el-dialog>
 </template>
 
 <script setup>
+import { ElMessage } from 'element-plus'
 import { ref, watch } from 'vue'
 import { Trophy, User, List, Histogram } from '@element-plus/icons-vue'
 import { req } from "@/api/index.js"
@@ -144,11 +149,16 @@ const logList = ref([])
 const rechargeDetailVisible = ref(false)
 const salesDetailVisible = ref(false)
 const currentOrderNo = ref('')
+const pickupReceiptVisible = ref(false), pickupReceipt = ref(null)
 
 const getAssetTypeName = (type) => {
     if (type === 'BALANCE') return '会员余额';
     if (type === 'COUPON') return '会员券';
     if (type === 'VOUCHER') return '满减券';
+    if (type === 'QUANTITY') return '数量权益';
+    if (type === 'AMOUNT') return '金额权益';
+    if (type === 'TARGET_PROGRESS') return '升级进度';
+    if (type === 'TRADE_DOCUMENT') return '业务单据';
     return type || '未知';
 }
 
@@ -219,7 +229,7 @@ const fetchLogs = async (memberId) => {
     try {
         const res = await req({ url: '/ums/member/asset-benefit-history', method: 'GET', params: { memberId } })
         const records = (res.data || res || {}).records || []
-        logList.value = records.map(row => ({ ...row, type: row.dimension, amount: Number(row.delta || 0), orderNo: row.referenceNo, remark: row.summary, operateType: row.businessType }))
+        logList.value = records.map(row => ({ ...row, type: row.dimension, amount: Number(row.delta || 0), orderNo: row.referenceNo, remark: summaryText(row), operateType: row.businessType }))
     } finally {
         logLoading.value = false
     }
@@ -227,6 +237,7 @@ const fetchLogs = async (memberId) => {
 
 const showOrderDetail = (row) => {
     if (!row?.orderNo) return
+    if (row.detailTarget === 'PICKUP') return previewPickupReceipt(row)
     currentOrderNo.value = row.orderNo
     if (row.detailTarget === 'RECHARGE' || (!row.detailTarget && row.operateType === 'RECHARGE')) {
         rechargeDetailVisible.value = true
@@ -234,6 +245,24 @@ const showOrderDetail = (row) => {
         salesDetailVisible.value = true
     }
 }
+
+const previewPickupReceipt = async (row) => {
+    const url = row.type === 'AMOUNT' ? '/pos/amount-package/pickup-receipt' : '/pos/deferred-quantity/pickup-receipt'
+    try {
+        const res = await req({ url, method: 'GET', params: { pickupNo: row.orderNo } })
+        pickupReceipt.value = res.data || res
+        pickupReceiptVisible.value = true
+    } catch (e) {
+        ElMessage.error('获取提货单失败，请稍后重试')
+    }
+}
+const summaryText = (row) => ({
+    RECHARGE: '会员充值', CONSUME: '会员消费', IMPORT: '导入会员资产', GIFT: '赠送会员资产', ISSUE: '发放会员券', REVERSAL: '冲正会员资产',
+    GRANT: '权益办理', PICKUP_DEDUCT: '会员提货', PICKUP_REFUND: '提货退回', PICKUP_REFUND_RESTORE: '提货退款恢复权益', REFUND_CANCEL: '退款扣回未提货权益', SALE_CONTRIBUTION: '订单计入升级进度',
+    SUPPLEMENT: '升级补差', WAIVER: '升级豁免', MANUAL_CONFIRM: '人工确认升级', CANCELLED: '取消升级计划',
+    INITIAL_PROGRESS: '建立升级计划', REFUND_REVIEW_REQUIRED: '退款待人工复核', AMOUNT_PICKUP: '金额权益提货', QUANTITY_PICKUP: '数量权益提货',
+    AMOUNT_PACKAGE_PURCHASE: '办理金额权益包'
+}[row.businessType] || row.summary || '会员权益业务')
 
 const refreshAfterVoid = () => {
     const targetId = props.memberId || props.memberInfo?.id;
