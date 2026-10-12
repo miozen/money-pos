@@ -304,7 +304,10 @@ was rebuilt and Flyway completed V1.0.0 through V1.0.16. Focused affected regres
 Maven suite produced 69 reports with zero failures/errors. Package, Node 20 production build, both architecture scans
 and diff check passed; frontend warnings are the established Browserslist/CSS/dynamic-import/chunk-size warnings only.
 
-Exact next action: commit and push ME-1.6K, fetch, verify `dev...origin/dev = 0/0`, then complete the Windows
+ME-1.6K implementation and its frozen contract are committed locally in `f2444c4`; this repository is not yet
+cross-computer safe until the pending push and synchronization check complete.
+
+Exact next action: push ME-1.6K, fetch, verify `dev...origin/dev = 0/0`, then complete the Windows
 Electron/POS manual matrix for new and historical REQ/QDP/MP/MAP/MAR/MARF/MTR detail, print and refund flows.
 
 ## Handoff rule
