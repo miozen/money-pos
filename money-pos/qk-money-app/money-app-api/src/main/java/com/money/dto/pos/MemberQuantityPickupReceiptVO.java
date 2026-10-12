@@ -9,6 +9,8 @@ import java.util.List;
 public class MemberQuantityPickupReceiptVO {
     private String pickupNo;
     private Long memberId;
+    private String memberName;
+    private String memberPhone;
     private String operatorName;
     private LocalDateTime pickupTime;
     private List<Line> lines;

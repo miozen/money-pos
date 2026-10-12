@@ -3,6 +3,8 @@ package com.money.feature.trade.application.memberpickup;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.CheckoutGoodsQuery;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
+import com.money.contract.member.MemberCheckoutQuery;
+import com.money.contract.member.MemberCheckoutSnapshot;
 import com.money.dto.pos.MemberQuantityPickupReceiptVO;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickup;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickupItem;
@@ -23,6 +25,7 @@ public class MemberQuantityPickupReceiptService {
     private final OmsMemberQuantityPickupMapper pickupMapper;
     private final OmsMemberQuantityPickupItemMapper itemMapper;
     private final CheckoutGoodsQuery checkoutGoodsQuery;
+    private final MemberCheckoutQuery memberCheckoutQuery;
 
     public MemberQuantityPickupReceiptVO receipt(String pickupNo) {
         OmsMemberQuantityPickup pickup = pickupMapper.selectOne(new LambdaQueryWrapper<OmsMemberQuantityPickup>()
@@ -34,6 +37,8 @@ public class MemberQuantityPickupReceiptService {
         Map<Long, CheckoutGoodsSnapshot> goods = checkoutGoodsQuery.findByIds(items.stream().map(OmsMemberQuantityPickupItem::getGoodsId).collect(Collectors.toList()));
         MemberQuantityPickupReceiptVO result = new MemberQuantityPickupReceiptVO();
         result.setPickupNo(pickup.getPickupNo()); result.setMemberId(pickup.getMemberId()); result.setPickupTime(pickup.getCreateTime());
+        MemberCheckoutSnapshot member = memberCheckoutQuery.findActiveMemberById(pickup.getMemberId());
+        if (member != null) { result.setMemberName(member.getName()); result.setMemberPhone(member.getPhone()); }
         result.setOperatorName(SecurityContextHolder.getContext().getAuthentication() == null ? "System" : SecurityContextHolder.getContext().getAuthentication().getName());
         result.setLines(items.stream().map(item -> line(item, goods.get(item.getGoodsId()))).collect(Collectors.toList()));
         return result;
