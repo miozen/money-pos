@@ -90,7 +90,7 @@ public class CheckoutOrchestrator {
         paymentService.handlePayment(context);
 
         saveAuditLog(context);
-        if (automaticTargetContribution) automaticTargetContributionService.contribute(context.getOrder(), context.getOrderDetails());
+        if (automaticTargetContribution) automaticTargetContributionService.contribute(context.getOrder(), context.getOrderDetails(), request.getTargetPlanIds());
 
         return buildFinalResult(context);
     }

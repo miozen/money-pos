@@ -62,28 +62,15 @@
 
                     <div class="flex flex-col mt-2">
                         <div v-if="currentMember.id" class="border-t border-dashed border-gray-300 pt-3 mb-1">
-                            <div class="text-sm font-bold text-indigo-700">会员升级计划（自动计入）</div>
+                            <div class="text-sm font-bold text-indigo-700">会员升级计划（默认计入，可关闭）</div>
                             <div v-if="targetPlanOptions.length" class="mt-1 max-h-[96px] space-y-1 overflow-y-auto pr-1 text-[11px] text-gray-600">
                                 <div v-for="plan in targetPlanOptions" :key="plan.planId" class="rounded bg-indigo-50 px-2 py-1 break-words">
-                                    {{ plan.brandName || '品牌' }} / {{ plan.targetTierName }}：本单计入约￥{{ targetContribution(plan).toFixed(2) }}
+                                    <el-checkbox v-model="selectedTargetPlanIds" :label="plan.planId" class="mr-1">计入</el-checkbox>
+                                    {{ plan.brandName || '品牌' }} / {{ plan.targetTierName }}：本单计入￥{{ targetContribution(plan).toFixed(2) }}
                                     <span class="text-gray-500">；不计入：{{ notContributingGoods(plan) || '无' }}</span>
                                 </div>
                             </div>
-                            <div v-else class="text-[11px] text-gray-500 mt-1">本单没有可自动计入的升级计划；其他品牌商品不计入计划。</div>
-                        </div>
-                        <div class="flex justify-between items-center text-blue-600 border-t border-gray-200 pt-3">
-                            <span class="font-bold whitespace-nowrap">🏷️ 整单优惠:</span>
-                            <el-input-number v-model="manualDiscount" :min="0" :max="totalAmount" :precision="2" :step="1" class="!w-[130px]" placeholder="直减" @change="handleDiscountChange" @focus="handleFocus" />
-                        </div>
-
-                        <div class="flex flex-col border-t border-dashed border-gray-300 pt-3 mt-3 min-h-[45px]" v-show="currentMember.id && theoreticalCouponUsed > 0">
-                            <div class="flex justify-between items-center text-teal-600">
-                                <span class="font-bold whitespace-nowrap flex items-center gap-1"><el-icon><PriceTag /></el-icon> 免收会员券:</span>
-                                <el-switch v-model="isWaiveCoupon" active-text="是" inactive-text="否" inline-prompt @change="handleDiscountChange" />
-                            </div>
-                            <div v-if="!isWaiveCoupon && (currentMember.coupon || 0) < theoreticalCouponUsed" class="text-[10px] text-red-500 text-right mt-1.5 font-bold animate-pulse leading-tight">
-                                ⚠️ 余额不足以抵扣 ￥{{ theoreticalCouponUsed.toFixed(2) }}，请充值或开启免收！
-                            </div>
+                            <div v-else class="text-[11px] text-gray-500 mt-1">本单没有可计入的升级计划；其他品牌商品不计入计划。</div>
                         </div>
                     </div>
                 </div>
@@ -132,6 +119,21 @@
                                 <el-tag v-for="tag in localPayTagDict" :key="tag.value" :type="pay.activeTag === tag.value ? 'success' : 'info'" :effect="pay.activeTag === tag.value ? 'dark' : 'plain'" class="cursor-pointer font-bold border-0 shadow-sm transition-all hover:scale-105" @click="pay.activeTag = tag.value">
                                     {{ tag.desc }}
                                 </el-tag>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 space-y-3 border-t border-dashed border-gray-300 pt-3">
+                        <div class="flex justify-between items-center text-blue-600">
+                            <span class="font-bold whitespace-nowrap">🏷️ 整单优惠:</span>
+                            <el-input-number v-model="manualDiscount" :min="0" :max="totalAmount" :precision="2" :step="1" class="!w-[130px]" placeholder="直减" @change="handleDiscountChange" @focus="handleFocus" />
+                        </div>
+                        <div v-show="currentMember.id && theoreticalCouponUsed > 0" class="flex flex-col gap-1">
+                            <div class="flex justify-between items-center text-teal-600">
+                                <span class="font-bold whitespace-nowrap flex items-center gap-1"><el-icon><PriceTag /></el-icon> 免收会员券:</span>
+                                <el-switch v-model="isWaiveCoupon" active-text="是" inactive-text="否" inline-prompt @change="handleDiscountChange" />
+                            </div>
+                            <div v-if="!isWaiveCoupon && (currentMember.coupon || 0) < theoreticalCouponUsed" class="text-[10px] text-red-500 text-right font-bold animate-pulse leading-tight">
+                                ⚠️ 余额不足以抵扣 ￥{{ theoreticalCouponUsed.toFixed(2) }}，请充值或开启免收！
                             </div>
                         </div>
                     </div>
@@ -185,6 +187,7 @@ const submitLoading = ref(false)
 const localPayTagDict = ref([]) // 🌟 纯净的数据源存放点
 const stockErrorMessage = ref('')
 const targetPlanOptions = ref([])
+const selectedTargetPlanIds = ref([])
 
 const {
     cartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
@@ -206,6 +209,7 @@ const loadTargetPlanOptions = async () => {
         return res.data || res || []
     }))
     targetPlanOptions.value = rows.flat()
+    selectedTargetPlanIds.value = targetPlanOptions.value.map(plan => plan.planId)
 }
 const targetContribution = (plan) => {
     const items = trialResult.value?.items || []
@@ -345,6 +349,7 @@ const handleClosed = () => {
     isWaiveCoupon.value = false;
     selectedCouponRule.value = null;
     targetPlanOptions.value = [];
+    selectedTargetPlanIds.value = [];
     runTrial();
     emit('closed');
 }
@@ -374,6 +379,7 @@ const submitOrderAction = async () => {
             usedCouponCount: selectedCouponRule.value ? usedCouponCount.value : 0,
             waiveCoupon: isWaiveCoupon.value,
             manualDiscountAmount: manualDiscount.value || 0,
+            targetPlanIds: selectedTargetPlanIds.value,
             orderDetail: orderDetails,
             payments: validPayments
         };

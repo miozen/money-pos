@@ -15,13 +15,14 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Adds ordinary-sale TARGET progress only from persisted order facts, never from POS input. */
+/** Adds cashier-confirmed TARGET progress only from persisted order facts, never from POS amounts. */
 @Service
 @RequiredArgsConstructor
 public class AutomaticTargetContributionService {
@@ -29,19 +30,26 @@ public class AutomaticTargetContributionService {
     private final MemberBrandBenefitLedgerCommandHandler ledger;
     private final OmsMemberTargetSaleContributionMapper contributionMapper;
 
-    public void contribute(OmsOrder order, List<OmsOrderDetail> details) {
-        if (order.getMemberId() == null || details == null || details.isEmpty()) return;
+    public void contribute(OmsOrder order, List<OmsOrderDetail> details, Collection<Long> selectedPlanIds) {
+        if (order.getMemberId() == null || details == null || details.isEmpty() || selectedPlanIds == null || selectedPlanIds.isEmpty()) return;
         Set<String> brands = details.stream().map(OmsOrderDetail::getBrandId).filter(java.util.Objects::nonNull)
                 .map(String::valueOf).collect(Collectors.toSet());
         if (brands.isEmpty()) return;
         List<MemberTargetPlanSnapshot> candidates = targetPlanQuery.findEligibleForAutomaticContribution(order.getMemberId(), brands);
-        Map<String, List<MemberTargetPlanSnapshot>> plansByBrand = candidates.stream()
+        Map<Long, MemberTargetPlanSnapshot> candidatesById = candidates.stream()
+                .collect(Collectors.toMap(MemberTargetPlanSnapshot::getPlanId, plan -> plan, (left, right) -> left, LinkedHashMap::new));
+        List<MemberTargetPlanSnapshot> selectedPlans = selectedPlanIds.stream().distinct().map(candidatesById::get)
+                .collect(Collectors.toList());
+        if (selectedPlans.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new BaseException("所选TARGET计划已不可计入本单，请刷新后重新确认");
+        }
+        Map<String, List<MemberTargetPlanSnapshot>> plansByBrand = selectedPlans.stream()
                 .collect(Collectors.groupingBy(MemberTargetPlanSnapshot::getBrandId, LinkedHashMap::new, Collectors.toList()));
         for (Map.Entry<String, List<MemberTargetPlanSnapshot>> entry : plansByBrand.entrySet()) {
-            if (entry.getValue().size() > 1) throw new BaseException("会员品牌“" + entry.getKey() + "”存在多个可计入TARGET计划，请先处理计划");
+            if (entry.getValue().size() > 1) throw new BaseException("同一品牌只能确认一个TARGET计划计入本单");
         }
         Map<String, BigDecimal> amounts = netAmountsByBrand(details);
-        for (MemberTargetPlanSnapshot plan : candidates) {
+        for (MemberTargetPlanSnapshot plan : selectedPlans) {
             BigDecimal amount = amounts.getOrDefault(plan.getBrandId(), BigDecimal.ZERO);
             if (amount.compareTo(BigDecimal.ZERO) <= 0) continue;
             OmsMemberTargetSaleContribution existing = contributionMapper.selectOne(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>()
@@ -54,7 +62,7 @@ public class AutomaticTargetContributionService {
             MemberBrandBenefitLedgerCommand.TargetProgressChange change = new MemberBrandBenefitLedgerCommand.TargetProgressChange();
             change.setPlanId(plan.getPlanId()); change.setDelta(amount); change.setAction("SALE_CONTRIBUTION");
             change.setRequestNo(order.getOrderNo() + "-TARGET-" + plan.getPlanId()); change.setSourceType("TRADE_ORDER");
-            change.setSourceNo(order.getOrderNo()); change.setReason("普通结算按品牌明细自动计入"); ledger.changeTargetProgress(change);
+            change.setSourceNo(order.getOrderNo()); change.setReason("普通结算经收银确认按品牌明细计入"); ledger.changeTargetProgress(change);
         }
     }
 

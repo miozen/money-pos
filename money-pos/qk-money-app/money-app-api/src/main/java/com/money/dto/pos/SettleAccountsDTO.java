@@ -40,6 +40,9 @@ public class SettleAccountsDTO {
     @Schema(description = "手工整单优惠金额")
     private BigDecimal manualDiscountAmount;
 
+    @Schema(description = "收银员确认计入本单的TARGET计划ID；未传或为空时不计入任何计划")
+    private List<Long> targetPlanIds;
+
     @Schema(description = "组合支付明细流水列表")
     private List<PaymentItem> payments;
 

@@ -90,6 +90,7 @@ class MemberTargetBenefitServiceIntegrationTest {
         SettleAccountsDTO settle = fixture.cashSettlement("MIX-" + suffix, first.getId(), 1, new BigDecimal("18.00"));
         OmsOrderDetailDTO secondLine = new OmsOrderDetailDTO(); secondLine.setGoodsId(second.getId()); secondLine.setQuantity(1);
         settle.setOrderDetail(Arrays.asList(settle.getOrderDetail().get(0), secondLine)); settle.setMember(member.getId()); settle.setManualDiscountAmount(new BigDecimal("2.00"));
+        settle.setTargetPlanIds(Arrays.asList(firstPlan, secondPlan));
         posService.settleAccounts(settle);
         assertThat(contributionMapper.selectList(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, settle.getReqId())))
                 .extracting(OmsMemberTargetSaleContribution::getTargetPlanId, OmsMemberTargetSaleContribution::getContributionAmount)
@@ -99,12 +100,25 @@ class MemberTargetBenefitServiceIntegrationTest {
         assertThat(planMapper.selectById(secondPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
     }
 
-    @Test void ordinaryCheckoutRejectsAmbiguousEligiblePlansForSameBrand() {
+    @Test void ordinaryCheckoutDoesNotContributeWhenCashierClosesAllTargetPlans() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        GmsGoods goods = fixture.createSellableGoods(suffix, 3, new BigDecimal("12.00")); goods.setBrandId(1L); goodsMapper.updateById(goods);
+        com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = fixture.createMember(suffix, BigDecimal.ZERO);
+        Long planId = createPlan(member.getId(), "1", suffix);
+        SettleAccountsDTO settle = fixture.cashSettlement("CLOSE-" + suffix, goods.getId(), 1, new BigDecimal("12.00")); settle.setMember(member.getId());
+        settle.setTargetPlanIds(Collections.emptyList());
+        posService.settleAccounts(settle);
+        assertThat(contributionMapper.selectCount(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>()
+                .eq(OmsMemberTargetSaleContribution::getTargetPlanId, planId))).isZero();
+    }
+
+    @Test void ordinaryCheckoutRejectsTwoCashierSelectionsForSameBrand() {
         String suffix = Long.toString(System.nanoTime(), 36); GmsGoods goods = fixture.createSellableGoods(suffix, 3, new BigDecimal("12.00")); goods.setBrandId(1L); goodsMapper.updateById(goods);
         com.money.feature.ums.infrastructure.persistence.entity.UmsMember member = fixture.createMember(suffix, BigDecimal.ZERO);
-        createPlan(member.getId(), "1", suffix + "a", 1); createPlan(member.getId(), "1", suffix + "b", 2);
+        Long firstPlan = createPlan(member.getId(), "1", suffix + "a", 1); Long secondPlan = createPlan(member.getId(), "1", suffix + "b", 2);
         SettleAccountsDTO settle = fixture.cashSettlement("AMB-" + suffix, goods.getId(), 1, new BigDecimal("12.00")); settle.setMember(member.getId());
-        assertThatThrownBy(() -> posService.settleAccounts(settle)).hasMessageContaining("多个可计入TARGET计划");
+        settle.setTargetPlanIds(Arrays.asList(firstPlan, secondPlan));
+        assertThatThrownBy(() -> posService.settleAccounts(settle)).hasMessageContaining("同一品牌只能确认一个TARGET计划");
     }
 
     @Test void ordinaryCheckoutDoesNotContributeToTargetCompletePlanAwaitingManualConfirmation() {
