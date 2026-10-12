@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after this handoff commit; push, fetch and `dev...origin/dev` verification are the next delivery steps.** |
-| Current phase | `ME-1.6 — original Windows/POS acceptance passed; quantity-deposit dialog visual spot-check pending` |
-| Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` |
+| Working tree | **Clean and synchronized after this ME-1.6 closing handoff commit; `dev...origin/dev = 0/0`.** |
+| Current phase | `ME-1.6 — completed and accepted; do not enter a next phase without a new approved contract` |
+| Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` (complete) |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -331,8 +331,9 @@ ordinary POS checkout, mixed-checkout workstation visibility, QUANTITY/AMOUNT/TA
 benefit history/document details, and refund/restart persistence. The only subsequent code change is `ee0a37f`:
 the QUANTITY “确认商品寄存” dialog now keeps its pricing summary above payment details and moves the whole-order
 discount input below them. Payment and discount labels are left-aligned; pricing, payment allocation, submit request,
-API and business behavior are untouched. Node 20 production build and `git diff --check` passed. One visual spot-check
-in a newly built `dev` installer remains before ME-1.6 is closed.
+API and business behavior are untouched. Node 20 production build and `git diff --check` passed. The user subsequently
+confirmed the new `dev` installer renders the dialog correctly. ME-1.6J and the full ME-1.6 phase are closed; no next
+phase has been started.
 
 ## Handoff rule
 
