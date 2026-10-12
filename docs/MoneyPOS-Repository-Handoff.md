@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after `538a2d4`; TARGET cashier confirmation and checkout layout repair are committed, pushed and synchronized. Windows Electron/POS manual acceptance remains pending.** |
+| Working tree | **Clean after the accepted checkout UI follow-up; push/synchronization evidence is recorded below.** |
 | Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
 | Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -252,6 +252,19 @@ voucher change or transaction-boundary change was made. The documented isolated 
 68 Surefire reports, 141 tests, 0 failures/errors; package, Node 20 production build, both architecture gates and
 `git diff --check` passed. The exact next action is the Windows Electron/POS manual matrix, the only remaining
 ME-1.6 close condition.
+
+On 2026-10-12, the accepted checkout UI follow-up preserves the original one-payment-per-row layout, payment inputs
+and aggregate-channel tags;
+uses a compact Element Plus title header (16px outer padding, 12px from title to cards), removes the Element Plus
+footer wrapper's duplicate padding, and standardizes the surrounding containers at 8px/12px/16px spacing. It replaces
+the fixed 480px workspace height with a `clamp(420px, calc(100vh - 170px), 480px)` viewport-aware height and shortens
+TARGET plan display to “计入 + 计划名称 + 本单计入金额”. The right payment area normally fits payments, whole-order
+discount and waive-member-coupon controls without scrolling; the left TARGET plan list remains the sole intended local
+scroll area, with no extra explanatory text. Its checkbox rows use a shrinkable grid and wrapping plan text so long
+plan names/amounts remain inside the card. The checkout footer now reuses the cart's existing `totalCount` (“共 N 件”)
+and is an independent rounded card aligned to the workspace padding. Node 20 production build and `git diff --check`
+passed. It is committed and pushed after the user's visual acceptance. Exact next action: run the outstanding Windows
+Electron/POS manual matrix before closing ME-1.6.
 
 ## Handoff rule
 

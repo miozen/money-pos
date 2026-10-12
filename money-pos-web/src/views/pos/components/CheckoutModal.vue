@@ -9,7 +9,7 @@
             class="mx-4 mt-4"
             @close="stockErrorMessage = ''"
         />
-        <div class="flex gap-4 p-4 pb-0 h-[480px]">
+        <div class="checkout-workspace flex gap-4 px-4 pt-3 pb-0">
             <div class="w-[42%] flex flex-col gap-2">
                 <div v-if="currentMember.id" class="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200 shadow-inner shrink-0">
                     <div class="flex items-center gap-3 mb-2 border-b border-blue-100 pb-2">
@@ -22,7 +22,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="space-y-1.5">
+                    <div class="space-y-2">
                         <div class="flex justify-between items-center bg-white/60 px-2 py-1 rounded">
                             <span class="text-xs text-gray-600 font-bold">会员余额</span><span class="text-base font-black text-blue-600">￥{{ (currentMember.balance || 0).toFixed(2) }}</span>
                         </div>
@@ -38,7 +38,7 @@
                     <el-icon :size="40" class="mb-2"><UserFilled /></el-icon><p class="tracking-widest font-bold">普通散客，无会员特权</p>
                 </div>
 
-                <div class="flex-1 min-h-0 bg-gray-50 p-3.5 rounded-lg border flex flex-col justify-between">
+                <div class="flex-1 min-h-0 bg-gray-50 p-3 rounded-lg border flex flex-col justify-start gap-3">
                     <div class="flex flex-col gap-2 text-orange-600">
                         <div class="flex justify-between items-center">
                             <span class="font-bold flex items-center gap-1 whitespace-nowrap"><el-icon><Ticket /></el-icon> 满减券</span>
@@ -46,7 +46,7 @@
                                 <el-option v-for="c in availableCoupons" :key="c.ruleId" :label="c.name" :value="c" />
                             </el-select>
                         </div>
-                        <div class="flex justify-between items-center mt-1 min-h-[32px]">
+                        <div class="flex justify-between items-center min-h-[32px]">
                             <template v-if="selectedCouponRule">
                                 <span class="text-xs text-green-600 font-bold">最多可用 {{ maxUsableCoupons }} 张</span>
                                 <div class="flex items-center gap-2">
@@ -60,24 +60,26 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col mt-2">
-                        <div v-if="currentMember.id" class="border-t border-dashed border-gray-300 pt-3 mb-1">
-                            <div class="text-sm font-bold text-indigo-700">会员升级计划（默认计入，可关闭）</div>
-                            <div v-if="targetPlanOptions.length" class="mt-1 max-h-[96px] space-y-1 overflow-y-auto pr-1 text-[11px] text-gray-600">
-                                <div v-for="plan in targetPlanOptions" :key="plan.planId" class="rounded bg-indigo-50 px-2 py-1 break-words">
-                                    <el-checkbox v-model="selectedTargetPlanIds" :label="plan.planId" class="mr-1">计入</el-checkbox>
-                                    {{ plan.brandName || '品牌' }} / {{ plan.targetTierName }}：本单计入￥{{ targetContribution(plan).toFixed(2) }}
-                                    <span class="text-gray-500">；不计入：{{ notContributingGoods(plan) || '无' }}</span>
+                    <div v-if="currentMember.id" class="border-t border-dashed border-gray-300 pt-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="text-sm font-bold text-indigo-700">会员升级计划（默认计入，可关闭）</div>
+                            </div>
+                            <div v-if="targetPlanOptions.length" class="mt-2 max-h-[96px] space-y-2 overflow-x-hidden overflow-y-auto pr-1 text-[11px] text-gray-600">
+                                <div v-for="plan in targetPlanOptions" :key="plan.planId" class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-1 gap-y-1 rounded bg-indigo-50 px-2 py-1">
+                                    <el-checkbox v-model="selectedTargetPlanIds" :label="plan.planId" class="!mr-1 shrink-0">计入</el-checkbox>
+                                    <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1">
+                                        <span class="min-w-0 break-words">{{ plan.targetTierName || '升级计划' }}</span>
+                                        <span class="whitespace-nowrap text-gray-500">本单计入￥{{ targetContribution(plan).toFixed(2) }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div v-else class="text-[11px] text-gray-500 mt-1">本单没有可计入的升级计划；其他品牌商品不计入计划。</div>
-                        </div>
+                            <div v-if="!targetPlanOptions.length" class="text-[11px] text-gray-500 mt-2">本单没有可计入的升级计划；其他品牌商品不计入计划。</div>
                     </div>
                 </div>
             </div>
 
             <div class="w-[65%] flex flex-col border rounded-lg overflow-hidden shadow-sm">
-                <div class="bg-red-50 p-4 lg:p-5 border-b border-red-100 flex justify-between items-center text-red-600 shrink-0">
+                <div class="bg-red-50 p-3 border-b border-red-100 flex justify-between items-center text-red-600 shrink-0">
                     <div class="flex flex-col justify-center shrink-0 mr-2">
                         <div class="text-2xl font-black whitespace-nowrap">最终应收</div>
                         <div v-if="currentMember.id && theoreticalCouponUsed > 0 && !isWaiveCoupon" class="text-xs font-bold text-teal-600 mt-1 whitespace-nowrap">
@@ -93,13 +95,13 @@
                         </span>
                     </div>
                 </div>
-                <div class="flex-1 bg-white p-4 overflow-y-auto">
-                    <div class="text-gray-500 font-bold mb-3 flex justify-between items-center border-b pb-2">
+                <div class="flex-1 min-h-0 bg-white p-3 overflow-y-auto">
+                    <div class="text-gray-500 font-bold mb-2 flex justify-between items-center border-b pb-1">
                         <span>组合支付明细</span><span v-if="changeAmount > 0" class="text-green-500 text-sm flex items-center gap-1 font-bold">包含找零</span>
                     </div>
 
-                    <div class="grid gap-3" :class="paymentList.length > 3 ? 'grid-cols-2' : 'grid-cols-1'">
-                        <div v-for="(pay, index) in paymentList" :key="pay.code" class="flex flex-col bg-gray-50 p-2 rounded border focus-within:border-blue-400 focus-within:bg-blue-50 transition-colors">
+                    <div class="grid grid-cols-1 gap-2">
+                        <div v-for="(pay, index) in paymentList" :key="pay.code" class="flex flex-col bg-gray-50 px-2 py-1.5 rounded border focus-within:border-blue-400 focus-within:bg-blue-50 transition-colors">
                             <div class="flex items-center gap-3">
                                 <div class="w-20 font-bold text-gray-700 text-sm tracking-wider truncate" :title="pay.name">{{ pay.name }}</div>
                                 <el-input-number
@@ -115,14 +117,14 @@
                                     @focus="handleFocus"
                                 />
                             </div>
-                            <div v-if="pay.code === 'AGGREGATE' && localPayTagDict && localPayTagDict.length > 0" class="flex flex-wrap gap-2 mt-2 ml-[5.5rem]">
+                            <div v-if="pay.code === 'AGGREGATE' && localPayTagDict && localPayTagDict.length > 0" class="flex flex-wrap gap-2 mt-1 ml-[5.5rem]">
                                 <el-tag v-for="tag in localPayTagDict" :key="tag.value" :type="pay.activeTag === tag.value ? 'success' : 'info'" :effect="pay.activeTag === tag.value ? 'dark' : 'plain'" class="cursor-pointer font-bold border-0 shadow-sm transition-all hover:scale-105" @click="pay.activeTag = tag.value">
                                     {{ tag.desc }}
                                 </el-tag>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4 space-y-3 border-t border-dashed border-gray-300 pt-3">
+                    <div class="mt-2 space-y-2 border-t border-dashed border-gray-300 pt-2">
                         <div class="flex justify-between items-center text-blue-600">
                             <span class="font-bold whitespace-nowrap">🏷️ 整单优惠:</span>
                             <el-input-number v-model="manualDiscount" :min="0" :max="totalAmount" :precision="2" :step="1" class="!w-[130px]" placeholder="直减" @change="handleDiscountChange" @focus="handleFocus" />
@@ -141,9 +143,12 @@
             </div>
         </div>
         <template #footer>
-            <div class="flex justify-between items-center px-4 py-3 bg-gray-100 rounded-b-lg border-t mt-2">
+            <div class="mx-4 mb-3 flex justify-between items-center px-4 py-2 bg-gray-100 rounded-lg border">
                 <div class="text-left shrink-0">
-                    <div class="text-gray-600 font-bold text-sm">实收总计: <span class="text-gray-900 font-black text-xl">￥{{ totalPaid.toFixed(2) }}</span></div>
+                    <div class="flex items-baseline gap-3">
+                        <div class="text-gray-600 font-bold text-sm">实收总计: <span class="text-gray-900 font-black text-xl">￥{{ totalPaid.toFixed(2) }}</span></div>
+                        <div class="text-gray-500 font-bold text-sm">共 <span class="text-gray-800 text-base font-black">{{ totalCount }}</span> 件</div>
+                    </div>
                     <div v-if="changeAmount > 0" class="text-green-600 font-black text-xl mt-1">找零金额: ￥{{ changeAmount.toFixed(2) }}</div>
                     <div v-else-if="unpaidAmount > 0" class="text-red-500 font-black text-xl mt-1">还差金额: ￥{{ unpaidAmount.toFixed(2) }}</div>
                 </div>
@@ -190,7 +195,7 @@ const targetPlanOptions = ref([])
 const selectedTargetPlanIds = ref([])
 
 const {
-    cartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList,
+    cartList, currentMember, isWaiveCoupon, manualDiscount, selectedCouponRule, usedCouponCount, paymentList, totalCount,
     totalAmount, actualCouponUsed, finalPayAmount, theoreticalCouponUsed, participatingAmount,
     reqId, prepareCheckout, clearAll, submitOrder, runTrial, isTrialing, trialResult
 } = usePosStore();
@@ -407,6 +412,14 @@ const submitOrderAction = async () => {
 </script>
 
 <style scoped>
-:deep(.checkout-dialog .el-dialog__header) { display: none; }
-:deep(.checkout-dialog .el-dialog__body) { padding: 0; border-radius: 8px; overflow: hidden; }
+:deep(.checkout-dialog .el-dialog__header) {
+    display: flex !important;
+    align-items: center;
+    margin: 0 !important;
+    padding: 16px 16px 0 !important;
+}
+:deep(.checkout-dialog .el-dialog__headerbtn) { top: 16px !important; right: 16px !important; }
+:deep(.checkout-dialog .el-dialog__body) { padding: 0 !important; border-radius: 8px; overflow: hidden; }
+:deep(.checkout-dialog .el-dialog__footer) { padding: 0 !important; }
+.checkout-workspace { height: clamp(420px, calc(100vh - 170px), 480px); }
 </style>
