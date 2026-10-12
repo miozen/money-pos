@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean locally at `b04e734`; ME-1.6J is committed and awaiting push.** |
+| Working tree | **Clean and synchronized: `c723aa5` is pushed; `dev...origin/dev = 0/0`.** |
 | Current phase | `ME-1.6J 权益办理内嵌流水与关联单据 — Windows manual acceptance pending` |
 | Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -280,9 +280,9 @@ credential-injected isolated `money_pos_test` full Maven command passed with 69 
 Browserslist/CSS/dynamic-import/chunk-size warnings. The first two attempted focused runs were configuration diagnostics:
 one omitted the reactor parent; another omitted `MONEY_TEST_DB_NAME`; neither is validation evidence.
 
-Exact next action: push `b04e734`, fetch and verify `dev...origin/dev=0/0`; then perform the Windows Electron/POS
-manual matrix for the three new history panels. ME-1.6J and the broader ME-1.6 remain open until that manual evidence
-exists.
+Exact next action: perform the Windows Electron/POS manual matrix for the three new history panels: QUANTITY, AMOUNT
+and TARGET 10/20 switching; ORDER/MP/MAP/MAR/MTR details; no-document rows; read-only behavior; and POS-state
+isolation. ME-1.6J and the broader ME-1.6 remain open until that manual evidence exists.
 
 ## Handoff rule
 
