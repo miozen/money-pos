@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after the ME-1.6I usability/traceability repair and validation-record correction commits; Windows Electron/POS manual acceptance remains pending.** |
+| Working tree | **ME-1.6I TARGET whole-order-discount correction is implemented and fully automatically validated locally; commit/push is the remaining handoff action. Windows Electron/POS manual acceptance remains pending.** |
 | Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
 | Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -208,7 +208,7 @@ isolated regression reports 68 reports, 140 tests, 0 failures/errors; package, N
 next action is the remaining ME-1.6H-D Windows Electron/POS manual matrix. It is the only outstanding ME-1.6 close condition and must
 not be reported complete until actually run.
 
-ME-1.6I repair slice is complete. It keeps the frozen I-C contribution formula unchanged,
+ME-1.6I repair slice is complete. It initially kept the then-frozen I-C contribution formula unchanged,
 but makes the QUANTITY pickup input fit its own table column, keeps TARGET cancellation reason input on one line, renders
 asset/benefit dimensions and known business summaries in Chinese, and opens MP/MAP records in a read-only, non-printing
 pickup receipt dialog instead of normal order detail. The protected GET pickup-receipt routes share the existing receipt
@@ -219,12 +219,27 @@ they mixed a non-contract clean invocation with reports from a later focused run
 environment. The documented, credential-injected `mvn -q test` was rerun and passed with 68 reports, 140 tests, 0 errors
 and 0 failures.
 
-ME-1.6I follow-up display repair is locally validated and awaits commit/push. The TARGET cancellation reason label is
-kept on one line; asset-and-benefit records expose a clickable document only when the backend explicitly supplies an
-`ORDER`, `RECHARGE` or `PICKUP` detail target, so TARGET/TRADE records without a readable document display `-` rather
-than opening normal-order detail. Pickup receipts use a single-row description layout for long values and label the
-returned `memberId` accurately as “会员 ID” (the database primary key, not a member card number). The Node 20 production
-build and `git diff --check` passed.
+ME-1.6I follow-up display repair is committed in `3573b6b`. The TARGET cancellation reason label is kept on one line;
+asset-and-benefit records expose a clickable document only when the backend explicitly supplies an `ORDER`, `RECHARGE`
+or `PICKUP` detail target, so TARGET/TRADE records without a readable document display `-` rather than opening normal-
+order detail. Pickup receipts use a single-row description layout for long values and label the returned `memberId`
+accurately as “会员 ID” (the database primary key, not a member card number).
+
+On 2026-10-12, the user replaced I-C's prior whole-order-discount allocation premise: manual whole-order discounts
+remain order-level settlement facts and are not allocated to order details or TARGET plans. Automatic TARGET
+contribution and the POS contribution preview now use only each brand detail's own persisted net amount (after existing
+detail coupon/commodity deductions). Full-reduction vouchers remain untouched: TARGET goods do not participate in or
+bear them, and their member-asset/refund lifecycle is unchanged. No route, migration, transaction boundary, order
+field, refund calculation or historical order was changed. The isolated documented full Maven regression completed
+with 68 Surefire reports and no failures/errors; `mvn -q package -DskipTests`, Node 20 production build, both
+architecture gates and `git diff --check` passed. The first single-module Maven attempt was invalid because it did not
+include the reactor parent; it was followed by the documented full-reactor command.
+
+The exact next action is commit the validated 2026-10-12 TARGET whole-order-discount correction, push `dev` to
+`origin`, fetch and verify `dev...origin/dev` is neither ahead nor behind. After that, the remaining ME-1.6 close
+condition is the Windows Electron/POS manual matrix: verify 1280×800 POS, normal-cart isolation, deposit
+quote/payment/order/receipt, pickup/stock deduction/pickup receipt, failure-and-retry behavior, and existing
+AMOUNT/TARGET paths. Windows remains outstanding until actually run.
 
 ## Handoff rule
 

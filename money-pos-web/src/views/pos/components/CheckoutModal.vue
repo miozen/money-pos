@@ -216,11 +216,8 @@ const targetContribution = (plan) => {
         const coupon = new Big(line?.actualSubTotalCoupon || 0)
         return sum.plus(member.minus(coupon).gt(0) ? member.minus(coupon) : 0)
     }, new Big(0))
-    const allBase = items.reduce((sum, row) => sum.plus(new Big(row.subTotalMember || 0).minus(row.actualSubTotalCoupon || 0).gt(0) ? new Big(row.subTotalMember || 0).minus(row.actualSubTotalCoupon || 0) : 0), new Big(0))
-    const orderDiscount = new Big(trialResult.value?.voucherDeduct || 0).plus(trialResult.value?.manualDeduct || 0)
-    if (!allBase.gt(0)) return 0
-    const contribution = brandBase.minus(orderDiscount.times(brandBase).div(allBase))
-    return contribution.gt(0) ? contribution.toNumber() : 0
+    // Whole-order discounts are not assigned to order details or TARGET plans.
+    return brandBase.gt(0) ? brandBase.toNumber() : 0
 }
 const notContributingGoods = (plan) => cartList.value.filter(item => String(item.brandId) !== String(plan.brandId)).map(item => item.name).filter(Boolean).join('、')
 

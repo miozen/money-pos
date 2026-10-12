@@ -15,9 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +40,7 @@ public class AutomaticTargetContributionService {
         for (Map.Entry<String, List<MemberTargetPlanSnapshot>> entry : plansByBrand.entrySet()) {
             if (entry.getValue().size() > 1) throw new BaseException("会员品牌“" + entry.getKey() + "”存在多个可计入TARGET计划，请先处理计划");
         }
-        Map<String, BigDecimal> amounts = netAmountsByBrand(order, details);
+        Map<String, BigDecimal> amounts = netAmountsByBrand(details);
         for (MemberTargetPlanSnapshot plan : candidates) {
             BigDecimal amount = amounts.getOrDefault(plan.getBrandId(), BigDecimal.ZERO);
             if (amount.compareTo(BigDecimal.ZERO) <= 0) continue;
@@ -61,28 +58,17 @@ public class AutomaticTargetContributionService {
         }
     }
 
-    private Map<String, BigDecimal> netAmountsByBrand(OmsOrder order, List<OmsOrderDetail> details) {
-        List<LineAmount> lines = details.stream().sorted(Comparator.comparing(OmsOrderDetail::getId, Comparator.nullsLast(Long::compareTo)))
-                .map(detail -> new LineAmount(String.valueOf(detail.getBrandId()), nonNegative(money(detail.getGoodsPrice()).multiply(BigDecimal.valueOf(detail.getQuantity()))).subtract(money(detail.getCoupon()))))
-                .collect(Collectors.toCollection(ArrayList::new));
-        BigDecimal base = lines.stream().map(LineAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal discount = money(order.getUseVoucherAmount()).add(money(order.getManualDiscountAmount()));
-        allocate(lines, base, discount.min(base));
-        return lines.stream().collect(Collectors.groupingBy(LineAmount::getBrandId, LinkedHashMap::new,
-                Collectors.reducing(BigDecimal.ZERO, LineAmount::getAmount, BigDecimal::add)));
-    }
-
-    /** Cent-exact, deterministic allocation of order-level discounts over persisted detail net bases. */
-    private void allocate(List<LineAmount> lines, BigDecimal base, BigDecimal discount) {
-        if (base.compareTo(BigDecimal.ZERO) <= 0 || discount.compareTo(BigDecimal.ZERO) <= 0) return;
-        BigDecimal allocated = BigDecimal.ZERO;
-        for (int i = 0; i < lines.size(); i++) {
-            LineAmount line = lines.get(i);
-            BigDecimal share = i == lines.size() - 1 ? discount.subtract(allocated)
-                    : discount.multiply(line.getAmount()).divide(base, 2, RoundingMode.HALF_UP);
-            share = share.min(line.getAmount()); allocated = allocated.add(share);
-            lines.set(i, new LineAmount(line.getBrandId(), line.getAmount().subtract(share)));
-        }
+    /**
+     * TARGET progress is based on each persisted detail's own settled amount.
+     * Manual order discounts and full-reduction vouchers remain order-level settlement facts:
+     * they are deliberately not attributed to, or deducted from, any TARGET plan.
+     */
+    private Map<String, BigDecimal> netAmountsByBrand(List<OmsOrderDetail> details) {
+        return details.stream()
+                .map(detail -> new LineAmount(String.valueOf(detail.getBrandId()),
+                        nonNegative(money(detail.getGoodsPrice()).multiply(BigDecimal.valueOf(detail.getQuantity()))).subtract(money(detail.getCoupon()))))
+                .collect(Collectors.groupingBy(LineAmount::getBrandId, LinkedHashMap::new,
+                        Collectors.reducing(BigDecimal.ZERO, LineAmount::getAmount, BigDecimal::add)));
     }
 
     private static BigDecimal money(BigDecimal value) { return value == null ? BigDecimal.ZERO : value.setScale(2, RoundingMode.HALF_UP); }

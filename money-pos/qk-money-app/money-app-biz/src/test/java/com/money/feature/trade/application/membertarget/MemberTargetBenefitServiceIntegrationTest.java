@@ -81,7 +81,7 @@ class MemberTargetBenefitServiceIntegrationTest {
         assertThat(planMapper.selectById(planId).getProgressAmount()).isEqualByComparingTo("25.00");
     }
 
-    @Test void ordinaryMixedBrandCheckoutContributesOnlyEachPlanBrandAfterOrderDiscountAndRefundNeedsReview() {
+    @Test void ordinaryMixedBrandCheckoutDoesNotAllocateWholeOrderDiscountToTargetPlansAndRefundNeedsReview() {
         String suffix = Long.toString(System.nanoTime(), 36);
         GmsGoods first = fixture.createSellableGoods(suffix + "a", 3, new BigDecimal("12.00")); first.setBrandId(1L); goodsMapper.updateById(first);
         GmsGoods second = fixture.createSellableGoods(suffix + "b", 3, new BigDecimal("8.00")); second.setBrandId(2L); goodsMapper.updateById(second);
@@ -93,7 +93,7 @@ class MemberTargetBenefitServiceIntegrationTest {
         posService.settleAccounts(settle);
         assertThat(contributionMapper.selectList(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, settle.getReqId())))
                 .extracting(OmsMemberTargetSaleContribution::getTargetPlanId, OmsMemberTargetSaleContribution::getContributionAmount)
-                .containsExactlyInAnyOrder(org.assertj.core.groups.Tuple.tuple(firstPlan, new BigDecimal("10.80")), org.assertj.core.groups.Tuple.tuple(secondPlan, new BigDecimal("7.20")));
+                .containsExactlyInAnyOrder(org.assertj.core.groups.Tuple.tuple(firstPlan, new BigDecimal("12.00")), org.assertj.core.groups.Tuple.tuple(secondPlan, new BigDecimal("8.00")));
         refundService.returnOrder("REFUND-" + suffix, settle.getReqId());
         assertThat(planMapper.selectById(firstPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
         assertThat(planMapper.selectById(secondPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
