@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **TARGET cashier-confirmation and checkout-layout repair is implemented and fully automatically validated locally; commit/push is the remaining handoff action. Windows Electron/POS manual acceptance remains pending.** |
+| Working tree | **Clean after `538a2d4`; TARGET cashier confirmation and checkout layout repair are committed, pushed and synchronized. Windows Electron/POS manual acceptance remains pending.** |
 | Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
 | Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -241,7 +241,8 @@ Electron/POS manual matrix for 1280×800 POS, normal-cart isolation, deposit quo
 pickup/stock deduction/pickup receipt, failure-and-retry behavior, and existing AMOUNT/TARGET paths. Windows remains
 outstanding until actually run.
 
-The 2026-10-12 follow-up is implemented and awaiting commit/push: normal checkout now defaults every eligible TARGET
+The 2026-10-12 follow-up is committed as `538a2d4`, pushed to `origin/dev`, fetched and verified with
+`dev...origin/dev = 0/0`: normal checkout now defaults every eligible TARGET
 plan to checked but sends only the cashier-confirmed plan IDs. TRADE validates selected plans against the member,
 cart brands and current eligibility in the existing settlement transaction; deselected plans create no contribution,
 different brands may be selected together, and selecting two plans for one brand is rejected. The checkout layout now
@@ -249,8 +250,8 @@ places whole-order discount and waive-member-coupon controls below the combined 
 area, so they cannot overlap the fixed received-total footer. No migration, historic-data rewrite, refund change,
 voucher change or transaction-boundary change was made. The documented isolated full Maven regression passed with
 68 Surefire reports, 141 tests, 0 failures/errors; package, Node 20 production build, both architecture gates and
-`git diff --check` passed. Exact next action: commit these seven files, push `dev`, fetch, and verify
-`dev...origin/dev = 0/0`; then the Windows Electron/POS manual matrix remains the only ME-1.6 close condition.
+`git diff --check` passed. The exact next action is the Windows Electron/POS manual matrix, the only remaining
+ME-1.6 close condition.
 
 ## Handoff rule
 
