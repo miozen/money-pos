@@ -18,10 +18,12 @@ class UmsMemberBenefitRouteContractTest {
     void benefitReadsUseOperateOrManageAndHighRiskWritesUseManage() throws Exception {
         assertRoute(UmsMemberBenefitController.class, "overview", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/overview");
         assertRoute(UmsMemberBenefitController.class, "targetLogs", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/target-logs");
+        assertRoute(UmsMemberBenefitController.class, "operationHistory", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/operation-history");
         assertRoute(UmsMemberBenefitController.class, "targetPlanOptions", "@rbac.hasPermission('pos:cashier')", "/target-plan-options");
         assertPostRoute(PosMemberTargetPlanController.class, "create", "@rbac.hasPermission('memberBenefit:operate')", "/plans");
         assertPostRoute(PosMemberTargetPlanController.class, "cancel", "@rbac.hasPermission('memberBenefit:manage')", "/plans/cancel");
         assertRoute(MemberBenefitTradeHistoryController.class, "list", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')");
+        assertRoute(MemberBenefitTradeHistoryController.class, "receiptDetail", "@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')", "/receipt-detail");
         assertRoute(PosController.class, "refundAmountPickup", "@rbac.hasPermission('memberBenefit:manage')");
         assertRoute(PosController.class, "confirmTarget", "@rbac.hasPermission('memberBenefit:manage')");
         assertRoute(PosController.class, "settleDeferredQuantity", "@rbac.hasPermission('memberBenefit:operate')");

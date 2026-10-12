@@ -14,6 +14,7 @@
       <el-table-column label="状态" width="90"><template #default="{ row }">{{ statusText(row.status) }}</template></el-table-column>
     </el-table>
     <div class="mt-3"><el-button :disabled="!rights.some(row => Number(row.pickupQuantity) > 0) || submitting" @click="previewPickup">预览提货</el-button></div>
+    <BenefitOperationHistory :member-id="memberId" benefit-type="QUANTITY" :refresh-key="historyVersion" />
     <el-dialog v-model="purchaseVisible" title="确认商品寄存" width="520px" append-to-body destroy-on-close @closed="purchaseRequestId = ''"><el-alert title="寄存确认收入，但不会扣减实体库存。" type="info" :closable="false"/><el-form class="mt-3" label-width="90px"><el-form-item label="整单优惠"><el-input-number v-model="manualDiscount" :min="0" :max="Number(pricing?.memberAmount||0)" :precision="2" @change="onPurchaseDraftChanged();loadTrial()"/></el-form-item></el-form><el-descriptions v-if="pricing" :column="2" border><el-descriptions-item label="商品金额">￥{{pricing.memberAmount}}</el-descriptions-item><el-descriptions-item label="整单优惠">￥{{pricing.manualDeduct}}</el-descriptions-item><el-descriptions-item label="最终应收">￥{{pricing.finalPayAmount}}</el-descriptions-item><el-descriptions-item label="会员优惠">￥{{pricing.privilegeAmount}}</el-descriptions-item></el-descriptions><BenefitPaymentEditor class="mt-3" :required-amount="Number(pricing?.finalPayAmount||0)" :member-balance="Number(memberBalance||0)" @update:payments="payments=$event;purchaseRequestId=''"/><template #footer><el-button @click="purchaseVisible=false">取消</el-button><el-button type="primary" :disabled="!pricing||unpaid>0" :loading="submitting" @click="purchase">确认寄存</el-button></template></el-dialog>
     <el-dialog v-model="pickupPreviewVisible" title="确认会员提货" width="680px" append-to-body destroy-on-close @closed="pickupPreview=null">
       <el-alert title="确认后将扣减会员寄存权益并按当前实体库存办理出库；提交时会再次校验。" type="warning" :closable="false" />
@@ -34,10 +35,11 @@ import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import SmartGoodsSelector from '@/components/common/SmartGoodsSelector.vue'
 import BenefitPaymentEditor from './BenefitPaymentEditor.vue'
+import BenefitOperationHistory from './BenefitOperationHistory.vue'
 import benefitApi from '@/api/ums/memberBenefit.js'
 import { req } from '@/api/index.js'
 import { localRequestId } from '@/utils/requestId.js'
-const props = defineProps({ rights: { type: Array, default: () => [] }, memberId: { type: Number, required: true }, memberBalance: { type: Number, default: 0 } })
+const props = defineProps({ rights: { type: Array, default: () => [] }, memberId: { type: Number, required: true }, memberBalance: { type: Number, default: 0 }, historyVersion: { type: Number, default: 0 } })
 const emit = defineEmits(['back', 'refresh'])
 const goodsSelector = ref(null), purchaseItems = ref([]), payments = ref([]), purchaseVisible = ref(false), pickupPreviewVisible = ref(false), pickupPreview = ref(null), submitting = ref(false), pricing = ref(null), manualDiscount = ref(0), purchaseRequestId = ref(''), pickupRequestId = ref('')
 const memberBalance = computed(() => props.memberBalance || 0)

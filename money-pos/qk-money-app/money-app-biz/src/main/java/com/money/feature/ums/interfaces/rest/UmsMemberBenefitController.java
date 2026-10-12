@@ -5,6 +5,7 @@ import com.money.dto.memberbenefit.MemberBenefitTierDTO;
 import com.money.dto.memberbenefit.MemberTargetProgressLogVO;
 import com.money.dto.memberbenefit.MemberTargetPlanOptionVO;
 import com.money.dto.memberbenefit.MemberAmountPackageDTO;
+import com.money.dto.memberbenefit.MemberBenefitOperationHistoryVO;
 import com.money.feature.ums.application.memberbenefit.MemberAmountPackageService;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitReadService;
 import com.money.feature.ums.application.memberbenefit.MemberBenefitTierService;
@@ -68,6 +69,14 @@ public class UmsMemberBenefitController {
     @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
     public List<MemberTargetProgressLogVO> targetLogs(@RequestParam Long planId) {
         return memberBenefitReadService.targetLogs(planId);
+    }
+
+    @Operation(summary = "查询权益办理最近流水")
+    @GetMapping("/operation-history")
+    @PreAuthorize("@rbac.hasPermission('memberBenefit:operate', 'memberBenefit:manage')")
+    public MemberBenefitOperationHistoryVO operationHistory(@RequestParam Long memberId, @RequestParam String benefitType,
+                                                              @RequestParam(required = false) Integer limit) {
+        return memberBenefitReadService.operationHistory(memberId, benefitType, limit);
     }
 
     @Operation(summary = "查询普通结算可显式计入的TARGET计划")

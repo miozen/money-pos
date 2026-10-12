@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after the accepted checkout UI follow-up; push/synchronization evidence is recorded below.** |
-| Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
-| Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
+| Working tree | **Clean locally at `b04e734`; ME-1.6J is committed and awaiting push.** |
+| Current phase | `ME-1.6J 权益办理内嵌流水与关联单据 — Windows manual acceptance pending` |
+| Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -265,6 +265,24 @@ plan names/amounts remain inside the card. The checkout footer now reuses the ca
 and is an independent rounded card aligned to the workspace padding. Node 20 production build and `git diff --check`
 passed. It is committed and pushed after the user's visual acceptance. Exact next action: run the outstanding Windows
 Electron/POS manual matrix before closing ME-1.6.
+
+ME-1.6J is accepted in `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Decision-Contract.md`; its current
+execution plan is `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md`. Its local
+implementation is complete and adds only limit-bounded, read-only operation history inside each QUANTITY/AMOUNT/TARGET
+workspace entry plus read-only MAR/MTR details. UMS reads only its own member-scoped ledgers; TRADE owns MAR/MTR
+snapshots; no synthetic member log, forced document link, print, migration or business write was added. Default history
+is 10 rows, expandable to 20; only explicit `ORDER`, MP/MAP and MAR/MTR targets are clickable.
+
+J-A focused ledger/route tests passed (6 + 2); J-B focused receipt/route tests passed (2 + 2). The documented
+credential-injected isolated `money_pos_test` full Maven command passed with 69 Surefire reports, 145 tests,
+0 failures and 0 errors. `mvn -q package -DskipTests`, Node 20 production build, `scripts/test-architecture-scan.sh`,
+`scripts/architecture-scan.sh --check-new` and `git diff --check` passed. The frontend retains only established
+Browserslist/CSS/dynamic-import/chunk-size warnings. The first two attempted focused runs were configuration diagnostics:
+one omitted the reactor parent; another omitted `MONEY_TEST_DB_NAME`; neither is validation evidence.
+
+Exact next action: push `b04e734`, fetch and verify `dev...origin/dev=0/0`; then perform the Windows Electron/POS
+manual matrix for the three new history panels. ME-1.6J and the broader ME-1.6 remain open until that manual evidence
+exists.
 
 ## Handoff rule
 

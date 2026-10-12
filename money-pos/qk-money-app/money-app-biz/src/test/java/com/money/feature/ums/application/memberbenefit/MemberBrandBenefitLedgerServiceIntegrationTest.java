@@ -2,6 +2,7 @@ package com.money.feature.ums.application.memberbenefit;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.member.MemberBrandBenefitLedgerCommand;
+import com.money.dto.memberbenefit.MemberBenefitOperationHistoryVO;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import com.money.mapper.UmsMemberBrandLevelMapper;
@@ -122,6 +123,50 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
         assertThat(quantityLogMapper.selectCount(new LambdaQueryWrapper<UmsMemberQuantityRightLog>().eq(UmsMemberQuantityRightLog::getRightId, rightId))).isEqualTo(2);
         pickup.setRequestNo("REQ-Q-OVER-" + brand); pickup.setDelta(-3); pickup.setPickedDelta(3);
         assertThatThrownBy(() -> service.changeQuantity(pickup)).isInstanceOf(BaseException.class).hasMessageContaining("不足");
+    }
+
+    @Test void workspaceHistoryIsMemberScopedBoundedAndMapsReadableTargets() {
+        String brand = "ME1-" + Long.toString(System.nanoTime(), 36);
+        for (int i = 0; i < 21; i++) {
+            MemberBrandBenefitLedgerCommand.QuantityGrant grant = new MemberBrandBenefitLedgerCommand.QuantityGrant();
+            grant.setMemberId(91004L); grant.setBrandId(brand); grant.setGoodsId(84000L + i); grant.setSourceOrderNo("QDP-" + i);
+            grant.setSourceOrderDetailId(1000L + i); grant.setQuantity(1); grant.setRequestNo("REQ-Q-H-" + i + '-' + brand);
+            service.grantQuantity(grant);
+        }
+        MemberBrandBenefitLedgerCommand.QuantityGrant other = new MemberBrandBenefitLedgerCommand.QuantityGrant();
+        other.setMemberId(91005L); other.setBrandId(brand); other.setGoodsId(85001L); other.setSourceOrderNo("QDP-OTHER");
+        other.setSourceOrderDetailId(2000L); other.setQuantity(1); other.setRequestNo("REQ-Q-OTHER-" + brand);
+        service.grantQuantity(other);
+
+        MemberBenefitOperationHistoryVO defaultHistory = readService.operationHistory(91004L, "QUANTITY", null);
+        MemberBenefitOperationHistoryVO expandedHistory = readService.operationHistory(91004L, "QUANTITY", 999);
+        assertThat(defaultHistory.getRecords()).hasSize(10);
+        assertThat(expandedHistory.getRecords()).hasSize(20);
+        assertThat(expandedHistory.getRecords()).allSatisfy(row -> {
+            assertThat(row.getBenefitType()).isEqualTo("QUANTITY");
+            assertThat(row.getActionName()).isEqualTo("办理寄存");
+            assertThat(row.getDetailTarget()).isEqualTo("ORDER");
+            assertThat(row.getReferenceNo()).startsWith("QDP-");
+        });
+        assertThat(readService.operationHistory(91005L, "QUANTITY", 20).getRecords()).hasSize(1);
+        assertThat(readService.operationHistory(91004L, "UNKNOWN", 10).getRecords()).isEmpty();
+    }
+
+    @Test void workspaceHistoryMapsAmountAndTargetWithoutInventingDocumentTargets() {
+        String brand = "ME1-" + Long.toString(System.nanoTime(), 36); createTier(brand, "T100", "L100", 1, "100.00");
+        MemberBrandBenefitLedgerCommand.AmountGrant amount = new MemberBrandBenefitLedgerCommand.AmountGrant();
+        amount.setMemberId(91006L); amount.setBrandId(brand); amount.setTierCode("T100"); amount.setAmount(new BigDecimal("100"));
+        amount.setSourceReceiptNo("MAR-" + brand); amount.setRequestNo("REQ-A-H-" + brand); service.grantAmount(amount);
+        MemberBrandBenefitLedgerCommand.TargetPlanCreate target = new MemberBrandBenefitLedgerCommand.TargetPlanCreate();
+        target.setMemberId(91006L); target.setBrandId(brand); target.setTargetTierCode("T100"); target.setRequestNo("REQ-T-H-" + brand);
+        service.createTargetPlan(target);
+
+        assertThat(readService.operationHistory(91006L, "AMOUNT", 10).getRecords()).singleElement().satisfies(row -> {
+            assertThat(row.getActionName()).isEqualTo("办理金额权益包"); assertThat(row.getDetailTarget()).isEqualTo("AMOUNT_RECEIPT");
+        });
+        assertThat(readService.operationHistory(91006L, "TARGET", 10).getRecords()).singleElement().satisfies(row -> {
+            assertThat(row.getActionName()).isEqualTo("建立升级计划"); assertThat(row.getDetailTarget()).isEqualTo("NONE");
+        });
     }
 
     private void createTier(String brand, String code, String pricingCode, int rank, String amount) {

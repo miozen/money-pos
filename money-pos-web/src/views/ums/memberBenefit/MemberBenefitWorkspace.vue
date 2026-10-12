@@ -21,9 +21,9 @@
           <el-card shadow="hover" class="cursor-pointer" @click="activeTab = 'target'"><template #header><b>会员升级计划</b></template><div class="text-2xl font-bold">{{ overview.targetPlans.length }} 个</div><div class="mt-2 text-sm text-gray-500">查看目标、当前进度和剩余金额。</div></el-card>
         </div>
 
-        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" :member-balance="selectedMember.balance" @back="activeTab = 'home'" @refresh="load" />
-        <AmountBenefitPanel v-else-if="activeTab === 'amount'" ref="amountPanel" :rights="overview.amountRights" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
-        <TargetBenefitPanel v-else :plans="overview.targetPlans" :tiers="overview.tiers" :member-id="selectedMember.id" @back="activeTab = 'home'" @refresh="load" />
+        <QuantityBenefitPanel v-else-if="activeTab === 'quantity'" ref="quantityPanel" :rights="overview.quantityRights" :member-id="selectedMember.id" :member-balance="selectedMember.balance" :history-version="historyVersion" @back="activeTab = 'home'" @refresh="load" />
+        <AmountBenefitPanel v-else-if="activeTab === 'amount'" ref="amountPanel" :rights="overview.amountRights" :tiers="overview.tiers" :member-id="selectedMember.id" :history-version="historyVersion" @back="activeTab = 'home'" @refresh="load" />
+        <TargetBenefitPanel v-else :plans="overview.targetPlans" :tiers="overview.tiers" :member-id="selectedMember.id" :history-version="historyVersion" @back="activeTab = 'home'" @refresh="load" />
       </div>
     </template>
 
@@ -46,6 +46,7 @@ const activeTab = ref('home')
 const quantityPanel = ref(null)
 const amountPanel = ref(null)
 const overview = ref({ tiers: [], quantityRights: [], amountRights: [], targetPlans: [] })
+const historyVersion = ref(0)
 const amountBalance = computed(() => overview.value.amountRights.reduce((sum, row) => sum + Number(row.remainingAmount || 0), 0).toFixed(2))
 
 const resetWorkspace = (member) => {
@@ -62,6 +63,7 @@ const load = async () => {
   try {
     const res = await benefitApi.overview({ memberId: selectedMember.value.id })
     overview.value = res.data || res
+    historyVersion.value += 1
   } finally { loading.value = false }
 }
 watch(() => props.initialMember, resetWorkspace, { immediate: true })

@@ -11,6 +11,7 @@
       <el-table-column label="状态"><template #default="{ row }">{{ statusText(row.status) }}</template></el-table-column>
       <el-table-column label="操作" width="100"><template #default="{ row }"><el-button v-if="row.status === 'IN_PROGRESS'" link type="danger" @click="openCancel(row)">取消计划</el-button></template></el-table-column>
     </el-table>
+    <BenefitOperationHistory :member-id="memberId" benefit-type="TARGET" :refresh-key="historyVersion" />
     <el-dialog v-model="createVisible" title="建立会员升级计划" width="520px" append-to-body destroy-on-close>
       <el-form label-width="94px"><el-form-item label="升级目标"><el-select v-model="targetTierCode" class="w-full" placeholder="选择目标"><el-option v-for="tier in enabledTiers" :key="tier.tierCode" :value="tier.tierCode" :label="`${tier.brandName || '品牌'} / ${tier.tierName} / 目标￥${tier.configuredAmount}`"/></el-select></el-form-item><el-form-item label="初始进度"><el-input-number v-model="initialProgress" :min="0" :max="Number(selectedTier?.configuredAmount || 0)" :precision="2" class="w-full"/></el-form-item><el-form-item label="原因"><el-input v-model="reason" maxlength="200" show-word-limit placeholder="可选备注"/></el-form-item></el-form>
       <template #footer><el-button @click="createVisible=false">取消</el-button><el-button type="primary" :disabled="!selectedTier" :loading="submitting" @click="createPlan">确认建立</el-button></template>
@@ -23,7 +24,8 @@
 import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import benefitApi from '@/api/ums/memberBenefit.js'
-const props = defineProps({ plans: { type: Array, default: () => [] }, tiers: { type: Array, default: () => [] }, memberId: { type: Number, required: true } })
+import BenefitOperationHistory from './BenefitOperationHistory.vue'
+const props = defineProps({ plans: { type: Array, default: () => [] }, tiers: { type: Array, default: () => [] }, memberId: { type: Number, required: true }, historyVersion: { type: Number, default: 0 } })
 const emit = defineEmits(['back', 'refresh'])
 const createVisible = ref(false), cancelVisible = ref(false), cancellingPlan = ref(null), cancelReason = ref(''), targetTierCode = ref(''), initialProgress = ref(0), reason = ref(''), submitting = ref(false)
 const enabledTiers = computed(() => props.tiers.filter(row => row.enabled))
