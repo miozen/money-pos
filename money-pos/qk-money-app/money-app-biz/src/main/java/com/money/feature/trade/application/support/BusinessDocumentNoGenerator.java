@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class BusinessDocumentNoGenerator {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private final TradeBusinessDocumentSequenceMapper sequenceMapper;
 
     public String next(String prefix) {
@@ -21,7 +21,7 @@ public class BusinessDocumentNoGenerator {
         LocalDateTime now = LocalDateTime.now();
         sequenceMapper.increment(prefix, now.format(DATE));
         Long serial = sequenceMapper.currentSequence();
-        if (serial == null || serial < 1 || serial > 999999) throw new BaseException("业务单据日序号异常");
-        return prefix + now.format(TIMESTAMP) + String.format("%06d", serial);
+        if (serial == null || serial < 1 || serial > 9999) throw new BaseException("业务单据日序号异常");
+        return prefix + now.format(TIMESTAMP) + String.format("%04d", serial);
     }
 }

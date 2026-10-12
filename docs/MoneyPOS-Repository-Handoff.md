@@ -298,7 +298,7 @@ The 2026-10-12 pickup-detail layout follow-up is committed in `9058012`, pushed 
 ME-1.6K is accepted in `MoneyPOS-ME-1.6K-Readable-Business-Document-Number-Decision-Contract.md`; its execution
 plan is `MoneyPOS-ME-1.6K-Readable-Business-Document-Number-Implementation-Plan.md`. Its automated implementation
 adds a tenant-scoped TRADE daily sequence and separates `oms_order.request_no` from the generated business `order_no`.
-New REQ/QDP, MP, MAP, MAR/MARF and MTR documents use `prefix + yyyyMMddHHmmssSSS + six-digit daily sequence`;
+New REQ/QDP, MP, MAP, MAR/MARF and MTR documents originally used `prefix + yyyyMMddHHmmssSSS + six-digit daily sequence`;
 historical records are not rewritten and old order-number replay lookup remains compatible. The isolated test database
 was rebuilt and Flyway completed V1.0.0 through V1.0.16. Focused affected regressions passed (36 tests); the full
 Maven suite produced 69 reports with zero failures/errors. Package, Node 20 production build, both architecture scans
@@ -309,6 +309,14 @@ both are pushed and synchronized (`dev...origin/dev = 0/0`).
 
 Exact next action: complete the Windows
 Electron/POS manual matrix for new and historical REQ/QDP/MP/MAP/MAR/MARF/MTR detail, print and refund flows.
+
+On 2026-10-12, the user accepted a narrowly scoped ME-1.6K rule revision before manual acceptance: future business
+numbers use `prefix + yyyyMMddHHmmss + four-digit daily sequence` instead of milliseconds plus six digits. The sequence
+remains independent per tenant, prefix and natural day, resets from `0001` each day, and rejects values beyond `9999`;
+historical generated numbers are not rewritten. The implementation and all automated gates must be rerun, committed and
+pushed before the Windows manual matrix resumes. K-D implementation now uses the accepted seconds-plus-four-digit
+format; full isolated Maven regression (69 reports, 0 failures/errors), package, Node 20 build, both architecture
+scans and diff check passed. Pending commit/push is the only remaining synchronization work before manual acceptance.
 
 ## Handoff rule
 

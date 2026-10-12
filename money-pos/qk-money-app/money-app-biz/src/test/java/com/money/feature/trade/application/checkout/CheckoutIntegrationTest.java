@@ -118,7 +118,7 @@ class CheckoutIntegrationTest {
                         .eq(OmsOrder::getOrderNo, orderNo));
         GmsGoods updatedGoods = gmsGoodsMapper.selectById(goods.getId());
 
-        assertThat(result.getOrderNo()).matches("REQ\\d{23}");
+        assertThat(result.getOrderNo()).matches("REQ\\d{18}");
         assertThat(order.getRequestNo()).isEqualTo(requestId);
         assertThat(order).isNotNull();
         assertThat(order.getPayAmount()).isEqualByComparingTo("24.00");
@@ -169,7 +169,7 @@ class CheckoutIntegrationTest {
         SettleResultVO replay = checkoutOrchestrator.orchestrateDeferredQuantity(request);
 
         String orderNo = first.getOrderNo();
-        assertThat(orderNo).matches("REQ\\d{23}");
+        assertThat(orderNo).matches("REQ\\d{18}");
         assertThat(replay.getOrderNo()).isEqualTo(orderNo);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
         assertThat(inventoryDocMapper.selectCount(
@@ -543,7 +543,7 @@ class CheckoutIntegrationTest {
             assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("19.00");
             PosMemberCoupon updatedVoucher = posMemberCouponMapper.selectById(voucher.getId());
             assertThat(updatedVoucher.getStatus()).isEqualTo("USED");
-            assertThat(updatedVoucher.getOrderNo()).matches("REQ\\d{23}");
+            assertThat(updatedVoucher.getOrderNo()).matches("REQ\\d{18}");
         } finally {
             start.countDown();
             executor.shutdownNow();
