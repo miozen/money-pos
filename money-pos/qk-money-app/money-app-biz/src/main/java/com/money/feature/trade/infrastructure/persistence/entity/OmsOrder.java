@@ -19,6 +19,8 @@ public class OmsOrder extends BaseEntity {
 
     @Schema(description = "订单号")
     private String orderNo;
+    @Schema(description = "客户端幂等请求号")
+    private String requestNo;
     @Schema(description = "会员名")
     private String member;
     @Schema(description = "会员id")

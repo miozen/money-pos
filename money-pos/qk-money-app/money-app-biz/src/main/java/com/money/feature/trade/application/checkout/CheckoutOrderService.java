@@ -12,6 +12,7 @@ import com.money.feature.trade.infrastructure.persistence.entity.OmsOrderDetail;
 import com.money.mapper.OmsOrderDetailMapper;
 import com.money.mapper.OmsOrderMapper;
 import com.money.feature.trade.domain.order.OmsOrderDetailService;
+import com.money.feature.trade.application.support.BusinessDocumentNoGenerator;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,13 +32,19 @@ public class CheckoutOrderService {
     private final OmsOrderDetailService omsOrderDetailService;
     private final OmsOrderMapper omsOrderMapper;
     private final OmsOrderDetailMapper omsOrderDetailMapper;
+    private final BusinessDocumentNoGenerator businessDocumentNoGenerator;
 
     public boolean loadExistingOrder(CheckoutContext context) {
         String reqId = context.getRequest().getReqId();
-        OmsOrder existingOrder = omsOrderMapper.selectOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getOrderNo, reqId));
+        OmsOrder existingOrder = omsOrderMapper.selectOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getRequestNo, reqId));
+        if (existingOrder == null) {
+            // Historical orders used the request ID as their order number before ME-1.6K.
+            existingOrder = omsOrderMapper.selectOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getOrderNo, reqId));
+        }
         if (existingOrder == null) return false;
 
-        java.util.List<OmsOrderDetail> existingDetails = omsOrderDetailMapper.selectList(new LambdaQueryWrapper<OmsOrderDetail>().eq(OmsOrderDetail::getOrderNo, reqId));
+        java.util.List<OmsOrderDetail> existingDetails = omsOrderDetailMapper.selectList(
+                new LambdaQueryWrapper<OmsOrderDetail>().eq(OmsOrderDetail::getOrderNo, existingOrder.getOrderNo()));
         context.setOrder(existingOrder);
         context.setOrderDetails(existingDetails);
         return true;
@@ -47,10 +54,12 @@ public class CheckoutOrderService {
         PricingResult trialRes = context.getPricingResult();
         MemberCheckoutSnapshot verifiedMember = context.getMember();
         Map<Long, CheckoutGoodsSnapshot> goodsMap = context.getGoodsMap();
-        String orderNo = context.getRequest().getReqId();
+        String requestNo = context.getRequest().getReqId();
+        String orderNo = businessDocumentNoGenerator.next(requestNo.startsWith("QDP") ? "QDP" : "REQ");
 
         OmsOrder order = new OmsOrder();
         order.setOrderNo(orderNo);
+        order.setRequestNo(requestNo);
 
         order.setRetailAmount(trialRes.getRetailAmount());
         order.setMemberAmount(trialRes.getMemberAmount());

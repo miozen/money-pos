@@ -1,6 +1,5 @@
 package com.money.feature.trade.application.membertarget;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.PayMethodEnum;
 import com.money.contract.member.MemberBalancePaymentCommand;
@@ -17,6 +16,7 @@ import com.money.dto.pos.MemberTargetSettleDTO;
 import com.money.dto.pos.SettleAccountsDTO;
 import com.money.dto.pos.SettleResultVO;
 import com.money.feature.trade.application.checkout.CheckoutOrchestrator;
+import com.money.feature.trade.application.support.BusinessDocumentNoGenerator;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetReceipt;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetReceiptPay;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberTargetSaleContribution;
@@ -43,6 +43,7 @@ public class MemberTargetBenefitService {
     private final OmsMemberTargetReceiptPayMapper receiptPayMapper;
     private final MemberBalancePaymentCommandHandler balancePayment;
     private final OmsOrderDetailMapper orderDetailMapper;
+    private final BusinessDocumentNoGenerator businessDocumentNoGenerator;
 
     @Transactional(rollbackFor = Exception.class)
     public SettleResultVO settle(MemberTargetSettleDTO dto) {
@@ -89,7 +90,7 @@ public class MemberTargetBenefitService {
         if (existing != null) return receiptResult(existing);
         MemberTargetPlanSnapshot plan = active(dto.getTargetPlanId());
         if (paid) writePayments(dto, plan); else require(dto.getPayments() == null || dto.getPayments().isEmpty(), "TARGET豁免不得录入支付");
-        String receiptNo = "MTR" + IdUtil.getSnowflakeNextIdStr();
+        String receiptNo = businessDocumentNoGenerator.next("MTR");
         OmsMemberTargetReceipt receipt = new OmsMemberTargetReceipt(); receipt.setReceiptNo(receiptNo); receipt.setRequestNo(dto.getReqId()); receipt.setTargetPlanId(plan.getPlanId()); receipt.setMemberId(plan.getMemberId()); receipt.setReceiptType(type); receipt.setAmount(scale(dto.getAmount())); receipt.setStatus("COMPLETED"); receipt.setReason(dto.getReason() == null ? "" : dto.getReason()); receiptMapper.insert(receipt);
         if (paid) savePayments(receiptNo, dto, plan.getMemberId());
         progress(plan, receipt.getAmount(), type, dto.getReqId(), "TARGET_" + type, receiptNo, dto.getReason());

@@ -1,6 +1,5 @@
 package com.money.feature.trade.application.memberpickup;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.PayMethodEnum;
 import com.money.contract.goods.CheckoutGoodsQuery;
@@ -12,6 +11,7 @@ import com.money.contract.goods.MemberPickupStockCommandHandler;
 import com.money.contract.goods.StockMutationLine;
 import com.money.contract.member.*;
 import com.money.dto.pos.*;
+import com.money.feature.trade.application.support.BusinessDocumentNoGenerator;
 import com.money.feature.trade.infrastructure.persistence.entity.*;
 import com.money.feature.trade.infrastructure.persistence.mapper.*;
 import com.money.web.exception.BaseException;
@@ -39,6 +39,7 @@ public class MemberAmountBenefitService {
     private final CheckoutGoodsQuery goodsQuery;
     private final MemberPickupStockCommandHandler pickupStockCommandHandler;
     private final MemberPickupReturnStockCommandHandler pickupReturnStockCommandHandler;
+    private final BusinessDocumentNoGenerator businessDocumentNoGenerator;
 
     @Transactional(rollbackFor = Exception.class)
     public MemberAmountPackagePurchaseVO purchase(MemberAmountPackagePurchaseDTO dto) {
@@ -144,7 +145,7 @@ public class MemberAmountBenefitService {
     private MemberAmountPackagePurchaseVO purchaseResult(String no, Long rightId, BigDecimal amount) { MemberAmountPackagePurchaseVO r = new MemberAmountPackagePurchaseVO(); r.setReceiptNo(no); r.setAmountRightId(rightId); r.setAmount(amount); return r; }
     private MemberAmountPickupVO pickupResult(OmsMemberAmountPickup pickup) { OmsMemberAmountReceipt receipt = receiptMapper.selectOne(new LambdaQueryWrapper<OmsMemberAmountReceipt>().eq(OmsMemberAmountReceipt::getReceiptNo, pickup.getSupplementReceiptNo())); return pickupResult(pickup.getPickupNo(), pickup.getSupplementReceiptNo(), receipt.getRightDeductAmount(), receipt.getSupplementAmount()); }
     private MemberAmountPickupVO pickupResult(String pickup, String receipt, BigDecimal right, BigDecimal supplement) { MemberAmountPickupVO r = new MemberAmountPickupVO(); r.setPickupNo(pickup); r.setSupplementReceiptNo(receipt); r.setRightDeductAmount(right); r.setSupplementAmount(supplement); return r; }
-    private static String no(String prefix) { return prefix + IdUtil.getSnowflakeNextIdStr(); }
+    private String no(String prefix) { return businessDocumentNoGenerator.next(prefix); }
     private static boolean text(String v) { return v != null && !v.trim().isEmpty(); }
     private static boolean positive(BigDecimal v) { return v != null && v.compareTo(BigDecimal.ZERO) > 0; }
     private static BigDecimal min(BigDecimal a, BigDecimal b) { return a.compareTo(b) <= 0 ? a : b; }

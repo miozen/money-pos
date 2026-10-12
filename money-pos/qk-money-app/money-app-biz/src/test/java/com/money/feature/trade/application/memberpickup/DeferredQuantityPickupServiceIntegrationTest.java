@@ -5,6 +5,7 @@ import com.money.dto.pos.DeferredQuantityPickupDTO;
 import com.money.dto.pos.DeferredQuantityPickupPreviewDTO;
 import com.money.dto.pos.DeferredQuantityPickupPreviewVO;
 import com.money.dto.pos.DeferredQuantityPickupVO;
+import com.money.dto.pos.SettleResultVO;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsInventoryDoc;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoodsCombo;
@@ -133,13 +134,13 @@ class DeferredQuantityPickupServiceIntegrationTest {
         Fixture fixture = purchaseRight(2, 5);
         String refundNo = "REFUND-UNPICKED-" + fixture.suffix;
 
-        refundService.returnOrder(refundNo, "BUY-" + fixture.suffix);
+        refundService.returnOrder(refundNo, fixture.orderNo);
 
         assertThat(goodsMapper.selectById(fixture.goods.getId()).getStock()).isEqualTo(5L);
         assertThat(rightMapper.selectById(fixture.right.getId()).getRemainingQuantity()).isZero();
         assertThat(inventoryDocMapper.selectCount(new LambdaQueryWrapper<GmsInventoryDoc>()
                 .eq(GmsInventoryDoc::getDocNo, "MPR-" + refundNo))).isZero();
-        assertThatThrownBy(() -> refundService.returnOrder(refundNo, "BUY-" + fixture.suffix))
+        assertThatThrownBy(() -> refundService.returnOrder(refundNo, fixture.orderNo))
                 .isInstanceOf(BaseException.class);
     }
 
@@ -151,7 +152,7 @@ class DeferredQuantityPickupServiceIntegrationTest {
         pickupService.pickup(pickup);
         String refundNo = "REFUND-PICKED-" + fixture.suffix;
 
-        refundService.returnOrder(refundNo, "BUY-" + fixture.suffix);
+        refundService.returnOrder(refundNo, fixture.orderNo);
 
         assertThat(goodsMapper.selectById(fixture.goods.getId()).getStock()).isEqualTo(5L);
         assertThat(inventoryDocMapper.selectOne(new LambdaQueryWrapper<GmsInventoryDoc>()
@@ -170,12 +171,12 @@ class DeferredQuantityPickupServiceIntegrationTest {
         goodsComboMapper.insert(composition);
         UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
         com.money.dto.pos.SettleAccountsDTO purchase = tradeFixture.cashSettlement("BUY-COMBO-" + suffix, combo.getId(), 1, new BigDecimal("12.00"));
-        purchase.setMember(member.getId()); checkoutOrchestrator.orchestrateDeferredQuantity(purchase);
+        purchase.setMember(member.getId()); String orderNo = checkoutOrchestrator.orchestrateDeferredQuantity(purchase).getOrderNo();
         UmsMemberQuantityRight right = rightMapper.selectOne(new LambdaQueryWrapper<UmsMemberQuantityRight>()
-                .eq(UmsMemberQuantityRight::getSourceOrderNo, "BUY-COMBO-" + suffix));
+                .eq(UmsMemberQuantityRight::getSourceOrderNo, orderNo));
         pickupService.pickup(pickupRequest("PICKUP-COMBO-" + suffix, member.getId(), right.getId(), 1));
 
-        refundService.returnOrder("REFUND-COMBO-" + suffix, "BUY-COMBO-" + suffix);
+        refundService.returnOrder("REFUND-COMBO-" + suffix, orderNo);
 
         assertThat(goodsMapper.selectById(combo.getId()).getStock()).isEqualTo(3L);
         assertThat(goodsMapper.selectById(component.getId()).getStock()).isEqualTo(5L);
@@ -190,10 +191,10 @@ class DeferredQuantityPickupServiceIntegrationTest {
         com.money.dto.pos.SettleAccountsDTO purchase = tradeFixture.cashSettlement("BUY-" + suffix, goods.getId(), quantity,
                 new BigDecimal("12.00").multiply(new BigDecimal(quantity)));
         purchase.setMember(member.getId());
-        checkoutOrchestrator.orchestrateDeferredQuantity(purchase);
+        SettleResultVO result = checkoutOrchestrator.orchestrateDeferredQuantity(purchase);
         UmsMemberQuantityRight right = rightMapper.selectOne(new LambdaQueryWrapper<UmsMemberQuantityRight>()
-                .eq(UmsMemberQuantityRight::getSourceOrderNo, "BUY-" + suffix));
-        return new Fixture(suffix, goods, member, right);
+                .eq(UmsMemberQuantityRight::getSourceOrderNo, result.getOrderNo()));
+        return new Fixture(suffix, result.getOrderNo(), goods, member, right);
     }
 
     private DeferredQuantityPickupDTO pickupRequest(String requestNo, Long memberId, Long rightId, int quantity) {
@@ -217,12 +218,14 @@ class DeferredQuantityPickupServiceIntegrationTest {
 
     private static final class Fixture {
         private final String suffix;
+        private final String orderNo;
         private final GmsGoods goods;
         private final UmsMember member;
         private final UmsMemberQuantityRight right;
 
-        private Fixture(String suffix, GmsGoods goods, UmsMember member, UmsMemberQuantityRight right) {
+        private Fixture(String suffix, String orderNo, GmsGoods goods, UmsMember member, UmsMemberQuantityRight right) {
             this.suffix = suffix;
+            this.orderNo = orderNo;
             this.goods = goods;
             this.member = member;
             this.right = right;

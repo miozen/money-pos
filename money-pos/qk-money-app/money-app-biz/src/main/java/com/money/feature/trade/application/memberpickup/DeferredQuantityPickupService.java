@@ -1,6 +1,5 @@
 package com.money.feature.trade.application.memberpickup;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.CheckoutGoodsQuery;
 import com.money.contract.goods.CheckoutGoodsSnapshot;
@@ -15,6 +14,7 @@ import com.money.dto.pos.DeferredQuantityPickupDTO;
 import com.money.dto.pos.DeferredQuantityPickupPreviewDTO;
 import com.money.dto.pos.DeferredQuantityPickupPreviewVO;
 import com.money.dto.pos.DeferredQuantityPickupVO;
+import com.money.feature.trade.application.support.BusinessDocumentNoGenerator;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickup;
 import com.money.feature.trade.infrastructure.persistence.entity.OmsMemberQuantityPickupItem;
 import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberQuantityPickupItemMapper;
@@ -38,6 +38,7 @@ public class DeferredQuantityPickupService {
     private final MemberQuantityPickupCommandHandler quantityPickupCommandHandler;
     private final CheckoutGoodsQuery checkoutGoodsQuery;
     private final MemberPickupStockCommandHandler memberPickupStockCommandHandler;
+    private final BusinessDocumentNoGenerator businessDocumentNoGenerator;
 
     /** Validates the current right snapshot only; no right, stock or pickup record is mutated here. */
     @Transactional(readOnly = true)
@@ -83,7 +84,7 @@ public class DeferredQuantityPickupService {
         if (rights.size() != dto.getLines().size()) throw new BaseException("存在不可提货的数量权益");
         Map<Long, MemberQuantityRightSnapshot> rightMap = rights.stream().collect(Collectors.toMap(MemberQuantityRightSnapshot::getRightId, right -> right));
         Map<Long, CheckoutGoodsSnapshot> goodsMap = checkoutGoodsQuery.findByIds(rights.stream().map(MemberQuantityRightSnapshot::getGoodsId).collect(Collectors.toList()));
-        String pickupNo = "MP" + IdUtil.getSnowflakeNextIdStr();
+        String pickupNo = businessDocumentNoGenerator.next("MP");
         OmsMemberQuantityPickup pickup = new OmsMemberQuantityPickup();
         pickup.setPickupNo(pickupNo); pickup.setRequestNo(dto.getReqId()); pickup.setMemberId(dto.getMemberId()); pickup.setStatus("COMPLETED");
         try {

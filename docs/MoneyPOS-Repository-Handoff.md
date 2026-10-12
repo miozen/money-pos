@@ -295,6 +295,18 @@ The 2026-10-12 pickup-detail layout follow-up is committed in `9058012`, pushed 
 “提货单号 / 办理时间” first, then “会员姓名 / 手机号码”, with operator on the final row. Node 20 production build and
 `git diff --check` passed. Exact next action: retain the Windows manual matrix above.
 
+ME-1.6K is accepted in `MoneyPOS-ME-1.6K-Readable-Business-Document-Number-Decision-Contract.md`; its execution
+plan is `MoneyPOS-ME-1.6K-Readable-Business-Document-Number-Implementation-Plan.md`. Its automated implementation
+adds a tenant-scoped TRADE daily sequence and separates `oms_order.request_no` from the generated business `order_no`.
+New REQ/QDP, MP, MAP, MAR/MARF and MTR documents use `prefix + yyyyMMddHHmmssSSS + six-digit daily sequence`;
+historical records are not rewritten and old order-number replay lookup remains compatible. The isolated test database
+was rebuilt and Flyway completed V1.0.0 through V1.0.16. Focused affected regressions passed (36 tests); the full
+Maven suite produced 69 reports with zero failures/errors. Package, Node 20 production build, both architecture scans
+and diff check passed; frontend warnings are the established Browserslist/CSS/dynamic-import/chunk-size warnings only.
+
+Exact next action: commit and push ME-1.6K, fetch, verify `dev...origin/dev = 0/0`, then complete the Windows
+Electron/POS manual matrix for new and historical REQ/QDP/MP/MAP/MAR/MARF/MTR detail, print and refund flows.
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a

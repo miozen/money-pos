@@ -7,6 +7,7 @@ import com.money.dto.pos.MemberTargetAdjustmentDTO;
 import com.money.dto.pos.MemberTargetConfirmDTO;
 import com.money.dto.pos.MemberTargetSettleDTO;
 import com.money.dto.pos.SettleAccountsDTO;
+import com.money.dto.pos.SettleResultVO;
 import com.money.dto.OmsOrderDetail.OmsOrderDetailDTO;
 import com.money.feature.trade.application.pos.PosService;
 import com.money.feature.gms.infrastructure.persistence.entity.GmsGoods;
@@ -64,12 +65,12 @@ class MemberTargetBenefitServiceIntegrationTest {
         UmsBrandBenefitTier tier = new UmsBrandBenefitTier(); tier.setBrandId(brand); tier.setTierCode("T" + suffix); tier.setTierName("Target"); tier.setConfiguredAmount(new BigDecimal("10.00")); tier.setPricingLevelCode("TARGET-L"); tier.setRankValue(1); tier.setEnabled(true); tier.setSortNo(1); tierMapper.insert(tier);
         MemberBrandBenefitLedgerCommand.TargetPlanCreate create = new MemberBrandBenefitLedgerCommand.TargetPlanCreate(); create.setMemberId(member.getId()); create.setBrandId(brand); create.setTargetTierCode(tier.getTierCode()); create.setRequestNo("PLAN-" + suffix); create.setSourceType("TEST"); Long planId = ledger.createTargetPlan(create);
         SettleAccountsDTO settle = fixture.cashSettlement("SALE-" + suffix, goods.getId(), 1, new BigDecimal("12.00")); settle.setMember(member.getId()); MemberTargetSettleDTO target = new MemberTargetSettleDTO(); target.setTargetPlanId(planId); target.setSettle(settle);
-        service.settle(target); service.settle(target);
+        SettleResultVO targetSale = service.settle(target); service.settle(target);
         assertThat(contributionMapper.selectCount(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getTargetPlanId, planId))).isEqualTo(1);
         assertThat(planMapper.selectById(planId).getStatus()).isEqualTo("IN_PROGRESS");
         MemberTargetConfirmDTO confirm = new MemberTargetConfirmDTO(); confirm.setTargetPlanId(planId); confirm.setReqId("CONFIRM-" + suffix); service.confirm(confirm);
         assertThat(planMapper.selectById(planId).getStatus()).isEqualTo("CONFIRMED");
-        refundService.returnOrder("REFUND-" + suffix, settle.getReqId());
+        refundService.returnOrder("REFUND-" + suffix, targetSale.getOrderNo());
         assertThat(planMapper.selectById(planId).getStatus()).isEqualTo("REVIEW_REQUIRED");
     }
 
@@ -91,11 +92,11 @@ class MemberTargetBenefitServiceIntegrationTest {
         OmsOrderDetailDTO secondLine = new OmsOrderDetailDTO(); secondLine.setGoodsId(second.getId()); secondLine.setQuantity(1);
         settle.setOrderDetail(Arrays.asList(settle.getOrderDetail().get(0), secondLine)); settle.setMember(member.getId()); settle.setManualDiscountAmount(new BigDecimal("2.00"));
         settle.setTargetPlanIds(Arrays.asList(firstPlan, secondPlan));
-        posService.settleAccounts(settle);
-        assertThat(contributionMapper.selectList(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, settle.getReqId())))
+        SettleResultVO mixedSale = posService.settleAccounts(settle);
+        assertThat(contributionMapper.selectList(new LambdaQueryWrapper<OmsMemberTargetSaleContribution>().eq(OmsMemberTargetSaleContribution::getOrderNo, mixedSale.getOrderNo())))
                 .extracting(OmsMemberTargetSaleContribution::getTargetPlanId, OmsMemberTargetSaleContribution::getContributionAmount)
                 .containsExactlyInAnyOrder(org.assertj.core.groups.Tuple.tuple(firstPlan, new BigDecimal("12.00")), org.assertj.core.groups.Tuple.tuple(secondPlan, new BigDecimal("8.00")));
-        refundService.returnOrder("REFUND-" + suffix, settle.getReqId());
+        refundService.returnOrder("REFUND-" + suffix, mixedSale.getOrderNo());
         assertThat(planMapper.selectById(firstPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
         assertThat(planMapper.selectById(secondPlan).getStatus()).isEqualTo("REVIEW_REQUIRED");
     }

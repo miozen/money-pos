@@ -112,18 +112,20 @@ class CheckoutIntegrationTest {
         SettleResultVO result = checkoutOrchestrator.orchestrate(
                 tradeFixture.cashSettlement(requestId, goods.getId(), 2, new BigDecimal("24.00")));
 
+        String orderNo = result.getOrderNo();
         OmsOrder order = omsOrderMapper.selectOne(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
-                        .eq(OmsOrder::getOrderNo, requestId));
+                        .eq(OmsOrder::getOrderNo, orderNo));
         GmsGoods updatedGoods = gmsGoodsMapper.selectById(goods.getId());
 
-        assertThat(result.getOrderNo()).isEqualTo(requestId);
+        assertThat(result.getOrderNo()).matches("REQ\\d{23}");
+        assertThat(order.getRequestNo()).isEqualTo(requestId);
         assertThat(order).isNotNull();
         assertThat(order.getPayAmount()).isEqualByComparingTo("24.00");
         assertThat(updatedGoods.getStock()).isEqualTo(8L);
         assertThat(omsOrderPayMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
-                        .eq(OmsOrderPay::getOrderNo, requestId)))
+                        .eq(OmsOrderPay::getOrderNo, orderNo)))
                 .singleElement()
                 .extracting(OmsOrderPay::getOrderNo,
                         OmsOrderPay::getPayMethodCode,
@@ -132,7 +134,7 @@ class CheckoutIntegrationTest {
                         OmsOrderPay::getOriginalAmount,
                         OmsOrderPay::getNetAmount,
                         OmsOrderPay::getChangeAllocated)
-                .containsExactly(requestId, "CASH", "现金支付", new BigDecimal("24.00"), new BigDecimal("24.00"),
+                .containsExactly(orderNo, "CASH", "现金支付", new BigDecimal("24.00"), new BigDecimal("24.00"),
                         new BigDecimal("24.00"), new BigDecimal("0.00"));
         assertThat(omsOrderLogMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderLog>()
@@ -140,15 +142,15 @@ class CheckoutIntegrationTest {
                 .singleElement()
                 .extracting(OmsOrderLog::getDescription)
                 .asString()
-                .contains("\"action\":\"SETTLE_SUCCESS\"", "\"orderNo\":\"" + requestId + "\"");
-        assertThat(omsOrderService.getOrderDetailByNo(requestId).getOrderLog())
+                .contains("\"action\":\"SETTLE_SUCCESS\"", "\"orderNo\":\"" + orderNo + "\"");
+        assertThat(omsOrderService.getOrderDetailByNo(orderNo).getOrderLog())
                 .singleElement()
                 .extracting(com.money.dto.OmsOrder.OrderDetailVO.OrderLogVO::getDescription)
                 .asString()
                 .contains("\"action\":\"SETTLE_SUCCESS\"");
         assertThat(inventoryDocMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
-                        .eq(GmsInventoryDoc::getDocNo, "XS-" + requestId))).isEqualTo(1);
+                        .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo))).isEqualTo(1);
     }
 
     @Test
@@ -166,15 +168,16 @@ class CheckoutIntegrationTest {
         SettleResultVO first = checkoutOrchestrator.orchestrateDeferredQuantity(request);
         SettleResultVO replay = checkoutOrchestrator.orchestrateDeferredQuantity(request);
 
-        assertThat(first.getOrderNo()).isEqualTo(requestId);
-        assertThat(replay.getOrderNo()).isEqualTo(requestId);
+        String orderNo = first.getOrderNo();
+        assertThat(orderNo).matches("REQ\\d{23}");
+        assertThat(replay.getOrderNo()).isEqualTo(orderNo);
         assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(10L);
         assertThat(inventoryDocMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
-                        .eq(GmsInventoryDoc::getDocNo, "XS-" + requestId))).isZero();
+                        .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo))).isZero();
         assertThat(quantityRightMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight>()
-                        .eq(com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getSourceOrderNo, requestId)))
+                        .eq(com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getSourceOrderNo, orderNo)))
                 .singleElement()
                 .extracting(com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getMemberId,
                         com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight::getGoodsId,
@@ -188,9 +191,9 @@ class CheckoutIntegrationTest {
     @Test
     void fullRefundRestoresStockAndMarksOrderAndDetailRefunded() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "REFUND-FULL-" + suffix;
+        String requestNo = "REFUND-FULL-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
-        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, goods.getId(), 2, new BigDecimal("24.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(requestNo, goods.getId(), 2, new BigDecimal("24.00"))).getOrderNo();
 
         refundService.returnOrder("FULL-" + suffix, orderNo);
 
@@ -218,10 +221,10 @@ class CheckoutIntegrationTest {
     @Test
     void duplicateFullRefundRequestIsRejectedByTheTradeIdempotentRecord() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "RI-" + suffix;
+        String requestNo = "RI-" + suffix;
         String refundRequestId = "RR-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
-        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, goods.getId(), 2, new BigDecimal("24.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(requestNo, goods.getId(), 2, new BigDecimal("24.00"))).getOrderNo();
 
         refundService.returnOrder(refundRequestId, orderNo);
 
@@ -235,9 +238,9 @@ class CheckoutIntegrationTest {
     @Test
     void partialRefundRestoresOnlyReturnedQuantityAndMarksOrderPartialRefunded() {
         String suffix = Long.toString(System.nanoTime(), 36);
-        String orderNo = "REFUND-PARTIAL-" + suffix;
+        String requestNo = "REFUND-PARTIAL-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
-        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, goods.getId(), 3, new BigDecimal("36.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(requestNo, goods.getId(), 3, new BigDecimal("36.00"))).getOrderNo();
         OmsOrderDetail detail = omsOrderDetailMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                 .eq(OmsOrderDetail::getOrderNo, orderNo));
         ReturnGoodsDTO request = new ReturnGoodsDTO();
@@ -268,7 +271,7 @@ class CheckoutIntegrationTest {
     @Test
     void comboCheckoutAndFullRefundPropagatePhysicalStockThroughGmsCommand() {
         String suffix = Long.toString(System.nanoTime(), 36);
-        String orderNo = "COMBO-" + suffix;
+        String requestNo = "COMBO-" + suffix;
         GmsGoods component = tradeFixture.createSellableGoods(suffix + "c", 10L, new BigDecimal("12.00"));
         GmsGoods combo = tradeFixture.createSellableGoods(suffix + "b", 5L, new BigDecimal("12.00"));
         combo.setIsCombo(1);
@@ -279,7 +282,7 @@ class CheckoutIntegrationTest {
         composition.setSubGoodsQty(2);
         gmsGoodsComboMapper.insert(composition);
 
-        checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(orderNo, combo.getId(), 1, new BigDecimal("12.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.cashSettlement(requestNo, combo.getId(), 1, new BigDecimal("12.00"))).getOrderNo();
 
         assertThat(gmsGoodsMapper.selectById(combo.getId()).getStock()).isEqualTo(4L);
         assertThat(gmsGoodsMapper.selectById(component.getId()).getStock()).isEqualTo(8L);
@@ -292,11 +295,11 @@ class CheckoutIntegrationTest {
     @Test
     void memberBalancePaymentConsumesBalanceAndRecordsMemberConsumption() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "BALANCE-" + suffix;
+        String requestNo = "BALANCE-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("50.00"));
 
-        checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00"))).getOrderNo();
 
         UmsMember updatedMember = umsMemberMapper.selectById(member.getId());
         assertThat(updatedMember.getBalance()).isEqualByComparingTo("26.00");
@@ -317,10 +320,10 @@ class CheckoutIntegrationTest {
     @Test
     void memberBalanceFullRefundRestoresBalanceAndConsumption() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "RB-" + suffix;
+        String requestNo = "RB-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("50.00"));
-        checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00"))).getOrderNo();
 
         refundService.returnOrder("RBF-" + suffix, orderNo);
 
@@ -333,10 +336,10 @@ class CheckoutIntegrationTest {
     @Test
     void partialRefundAfterBalancePaymentDoesNotRestoreTheWholeOrderBalance() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "RB-PARTIAL-" + suffix;
+        String requestNo = "RB-PARTIAL-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("50.00"));
-        checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.balanceSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("24.00"))).getOrderNo();
         OmsOrderDetail detail = omsOrderDetailMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                 .eq(OmsOrderDetail::getOrderNo, orderNo));
         ReturnGoodsDTO request = new ReturnGoodsDTO();
@@ -357,13 +360,13 @@ class CheckoutIntegrationTest {
     @Test
     void couponSettlementDeductsVoucherAndMarksMemberCouponUsed() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "CP-" + suffix;
+        String requestNo = "CP-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
         PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("20.00"), new BigDecimal("5.00"));
         PosMemberCoupon coupon = tradeFixture.issueCoupon(member.getId(), rule.getId());
 
-        checkoutOrchestrator.orchestrate(tradeFixture.couponSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId()));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.couponSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId())).getOrderNo();
 
         OmsOrder order = omsOrderMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
                 .eq(OmsOrder::getOrderNo, orderNo));
@@ -377,12 +380,12 @@ class CheckoutIntegrationTest {
     @Test
     void couponFullRefundRestoresMemberCoupon() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "CR-" + suffix;
+        String requestNo = "CR-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, BigDecimal.ZERO);
         PosCouponRule rule = tradeFixture.createCouponRule(suffix, new BigDecimal("20.00"), new BigDecimal("5.00"));
         PosMemberCoupon coupon = tradeFixture.issueCoupon(member.getId(), rule.getId());
-        checkoutOrchestrator.orchestrate(tradeFixture.couponSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId()));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.couponSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("19.00"), rule.getId())).getOrderNo();
 
         refundService.returnOrder("CRF-" + suffix, orderNo);
 
@@ -423,11 +426,11 @@ class CheckoutIntegrationTest {
     @Test
     void mixedCashAndBalanceSettlementPersistsBothPaymentsAndDeductsOnlyBalance() {
         String suffix = String.valueOf(System.nanoTime());
-        String orderNo = "MX-" + suffix;
+        String requestNo = "MX-" + suffix;
         GmsGoods goods = tradeFixture.createSellableGoods(suffix, 10L, new BigDecimal("12.00"));
         UmsMember member = tradeFixture.createMember(suffix, new BigDecimal("20.00"));
 
-        checkoutOrchestrator.orchestrate(tradeFixture.mixedCashBalanceSettlement(orderNo, member.getId(), goods.getId(), 2, new BigDecimal("10.00"), new BigDecimal("14.00")));
+        String orderNo = checkoutOrchestrator.orchestrate(tradeFixture.mixedCashBalanceSettlement(requestNo, member.getId(), goods.getId(), 2, new BigDecimal("10.00"), new BigDecimal("14.00"))).getOrderNo();
 
         assertThat(umsMemberMapper.selectById(member.getId()).getBalance()).isEqualByComparingTo("6.00");
         assertThat(omsOrderPayMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
@@ -535,12 +538,12 @@ class CheckoutIntegrationTest {
                     + (second.get(20, TimeUnit.SECONDS) ? 1 : 0);
             assertThat(successfulSettlements).isEqualTo(1);
             assertThat(omsOrderMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
-                    .in(OmsOrder::getOrderNo, firstOrderNo, secondOrderNo))).isEqualTo(1);
+                    .in(OmsOrder::getRequestNo, firstOrderNo, secondOrderNo))).isEqualTo(1);
             assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
             assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("19.00");
             PosMemberCoupon updatedVoucher = posMemberCouponMapper.selectById(voucher.getId());
             assertThat(updatedVoucher.getStatus()).isEqualTo("USED");
-            assertThat(updatedVoucher.getOrderNo()).isIn(firstOrderNo, secondOrderNo);
+            assertThat(updatedVoucher.getOrderNo()).matches("REQ\\d{23}");
         } finally {
             start.countDown();
             executor.shutdownNow();
@@ -570,7 +573,7 @@ class CheckoutIntegrationTest {
 
             assertThat(retry.getOrderNo()).isEqualTo(first.getOrderNo());
             assertThat(omsOrderMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
-                    .eq(OmsOrder::getOrderNo, orderNo))).isEqualTo(1);
+                    .eq(OmsOrder::getRequestNo, orderNo))).isEqualTo(1);
             assertThat(gmsGoodsMapper.selectById(goods.getId()).getStock()).isEqualTo(8L);
             assertThat(umsMemberMapper.selectById(member.getId()).getConsumeAmount()).isEqualByComparingTo("19.00");
             assertThat(posMemberCouponMapper.selectById(voucher.getId()).getStatus()).isEqualTo("USED");
@@ -619,14 +622,19 @@ class CheckoutIntegrationTest {
         }
     }
 
-    private void deleteCheckoutArtifacts(String... orderNos) {
-        for (String orderNo : orderNos) {
+    private void deleteCheckoutArtifacts(String... requestNos) {
+        for (String requestNo : requestNos) {
+            OmsOrder order = omsOrderMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getRequestNo, requestNo));
+            if (order == null) {
+                continue;
+            }
+            String orderNo = order.getOrderNo();
             omsOrderPayMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderPay>()
                     .eq(OmsOrderPay::getOrderNo, orderNo));
             omsOrderDetailMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrderDetail>()
                     .eq(OmsOrderDetail::getOrderNo, orderNo));
-            omsOrderMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OmsOrder>()
-                    .eq(OmsOrder::getOrderNo, orderNo));
+            omsOrderMapper.deleteById(order.getId());
             inventoryDocMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<GmsInventoryDoc>()
                     .eq(GmsInventoryDoc::getDocNo, "XS-" + orderNo));
         }
