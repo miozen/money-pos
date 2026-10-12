@@ -323,7 +323,8 @@ stored brand IDs through the existing brand selection API and price-level codes 
 dictionary; the edit form reuses the established brand selector and brand-scoped pricing-level selector. Invalid
 historical references are explicitly labeled rather than silently changed. The “售价与权益额” row uses a two-column
 grid so its label and input controls cannot wrap into the price-level row. No package payload, persistence, backend
-validation or issued-right snapshot changed. Node 20 production build and diff check passed; pending commit/push.
+validation or issued-right snapshot changed. Node 20 production build and diff check passed. It is committed and
+pushed in `18509ed`, with `dev...origin/dev = 0/0`.
 
 ## Handoff rule
 
