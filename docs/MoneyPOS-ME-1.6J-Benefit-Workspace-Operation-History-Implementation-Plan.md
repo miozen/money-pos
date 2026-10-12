@@ -1,6 +1,6 @@
 # MoneyPOS ME-1.6J：权益办理内嵌流水与关联单据实施计划
 
-> 状态：**代码与自动验证完成，等待 Windows 手工验收**；决策合同：
+> 状态：**原定 Windows/POS 手工验收已通过；寄存确认弹窗的后续布局微调已完成自动构建验证，等待新安装包目视确认**；决策合同：
 > `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Decision-Contract.md`。
 
 ## J-A：统一权益流水读模型（UMS）
@@ -49,5 +49,13 @@ ME-1.6 总关闭条件。
 
 ## 当前 Next Action
 
-在 Windows Electron/POS 中手工验收 QUANTITY、AMOUNT、TARGET 三入口的 10/20 条切换、ORDER/MP/MAP/MAR/MTR 详情、
-无单据显示、只读无副作用和 POS 状态隔离；验收通过后才可关闭 ME-1.6J。
+2026-10-12，用户已确认安装版的七项 Windows/POS 验收均通过：安装启动、普通 POS 收银、混合收银工作站、三类会员权益、
+TARGET 边界、权益流水/单据详情及退款/重启持久化均符合预期。该证据覆盖 J-C/J-D 规定的三入口流水、单据详情、无单据只读
+行为和 POS 状态隔离。
+
+其后仅对 QUANTITY “确认商品寄存”弹窗作了前端布局微调：价格摘要保持在支付前，整单优惠移动到支付明细下方，支付标题和
+优惠表单标签均从左侧开始对齐；未改变试算、支付、提交或任何后端接口。Node 20 生产构建和 `git diff --check` 通过。
+
+## 当前 Next Action
+
+使用本次 `dev` 安装包目视确认“确认商品寄存”弹窗中整单优惠位于支付明细下方且左对齐；确认后关闭 ME-1.6J 与 ME-1.6。
