@@ -1,6 +1,6 @@
 # MoneyPOS Repository-driven Handoff
 
-> Last updated: 2026-10-10. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
+> Last updated: 2026-10-12. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
 
 ## Recovery order
 
@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **ME-1.6I TARGET whole-order-discount correction is implemented and fully automatically validated locally; commit/push is the remaining handoff action. Windows Electron/POS manual acceptance remains pending.** |
+| Working tree | **Clean after `6af56e7`; the TARGET whole-order-discount correction is committed, pushed and synchronized. Windows Electron/POS manual acceptance remains pending.** |
 | Current phase | `ME-1.6I 提货确认、TARGET 计划与使用追溯 — I-A～I-D and repair slice complete` |
 | Current plan | `MoneyPOS-ME-1.6I-Pickup-Confirmation-Target-Plan-and-Usage-Traceability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -235,11 +235,11 @@ with 68 Surefire reports and no failures/errors; `mvn -q package -DskipTests`, N
 architecture gates and `git diff --check` passed. The first single-module Maven attempt was invalid because it did not
 include the reactor parent; it was followed by the documented full-reactor command.
 
-The exact next action is commit the validated 2026-10-12 TARGET whole-order-discount correction, push `dev` to
-`origin`, fetch and verify `dev...origin/dev` is neither ahead nor behind. After that, the remaining ME-1.6 close
-condition is the Windows Electron/POS manual matrix: verify 1280×800 POS, normal-cart isolation, deposit
-quote/payment/order/receipt, pickup/stock deduction/pickup receipt, failure-and-retry behavior, and existing
-AMOUNT/TARGET paths. Windows remains outstanding until actually run.
+The 2026-10-12 TARGET whole-order-discount correction is committed as `6af56e7`, pushed to `origin/dev`, fetched and
+verified with `dev...origin/dev = 0/0`. The exact next action is the remaining ME-1.6 close condition: run the Windows
+Electron/POS manual matrix for 1280×800 POS, normal-cart isolation, deposit quote/payment/order/receipt,
+pickup/stock deduction/pickup receipt, failure-and-retry behavior, and existing AMOUNT/TARGET paths. Windows remains
+outstanding until actually run.
 
 ## Handoff rule
 
