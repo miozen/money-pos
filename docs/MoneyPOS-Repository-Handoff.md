@@ -284,12 +284,12 @@ Exact next action: perform the Windows Electron/POS manual matrix for the three 
 and TARGET 10/20 switching; ORDER/MP/MAP/MAR/MTR details; no-document rows; read-only behavior; and POS-state
 isolation. ME-1.6J and the broader ME-1.6 remain open until that manual evidence exists.
 
-The 2026-10-12 display follow-up is local and ready to commit: both read-only MP/MAP receipt snapshots now obtain
+The 2026-10-12 display follow-up is committed in `48fa0c0`, pushed and synchronized (`dev...origin/dev = 0/0`): both read-only MP/MAP receipt snapshots now obtain
 member name and phone through the existing Entity-free `MemberCheckoutQuery`; the UI displays those meaningful values
 instead of the internal member ID. MAR/MTR payment-channel codes remain unchanged in storage, while the receipt dialog
 resolves `paySubTag` through the existing frontend dictionary and displays its Chinese description. Backend compile,
 Node 20 production build, focused quantity/amount pickup integration tests (7 + 5, all passing) and `git diff --check`
-passed. Exact next action: commit and push this display follow-up, then retain the Windows manual matrix above.
+passed. Exact next action: retain and perform the Windows manual matrix above.
 
 ## Handoff rule
 
