@@ -316,7 +316,7 @@ remains independent per tenant, prefix and natural day, resets from `0001` each 
 historical generated numbers are not rewritten. The implementation and all automated gates must be rerun, committed and
 pushed before the Windows manual matrix resumes. K-D implementation now uses the accepted seconds-plus-four-digit
 format; full isolated Maven regression (69 reports, 0 failures/errors), package, Node 20 build, both architecture
-scans and diff check passed. Pending commit/push is the only remaining synchronization work before manual acceptance.
+scans and diff check passed. The format revision is committed and pushed in `8ef80fb`, with `dev...origin/dev = 0/0`.
 
 ## Handoff rule
 
