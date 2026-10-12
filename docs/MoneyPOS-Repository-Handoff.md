@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized: `c723aa5` is pushed; `dev...origin/dev = 0/0`.** |
-| Current phase | `ME-1.6J 权益办理内嵌流水与关联单据 — Windows manual acceptance pending` |
+| Working tree | **Clean after this handoff commit; push, fetch and `dev...origin/dev` verification are the next delivery steps.** |
+| Current phase | `ME-1.6 — original Windows/POS acceptance passed; quantity-deposit dialog visual spot-check pending` |
 | Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -325,6 +325,14 @@ historical references are explicitly labeled rather than silently changed. The �
 grid so its label and input controls cannot wrap into the price-level row. No package payload, persistence, backend
 validation or issued-right snapshot changed. Node 20 production build and diff check passed. It is committed and
 pushed in `18509ed`, with `dev...origin/dev = 0/0`.
+
+On 2026-10-12, the user confirmed all seven installed Windows/POS acceptance groups passed: installation/startup,
+ordinary POS checkout, mixed-checkout workstation visibility, QUANTITY/AMOUNT/TARGET operations, TARGET boundaries,
+benefit history/document details, and refund/restart persistence. The only subsequent code change is `ee0a37f`:
+the QUANTITY “确认商品寄存” dialog now keeps its pricing summary above payment details and moves the whole-order
+discount input below them. Payment and discount labels are left-aligned; pricing, payment allocation, submit request,
+API and business behavior are untouched. Node 20 production build and `git diff --check` passed. One visual spot-check
+in a newly built `dev` installer remains before ME-1.6 is closed.
 
 ## Handoff rule
 
