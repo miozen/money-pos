@@ -291,6 +291,11 @@ resolves `paySubTag` through the existing frontend dictionary and displays its C
 Node 20 production build, focused quantity/amount pickup integration tests (7 + 5, all passing) and `git diff --check`
 passed. Exact next action: retain and perform the Windows manual matrix above.
 
+The 2026-10-12 pickup-detail layout follow-up is local and ready to commit: the two-column receipt header now orders
+“提货单号 / 办理时间” first, then “会员姓名 / 手机号码”, with operator on the final row. Node 20 production build and
+`git diff --check` passed. Exact next action: commit and push this layout-only follow-up, then retain the Windows
+manual matrix above.
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a
