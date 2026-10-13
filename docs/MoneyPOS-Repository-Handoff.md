@@ -367,7 +367,7 @@ Surefire/reactor 类路径基线。
 发行版本来源；根 Maven 的 `0.0.0-DEV` 只表示非发行本地构建。Windows EXE 工作流读取该版本、校验格式并以
 `-Drevision` 传给 Maven；Electron Builder 与 Vite 同样从该 package 文件取得版本。后端 JAR 使用 Spring Boot
 `build-info`，`GET /system/version` 在认证约束下返回其构建版本，备份 Manifest 也改读该构建版本，不再保留
-`SysBackupService` 的 `2.2.0` 硬编码值。POS 顶栏和后台公共页脚均展示版本。
+`SysBackupService` 的 `2.2.0` 硬编码值。POS 顶栏展示版本；后台版本展示在左侧菜单栏顶部、品牌标题与“仪表盘”入口之间，并在侧栏折叠时隐藏。
 
 Node 20 的 `npm run release:check` 与生产构建通过，产物确认包含 `1.0.12`；版本接口聚焦契约测试通过；默认本地 JAR
 确认嵌入 `build.version=0.0.0-DEV`，模拟发行 `-Drevision=1.0.12` 后确认嵌入 `build.version=1.0.12`。Maven package、两项
