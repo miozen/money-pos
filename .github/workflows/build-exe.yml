@@ -21,9 +21,19 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Resolve release version
+        id: release_version
+        shell: powershell
+        run: |
+          $version = (Get-Content "money-pos-web/package.json" -Raw | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            throw "money-pos-web/package.json version is not SemVer: $version"
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
       - name: Build Backend (Maven)
         working-directory: ./money-pos
-        run: mvn clean package -DskipTests
+        run: mvn clean package -DskipTests -Drevision=${{ steps.release_version.outputs.value }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,6 +46,7 @@ jobs:
         working-directory: ./money-pos-web
         run: |
           npm install
+          npm run release:check
           npm run build
 
       - name: Prepare External Environments (JRE & MariaDB)

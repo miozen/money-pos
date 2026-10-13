@@ -6,7 +6,7 @@
                 <span class="text-xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300 leading-tight">
                     门店极速收银
                 </span>
-                <span class="text-[10px] text-gray-500 tracking-widest uppercase mt-0.5">Professional POS System</span>
+                <span class="text-[10px] text-gray-500 tracking-widest uppercase mt-0.5">Professional POS System · v{{ MONEY_POS_VERSION }}</span>
             </div>
         </div>
 
@@ -51,6 +51,7 @@
 
 <script setup>
 import { Monitor, Document, Refresh, User, Coin, Goods, HomeFilled, Avatar, SwitchButton, Present } from '@element-plus/icons-vue'
+import { MONEY_POS_VERSION } from '@/release.js'
 defineProps({ cashierName: String, currentTime: String, canAccessBenefit: Boolean })
 defineEmits(['action'])
 </script>

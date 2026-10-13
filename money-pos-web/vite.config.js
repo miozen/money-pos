@@ -1,16 +1,22 @@
 import { defineConfig } from "vite";
 import { resolve } from 'path';
+import { readFileSync } from 'node:fs';
 import vue from "@vitejs/plugin-vue";
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 
+const releaseVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
+
 export default defineConfig(async ({mode}) => ({
   // 🌟 核心修复：前端页面基础路径改为相对路径 './'
   // 这样打包后 Electron 读本地 index.html 时，资源路径才会是 ./assets/... 从而精准找到 CSS/JS
   base: mode  === 'demo' ? '/money-pos-demo' : './',
   envPrefix: ["VITE_"],
+  define: {
+    __MONEY_POS_VERSION__: JSON.stringify(releaseVersion),
+  },
   server: {
     port: 1520,
     strictPort: true,

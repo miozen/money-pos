@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.money.platform.runtime.database.EmbeddedMariaDbGuardian;
 import com.money.platform.runtime.file.RuntimeFileStorage;
 import com.money.platform.runtime.workspace.RuntimeWorkspace;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,11 +37,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SysBackupService {
 
     private static final String MANIFEST_FILE = "backup-manifest.json";
-    private static final String APP_VERSION = "2.2.0";
     private static final String SHADOW_DB = "money_pos_shadow";
+
+    private final ReleaseVersionService releaseVersionService;
 
     // 单店单机场景下，全局广播可满足需求
     private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
@@ -78,7 +81,7 @@ public class SysBackupService {
             // 1. 生成标准的备份清单
             JSONObject manifest = new JSONObject();
             manifest.set("appName", "MoneyPOS");
-            manifest.set("appVersion", APP_VERSION);
+            manifest.set("appVersion", releaseVersionService.currentVersion());
             manifest.set("backupTime", DateUtil.now());
             manifest.set("dbName", EmbeddedMariaDbGuardian.DB_NAME);
             FileUtil.writeUtf8String(manifest.toStringPretty(), tempBatchDir + File.separator + MANIFEST_FILE);
@@ -195,8 +198,9 @@ public class SysBackupService {
         }
 
         String version = json.getStr("appVersion");
-        if (!APP_VERSION.equals(version)) {
-            sendLog("WARN", "⚠️ 备份版本(" + version + ")与当前系统(" + APP_VERSION + ")不一致，将尝试跨版本兼容导入...");
+        String currentVersion = releaseVersionService.currentVersion();
+        if (!currentVersion.equals(version)) {
+            sendLog("WARN", "⚠️ 备份版本(" + version + ")与当前系统(" + currentVersion + ")不一致，将尝试跨版本兼容导入...");
         }
     }
 
