@@ -350,6 +350,17 @@ phase has been started.
 无关。首次普通沙箱执行还因本机 MariaDB TCP 权限被拒绝，受控重试可连接数据库。不得将该全量回归记为通过；后续需单独诊断其
 Surefire/reactor 类路径基线。
 
+## 2026-10-13 TRADE 可读单据号首单序号修复
+
+用户发现同日新单据表现为 `REQ...0009`、`MP...0010`、`MAP...0011`。经只读核对，生产 `REQ` 序列行的
+`id=9` 而 `sequence_value=1`；此前 SQL 在首次 INSERT 后以 `LAST_INSERT_ID()` 取值，MariaDB 返回的是表自增主键
+而非业务序号，故把全局行 ID 误拼入单据号。既有租户、前缀、自然日独立序列规则未改变，历史单据不改写。
+
+修复移除对 `LAST_INSERT_ID()` 的依赖：原子插入/递增后，在既有写事务内对同一前缀、日期的序列行加锁读取
+`sequence_value`。新增集成回归验证不同新前缀均从 `0001` 开始、同一前缀第二张为 `0002`；单据号回归（1）与完整
+`CheckoutIntegrationTest`（18）通过，`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 通过。
+完整 Maven 回归未在本次单点修复中重新作为通过证据执行；先前记录的 Surefire/reactor 类路径基线问题仍待独立处理。
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a
