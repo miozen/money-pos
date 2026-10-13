@@ -181,6 +181,26 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     @Test
+    void scheduledRefreshWritesSnapshotsWithoutARequestOrAuthenticatedOperator() {
+        LocalDate today = LocalDate.now();
+        dailySummaryMapper.delete(new LambdaQueryWrapper<OmsDailySummary>()
+                .eq(OmsDailySummary::getRecordDate, today));
+
+        SecurityContextHolder.clearContext();
+        RequestContextHolder.resetRequestAttributes();
+        dailySnapshotRefreshTask.refreshSnapshots("test unauthenticated scheduler refresh");
+
+        authenticateTenant();
+        OmsDailySummary snapshot = todaySnapshot(today);
+        HomeDailyOrderSnapshot expectedOrders = homeOrderReadQuery.summarizeDailySnapshot(today);
+        assertThat(snapshot).isNotNull();
+        assertThat(snapshot.getOrderCount()).isEqualTo(expectedOrders.getOrderCount());
+        assertThat(snapshot.getSalesAmount()).isEqualByComparingTo(expectedOrders.getSalesAmount());
+        assertThat(snapshot.getProfitAmount())
+                .isEqualByComparingTo(expectedOrders.getSalesAmount().subtract(expectedOrders.getCostAmount()));
+    }
+
+    @Test
     void homeCountContractKeepsFinancialStatusesAmountsAndRightOpenTimeRange() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime tomorrowStart = todayStart.plusDays(1);

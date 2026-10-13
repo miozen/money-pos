@@ -335,6 +335,21 @@ API and business behavior are untouched. Node 20 production build and `git diff 
 confirmed the new `dev` installer renders the dialog correctly. ME-1.6J and the full ME-1.6 phase are closed; no next
 phase has been started.
 
+## 2026-10-13 HOME 日快照后台刷新修复
+
+用户已授权最小修复：`/home/count` 的今日四项 KPI 只读取 HOME 自有 `oms_daily_summary` 日快照；生产库当日存在
+3 笔 `PAID` 订单、销售额 1324.00，但近八天无快照。启动及五分钟任务实际触发，却在补偿首个缺失日写入时因后台线程
+没有 `SecurityContext`、`SecurityGuard.isLoggedState()` 直接解引用空 `Authentication` 而失败；任务记录错误后不会继续刷新当天。
+
+修复将无认证上下文判定为未登录，保持现有操作人填充语义（空操作人）和所有 HOME 读写、路由、公式、迁移与事务边界不变。
+`HomeCountSnapshotCharacterizationTest` 新增真实无请求/无认证上下文的快照刷新回归，并验证日快照订单数、销售额和利润。
+该聚焦回归通过；`mvn -q package -DskipTests`、两项架构门禁、Node 20 前端生产构建及 `git diff --check` 均通过。
+
+隔离库完整 Maven 回归在本环境未能成为通过证据：根 reactor 及 `-pl qk-money-app/money-app-biz -am` 均在既有测试类路径上报告
+`NoClassDefFoundError`（例如 `CouponStatusEnum`、`OmsOrderDetailVO`）；这些类存在于已编译的 `money-app-api` 产物，且失败与本修复
+无关。首次普通沙箱执行还因本机 MariaDB TCP 权限被拒绝，受控重试可连接数据库。不得将该全量回归记为通过；后续需单独诊断其
+Surefire/reactor 类路径基线。
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a
