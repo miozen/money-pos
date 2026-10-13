@@ -1,6 +1,7 @@
 package com.money.feature.home.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.money.contract.goods.InventoryValuationQuery;
 import com.money.contract.member.HomeDailyMemberQuery;
 import com.money.contract.trade.HomeOrderReadQuery;
@@ -412,8 +413,12 @@ class HomeCountSnapshotCharacterizationTest {
         payment.setNetAmount(amount);
         payment.setChangeAllocated(BigDecimal.ZERO);
         payment.setTenantId(0L);
-        payment.setCreateTime(createTime);
         amountReceiptPayMapper.insert(payment);
+        if (createTime != null) {
+            amountReceiptPayMapper.update(null, new UpdateWrapper<OmsMemberAmountReceiptPay>()
+                    .set("create_time", createTime)
+                    .eq("id", payment.getId()));
+        }
     }
 
     private void insertTargetReceiptPayment(String receiptNo, BigDecimal amount) {

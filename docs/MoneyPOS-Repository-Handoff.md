@@ -385,6 +385,14 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 非商品收款同日合并为一个点、销售额/利润累加及近七日标签单调递增。`HomeCountSnapshotCharacterizationTest`、
 `mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 均通过。
 
+## 2026-10-13 HOME 趋势修复测试夹具更正
+
+上述趋势修复最初新增的测试夹具错误地调用了 `OmsMemberAmountReceiptPay.setCreateTime(...)`；该 Entity 未映射该字段，
+所以用户重新打包时在 `testCompile` 阶段失败，未生成新 JAR/EXE。夹具已改为先插入支付记录、再仅在测试中以显式 SQL 列名更新
+其 `create_time`，不改变生产 Entity 或持久化模型。`mvn -q package -DskipTests` 已确认包括测试源码在内能够编译并生成 JAR；
+原记录中的 Home 聚焦测试“通过”不再作为有效证据。本机当前没有注入 `MONEY_TEST_DB_USERNAME` 和
+`MONEY_TEST_DB_PASSWORD`，故 Spring 集成测试无法连接隔离库，待具备该项目约定测试凭据的环境执行。
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a
