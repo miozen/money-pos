@@ -28,14 +28,14 @@ public interface OmsOrderDetailMapper extends BaseMapper<OmsOrderDetail> {
     int refundGoodsAtomically(@Param("detailId") Long detailId, @Param("returnQty") int returnQty);
 
     @Select("<script>" +
-            "SELECT DATE_FORMAT(create_time, '%m-%d') AS date, " +
+            "SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS date, " +
             "SUM(IFNULL(final_sales_amount, pay_amount)) AS sales, " +
             "SUM(IFNULL(final_sales_amount, pay_amount) - IFNULL(cost_amount, 0)) AS profit " +
             "FROM oms_order " +
             "WHERE status IN ('PAID', 'PARTIAL_REFUNDED', 'REFUNDED', 'RETURN') " +
             "<if test='startTime != null'> AND create_time &gt;= #{startTime} </if> " +
             "<if test='endTime != null'> AND create_time &lt; #{endTime} </if> " +
-            "GROUP BY DATE(create_time), DATE_FORMAT(create_time, '%m-%d') " +
+            "GROUP BY DATE(create_time), DATE_FORMAT(create_time, '%Y-%m-%d') " +
             "ORDER BY DATE(create_time) ASC" +
             "</script>")
     List<com.money.dto.Home.TrendChartVO> getTrendData(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);

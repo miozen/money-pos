@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.Year;
 import java.time.YearMonth;
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
+    private static final DateTimeFormatter TREND_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MM-dd");
 
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
@@ -105,7 +107,7 @@ public class HomeServiceImpl implements HomeService {
     private List<TrendChartVO> toTrendChartData(List<HomeSalesTrendSnapshot> snapshots) {
         return snapshots.stream().map(snapshot -> {
             TrendChartVO point = new TrendChartVO();
-            point.setDate(snapshot.getDate());
+            point.setDate(LocalDate.parse(snapshot.getDate()).format(TREND_LABEL_FORMATTER));
             point.setSales(snapshot.getSales());
             point.setProfit(snapshot.getProfit());
             return point;

@@ -375,6 +375,16 @@ Node 20 的 `npm run release:check` 与生产构建通过，产物确认包含 `
 可见性验收记为通过。Exact next action: build the Windows EXE through the release workflow and verify the installer,
 POS header, admin footer, authenticated `/system/version` response and a new backup Manifest all show the same version.
 
+## 2026-10-13 HOME 近七日趋势日期顺序修复
+
+`GET /home/charts?timeRange=today` 将 TRADE 商品订单趋势（原为 `MM-dd`）与非商品收款趋势（`yyyy-MM-dd`）直接以字符串键合并。
+同一自然日因此会产生两个图表点，且 `TreeMap` 的字典序可将完整日期排在简短日期之后，导致横轴表现为 10 月 9、10、12 日后又出现 8 日。
+
+修复将 TRADE 趋势合同的内部日期键统一为 `yyyy-MM-dd`；HOME 先按该键合并和按真实日期排序，最后才在既有
+`TrendChartVO` 响应中格式化为 `MM-dd`。`/home/charts` 的前端展示格式、路由、金额与利润公式均未改变。新增回归覆盖订单和
+非商品收款同日合并为一个点、销售额/利润累加及近七日标签单调递增。`HomeCountSnapshotCharacterizationTest`、
+`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 均通过。
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a

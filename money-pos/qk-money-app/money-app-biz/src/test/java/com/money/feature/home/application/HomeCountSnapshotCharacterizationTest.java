@@ -46,6 +46,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -324,6 +326,32 @@ class HomeCountSnapshotCharacterizationTest {
         assertChartsMatchTradeQuery("total", null, null, null, null);
     }
 
+    @Test
+    void todayTrendMergesOrderAndNonProductReceiptsByDateAndKeepsChronologicalLabels() {
+        LocalDate today = LocalDate.now();
+        LocalDate sharedDate = today.minusDays(3);
+        String dateLabel = sharedDate.format(DateTimeFormatter.ofPattern("MM-dd"));
+        HomeChartsVO before = homeController.getChartsData("today");
+        BigDecimal salesBefore = trendValueForLabel(before.getTrendData(), dateLabel, TrendChartVO::getSales);
+        BigDecimal profitBefore = trendValueForLabel(before.getTrendData(), dateLabel, TrendChartVO::getProfit);
+
+        insertOrder("PAID", new BigDecimal("10.00"), new BigDecimal("4.00"), sharedDate.atTime(9, 0));
+        insertAmountReceiptPayment("HOME-TREND-" + System.nanoTime(), new BigDecimal("7.00"), sharedDate.atTime(10, 0));
+
+        List<TrendChartVO> trend = homeController.getChartsData("today").getTrendData();
+        assertThat(trend).filteredOn(point -> dateLabel.equals(point.getDate())).hasSize(1)
+                .first().satisfies(point -> {
+                    assertThat(point.getSales()).isEqualByComparingTo(salesBefore.add(new BigDecimal("17.00")));
+                    assertThat(point.getProfit()).isEqualByComparingTo(profitBefore.add(new BigDecimal("13.00")));
+                });
+
+        Map<String, LocalDate> datesInWindow = new HashMap<>();
+        for (LocalDate date = today.minusDays(6); !date.isAfter(today); date = date.plusDays(1)) {
+            datesInWindow.put(date.format(DateTimeFormatter.ofPattern("MM-dd")), date);
+        }
+        assertThat(trend).extracting(point -> datesInWindow.get(point.getDate())).isSorted();
+    }
+
     private void assertChartsMatchTradeQuery(String timeRange, LocalDateTime trendStart, LocalDateTime trendEnd,
                                               LocalDateTime brandStart, LocalDateTime brandEnd) {
         HomeChartsVO charts = homeController.getChartsData(timeRange);
@@ -334,7 +362,7 @@ class HomeCountSnapshotCharacterizationTest {
         for (int i = 0; i < trendSnapshots.size(); i++) {
             TrendChartVO actual = charts.getTrendData().get(i);
             HomeSalesTrendSnapshot expected = trendSnapshots.get(i);
-            assertThat(actual.getDate()).isEqualTo(expected.getDate());
+            assertThat(actual.getDate()).isEqualTo(LocalDate.parse(expected.getDate()).format(DateTimeFormatter.ofPattern("MM-dd")));
             assertThat(actual.getSales()).isEqualByComparingTo(expected.getSales());
             assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
         }
@@ -347,9 +375,15 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     private BigDecimal trendAmountForDate(List<HomeSalesTrendSnapshot> snapshots, LocalDate date) {
-        String dateLabel = String.format("%02d-%02d", date.getMonthValue(), date.getDayOfMonth());
+        String dateLabel = date.toString();
         return snapshots.stream().filter(snapshot -> dateLabel.equals(snapshot.getDate()))
                 .map(HomeSalesTrendSnapshot::getSales).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal trendValueForLabel(List<TrendChartVO> trend, String dateLabel,
+                                          java.util.function.Function<TrendChartVO, BigDecimal> value) {
+        return trend.stream().filter(point -> dateLabel.equals(point.getDate())).map(value)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal brandAmount(List<HomeBrandSalesSnapshot> snapshots, String brandName) {
@@ -365,6 +399,10 @@ class HomeCountSnapshotCharacterizationTest {
     }
 
     private void insertAmountReceiptPayment(String receiptNo, BigDecimal amount) {
+        insertAmountReceiptPayment(receiptNo, amount, null);
+    }
+
+    private void insertAmountReceiptPayment(String receiptNo, BigDecimal amount, LocalDateTime createTime) {
         OmsMemberAmountReceiptPay payment = new OmsMemberAmountReceiptPay();
         payment.setReceiptNo(receiptNo);
         payment.setPayMethodCode("CASH");
@@ -374,6 +412,7 @@ class HomeCountSnapshotCharacterizationTest {
         payment.setNetAmount(amount);
         payment.setChangeAllocated(BigDecimal.ZERO);
         payment.setTenantId(0L);
+        payment.setCreateTime(createTime);
         amountReceiptPayMapper.insert(payment);
     }
 
