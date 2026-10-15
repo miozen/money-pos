@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **HOME-OPT-1 changes validated locally; commit/push pending.** |
-| Current phase | `FCO-5 HOME optimization closing — next: FCO-6 SYS read-only audit` |
+| Working tree | **Clean and synchronized after HOME-OPT-1; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-6 SYS consistency audit — read-only inventory pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -191,11 +191,12 @@ daily waterfall report; financial formulas, response, role grants and upstream q
 FCO-5 HOME is complete in the working tree: `MoneyPOS-FCO-5-Home-Consistency-Audit.md` verifies that GET endpoints
 remain read-only, HOME alone writes its daily snapshot through the startup/five-minute task, and GMS/UMS/TRADE data
 arrives only via Entity-free query contracts. It records HOME-1: invalid `/home/charts?timeRange=` values can reach a
-null time range and fail server-side. HOME-OPT-1 is complete locally: the service accepts only the four existing
+null time range and fail server-side. HOME-OPT-1 is complete in `b24c530` and synchronized to `origin/dev`: the service accepts only the four existing
 values and rejects invalid values before data access with `BaseException`; legal outputs and all frozen HOME behavior
 remain unchanged. The focused HOME integration regression, isolated full `mvn -q test`, and
-`mvn -q package -DskipTests` passed. The exact next action is to run both architecture gates and `git diff --check`,
-then commit/push this HOME-OPT-1 slice and verify branch synchronization before starting the FCO-6 SYS read-only audit.
+`mvn -q package -DskipTests`, both architecture gates and `git diff --check` passed. The exact next action is the
+read-only FCO-6 SYS audit of shared dictionary, strategy, permission, printing and runtime configuration boundaries;
+do not mix it with unapproved HOME permission or member-recharge metric changes.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
