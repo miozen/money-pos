@@ -114,22 +114,26 @@ public class GmsInventoryDocServiceImpl implements GmsInventoryDocService {
 
             if (changeQty == 0) continue; // 拦截无效操作
 
-            // 防护：只有报损才检查库存是否不足（盘点如果数量为0，会自动生成负数扣平）
-            if ("OUTBOUND".equals(docType) && preStock + changeQty < 0) {
-                throw new BaseException(goods.getName() + " 当前库存不足，无法报损！");
+            long afterStock;
+            if ("OUTBOUND".equals(docType)) {
+                int deductedRows = gmsGoodsMapper.deductStockAtomically(goods.getId(), BigDecimal.valueOf(-changeQty));
+                if (deductedRows == 0) {
+                    throw new BaseException(goods.getName() + " 当前库存不足，无法报损！");
+                }
+                GmsGoods updatedGoods = gmsGoodsMapper.selectById(goods.getId());
+                afterStock = updatedGoods.getStock() == null ? 0L : updatedGoods.getStock();
+                preStock = afterStock - changeQty;
+            } else {
+                LambdaUpdateWrapper<GmsGoods> updateWrapper = new LambdaUpdateWrapper<GmsGoods>()
+                        .eq(GmsGoods::getId, goods.getId())
+                        .setSql("stock = stock + " + changeQty);
+                if ("INBOUND".equals(docType)) {
+                    updateWrapper.set(GmsGoods::getAvgCostPrice, newAvgCostPrice)
+                            .set(GmsGoods::getLastPurchasePrice, actionCostPrice);
+                }
+                gmsGoodsMapper.update(null, updateWrapper);
+                afterStock = preStock + changeQty;
             }
-
-            // 4. 更新商品主表
-            LambdaUpdateWrapper<GmsGoods> updateWrapper = new LambdaUpdateWrapper<GmsGoods>()
-                    .eq(GmsGoods::getId, goods.getId())
-                    .setSql("stock = stock + " + changeQty);
-
-            // 只有入库才需要改变成本价
-            if ("INBOUND".equals(docType)) {
-                updateWrapper.set(GmsGoods::getAvgCostPrice, newAvgCostPrice)
-                        .set(GmsGoods::getLastPurchasePrice, actionCostPrice);
-            }
-            gmsGoodsMapper.update(null, updateWrapper);
 
             // 5. 记录单据快照 (The Snapshot)
             GmsInventoryDocItem snapshot = new GmsInventoryDocItem();
@@ -140,7 +144,7 @@ public class GmsInventoryDocServiceImpl implements GmsInventoryDocService {
             snapshot.setChangeQty(changeQty);
             snapshot.setCostPrice(actionCostPrice);
             snapshot.setPreStock(preStock);
-            snapshot.setAfterStock(preStock + changeQty);
+            snapshot.setAfterStock(afterStock);
             snapshotItems.add(snapshot);
 
             // 6. 记录库存流水 (The Log)
@@ -152,7 +156,7 @@ public class GmsInventoryDocServiceImpl implements GmsInventoryDocService {
             stockLog.setGoodsBarcode(goods.getBarcode());
             stockLog.setType(docType);
             stockLog.setQuantity(changeQty);
-            stockLog.setAfterQuantity((int)(preStock + changeQty));
+            stockLog.setAfterQuantity((int) afterStock);
             stockLog.setCostPriceSnapshot(actionCostPrice);
             stockLog.setImpactAmount(itemFinancialImpact);
             stockLog.setOrderNo(docNo);

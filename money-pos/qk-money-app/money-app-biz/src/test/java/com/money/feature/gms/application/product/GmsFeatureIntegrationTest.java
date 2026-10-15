@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -162,6 +163,43 @@ class GmsFeatureIntegrationTest {
                         GmsInventoryDocItem::getTenantId)
                 .containsExactly(inboundDoc.getDocNo(), component.getId(), component.getName(), component.getBarcode(),
                         3, new BigDecimal("6.00"), 8L, 11L, 0L);
+    }
+
+    @Test
+    void manualOutboundUsesAtomicStockGuardAndPersistsActualStockSnapshots() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        GmsBrand brand = createBrand(suffix);
+        GmsGoodsCategory category = createCategory(suffix);
+        GmsGoods goods = createGoods(suffix, brand.getId(), category.getId(), 2L, 0, null);
+
+        inventoryDocService.executeDoc(outbound(goods.getId(), 2, "atomic outbound"));
+
+        assertThat(goodsMapper.selectById(goods.getId()).getStock()).isZero();
+        GmsInventoryDoc doc = inventoryDocMapper.selectOne(new LambdaQueryWrapper<GmsInventoryDoc>()
+                .eq(GmsInventoryDoc::getDocType, "OUTBOUND")
+                .eq(GmsInventoryDoc::getRemark, "atomic outbound"));
+        assertThat(doc).isNotNull();
+        assertThat(inventoryDocItemMapper.selectList(new LambdaQueryWrapper<GmsInventoryDocItem>()
+                .eq(GmsInventoryDocItem::getDocNo, doc.getDocNo())))
+                .singleElement()
+                .extracting(GmsInventoryDocItem::getChangeQty, GmsInventoryDocItem::getPreStock, GmsInventoryDocItem::getAfterStock)
+                .containsExactly(-2, 2L, 0L);
+
+        assertThatThrownBy(() -> inventoryDocService.executeDoc(outbound(goods.getId(), 1, "insufficient outbound")))
+                .hasMessageContaining("当前库存不足");
+        assertThat(inventoryDocMapper.selectCount(new LambdaQueryWrapper<GmsInventoryDoc>()
+                .eq(GmsInventoryDoc::getRemark, "insufficient outbound"))).isZero();
+    }
+
+    private InventoryDocRequestDTO outbound(Long goodsId, int quantity, String remark) {
+        InventoryDocRequestDTO.ItemDTO line = new InventoryDocRequestDTO.ItemDTO();
+        line.setGoodsId(goodsId);
+        line.setQty(quantity);
+        InventoryDocRequestDTO request = new InventoryDocRequestDTO();
+        request.setType("OUTBOUND");
+        request.setRemark(remark);
+        request.setDetails(List.of(line));
+        return request;
     }
 
     private GmsBrand createBrand(String suffix) {

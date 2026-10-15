@@ -86,3 +86,11 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 `mvn -q package -DskipTests`、两项架构扫描和 `git diff --check` 均通过。
 
 下一动作：在 GMS 范围内单独冻结并实施 **GMS-OPT-2**；不得与 GMS-OPT-3 或 GMS-OPT-4 混合。
+
+**完成记录（2026-10-15）：** GMS-OPT-2 已按
+`MoneyPOS-GMS-OPT-2-Manual-Outbound-Atomic-Stock-Guard-Implementation-Contract.md` 完成。手工报损出库现在使用
+既有 `UPDATE ... WHERE stock >= qty` 原子条件更新；条件失败时整张单据回滚，成功时在同一事务读取实际余额写入明细和
+库存流水快照。入库、盘点、套餐穿透语义、路由、单据结构、成本公式和迁移均未变更。隔离 `money_pos_test` 的专项
+5 项测试、全量 `mvn -q test`、`mvn -q package -DskipTests`、两项架构扫描和 `git diff --check` 均通过。
+
+下一动作：在 GMS 范围内单独冻结并实施 **GMS-OPT-3**；不得与 GMS-OPT-4 混合。
