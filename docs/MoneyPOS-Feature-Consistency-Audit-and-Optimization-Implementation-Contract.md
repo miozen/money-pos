@@ -94,3 +94,11 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 5 项测试、全量 `mvn -q test`、`mvn -q package -DskipTests`、两项架构扫描和 `git diff --check` 均通过。
 
 下一动作：在 GMS 范围内单独冻结并实施 **GMS-OPT-3**；不得与 GMS-OPT-4 混合。
+
+**完成记录（2026-10-15）：** GMS-OPT-3 已按
+`MoneyPOS-GMS-OPT-3-Goods-Deletion-Integrity-Implementation-Contract.md` 完成。删除会拒绝仍被保留套餐引用的子件；
+成功删除会清理既有价格/主件配方并回收原品牌、分类的商品计数。同批删除套餐主件及子件仍可完成；库存、订单、单据、
+会员权益历史关联既未被删除，也未新增限制。隔离专项 3 项测试、全量 `mvn -q test`、`mvn -q package -DskipTests`、
+两项架构扫描和 `git diff --check` 均通过。
+
+下一动作：盘点并冻结 **GMS-OPT-4** 的现有菜单/角色权限映射；不得擅自创造权限编码或扩大既有角色授权。

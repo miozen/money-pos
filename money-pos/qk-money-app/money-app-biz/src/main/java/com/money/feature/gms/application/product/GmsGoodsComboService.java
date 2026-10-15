@@ -62,4 +62,13 @@ public class GmsGoodsComboService {
             gmsGoodsComboMapper.delete(new LambdaQueryWrapper<GmsGoodsCombo>().in(GmsGoodsCombo::getComboGoodsId, goodsIds));
         }
     }
+
+    /** True when a selected goods record remains a component of a package that is not being deleted. */
+    public boolean hasReferencedSubGoodsOutside(Set<Long> goodsIds) {
+        if (goodsIds == null || goodsIds.isEmpty()) return false;
+        return gmsGoodsComboMapper.selectList(new LambdaQueryWrapper<GmsGoodsCombo>()
+                        .in(GmsGoodsCombo::getSubGoodsId, goodsIds))
+                .stream()
+                .anyMatch(combo -> !goodsIds.contains(combo.getComboGoodsId()));
+    }
 }

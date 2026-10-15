@@ -203,12 +203,26 @@ public class GmsGoodsServiceImpl extends ServiceImpl<GmsGoodsMapper, GmsGoods> i
     public void delete(Set<Long> ids) {
         if (ids == null || ids.isEmpty()) return;
 
+        List<GmsGoods> goodsToDelete = this.listByIds(ids);
+        if (goodsToDelete.isEmpty()) return;
+        Set<Long> existingIds = goodsToDelete.stream().map(GmsGoods::getId).collect(Collectors.toSet());
+        if (goodsComboService.hasReferencedSubGoodsOutside(existingIds)) {
+            throw new BaseException("商品仍被其他套餐引用，请先调整套餐配方");
+        }
+
         // 1. 删除主商品
-        this.removeByIds(ids);
+        this.removeByIds(existingIds);
 
         // 2. 级联委托销毁
-        goodsPriceService.deleteByGoodsIds(ids);
-        goodsComboService.deleteByGoodsIds(ids);
+        goodsPriceService.deleteByGoodsIds(existingIds);
+        goodsComboService.deleteByGoodsIds(existingIds);
+
+        goodsToDelete.stream()
+                .collect(Collectors.groupingBy(GmsGoods::getBrandId, Collectors.counting()))
+                .forEach((brandId, count) -> gmsBrandService.updateGoodsCount(brandId, -Math.toIntExact(count)));
+        goodsToDelete.stream()
+                .collect(Collectors.groupingBy(GmsGoods::getCategoryId, Collectors.counting()))
+                .forEach((categoryId, count) -> gmsGoodsCategoryService.updateGoodsCount(categoryId, -Math.toIntExact(count)));
     }
 
     @Override

@@ -40,6 +40,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -189,6 +190,32 @@ class GmsFeatureIntegrationTest {
                 .hasMessageContaining("当前库存不足");
         assertThat(inventoryDocMapper.selectCount(new LambdaQueryWrapper<GmsInventoryDoc>()
                 .eq(GmsInventoryDoc::getRemark, "insufficient outbound"))).isZero();
+    }
+
+    @Test
+    void goodsDeletionRejectsReferencedComponentsAndRestoresCatalogCounters() {
+        String suffix = Long.toString(System.nanoTime(), 36);
+        GmsBrand brand = createBrand(suffix);
+        GmsGoodsCategory category = createCategory(suffix);
+        GmsGoods component = createGoods(suffix + "component", brand.getId(), category.getId(), 0L, 0, null);
+        GmsGoodsComboDTO componentLine = new GmsGoodsComboDTO();
+        componentLine.setSubGoodsId(component.getId());
+        componentLine.setSubGoodsQty(1);
+        GmsGoods combo = createGoods(suffix + "combo", brand.getId(), category.getId(), 0L, 1, List.of(componentLine));
+
+        assertThatThrownBy(() -> goodsService.delete(Set.of(component.getId())))
+                .hasMessageContaining("仍被其他套餐引用");
+        assertThat(goodsMapper.selectById(component.getId())).isNotNull();
+        assertThat(brandMapper.selectById(brand.getId()).getGoodsCount()).isEqualTo(2);
+        assertThat(categoryMapper.selectById(category.getId()).getGoodsCount()).isEqualTo(2);
+
+        goodsService.delete(Set.of(combo.getId()));
+        goodsService.delete(Set.of(component.getId()));
+
+        assertThat(goodsMapper.selectById(combo.getId())).isNull();
+        assertThat(goodsMapper.selectById(component.getId())).isNull();
+        assertThat(brandMapper.selectById(brand.getId()).getGoodsCount()).isZero();
+        assertThat(categoryMapper.selectById(category.getId()).getGoodsCount()).isZero();
     }
 
     private InventoryDocRequestDTO outbound(Long goodsId, int quantity, String remark) {
