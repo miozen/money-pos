@@ -44,6 +44,11 @@ class UmsMemberBenefitRouteContractTest {
                 .isEqualTo("@rbac.hasPermission('memberBenefit:tier')");
     }
 
+    @Test
+    void memberFundLogUsesExistingMemberReadCapability() throws Exception {
+        assertRoute(UmsMemberLogController.class, "list", "@rbac.hasPermission('umsMember:list')");
+    }
+
     private void assertRoute(Class<?> controller, String methodName, String permission, String... paths) throws Exception {
         Method method = method(controller, methodName);
         if (paths.length > 0) assertThat(method.getAnnotation(GetMapping.class).value()).containsExactly(paths);
