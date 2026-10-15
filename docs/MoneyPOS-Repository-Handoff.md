@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after GMS-OPT-4; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-2 UMS consistency audit — complete; UMS-OPT-1 selection pending` |
+| Current phase | `FCO-3 TRADE consistency audit — complete; TRADE-OPT-1 selection pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -168,6 +168,12 @@ fund-log query) and UMS-2 (member cancellation clears assets without unresolved-
 reuse `umsMember:list` without a business-rule change; UMS-OPT-2 requires an explicit decision defining which asset and
 benefit states block cancellation. The exact next action is to commit this audit record, then freeze/implement only
 UMS-OPT-1 unless the user supplies the UMS-OPT-2 business rule.
+
+FCO-3 is complete in the working tree: `MoneyPOS-FCO-3-Trade-Consistency-Audit.md` verifies TRADE-owned checkout and
+refund transactions, their request/idempotency boundaries, Entity-free GMS/UMS command collaboration and protected
+POS/benefit routes. It records one minimal issue: the order hardware reprint route lacks a permission despite its real
+printer side effect. The exact next action is to commit this audit, then—if approved—freeze TRADE-OPT-1 to apply only
+the existing `oms:order:list` permission to that route.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

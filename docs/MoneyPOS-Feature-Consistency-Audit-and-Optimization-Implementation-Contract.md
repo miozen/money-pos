@@ -116,3 +116,7 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 `MoneyPOS-UMS-OPT-1-Member-Log-Permission-Alignment-Implementation-Contract.md` 完成。`/ums/member-log` 现复用
 `umsMember:list`，未新增权限、菜单、迁移或角色授权。路由契约测试、隔离全量 Maven 回归、打包、两项架构扫描与
 `git diff --check` 均通过。UMS-OPT-2 继续等待“可注销会员”的资产/权益状态业务规则确认。
+
+**完成记录（2026-10-15）：** FCO-3 TRADE 只读审查已形成
+`MoneyPOS-FCO-3-Trade-Consistency-Audit.md`。下一动作是冻结并实施单一 TRADE-OPT-1 订单重打权限对齐；它不改变
+交易、退款、库存、会员资产、打印内容或钱箱规则。
