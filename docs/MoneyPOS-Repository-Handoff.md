@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after GMS-OPT-2; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-1 GMS — OPT-3 minimal design and implementation next` |
+| Working tree | **Clean and synchronized after GMS-OPT-3; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-1 GMS — OPT-4 permission inventory and minimal design next` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -151,6 +151,12 @@ documents/logs are created, while a successful deduction reads the transaction-l
 Inbound, stock-check, package propagation, financial formula, routes and migrations were untouched. Five focused GMS
 tests, isolated full Maven regression, package, both architecture scans and diff check passed. The exact next action is
 to freeze GMS-OPT-3's deletion-integrity policy and implement only its agreed guards/counter recovery.
+
+GMS-OPT-3 is complete in `517229d` and synchronized to `origin/dev`. It rejects deletion of a component referenced by
+a package that remains, permits deleting a package and its components together, and decrements original brand/category
+counts on successful deletion. It deliberately does not cascade or newly reject historical stock/order/member records.
+The exact next action is to inventory existing GMS menu/role permission codes before freezing GMS-OPT-4; do not invent
+new permission identifiers or broaden existing role grants.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
