@@ -1,6 +1,6 @@
 # MoneyPOS HOME 趋势图粒度调整实施计划
 
-> 状态：**已完成，待浏览器验收**；适用分支：`dev`；确认日期：2026-10-15。
+> 状态：**已完成，浏览器验收通过**；适用分支：`dev`；确认日期：2026-10-15。
 
 ## 目标与边界
 
@@ -25,3 +25,4 @@
 - `HomeServiceImpl` 保持 TRADE 的订单日趋势和非商品收款日趋势先合并，再在 HOME 内二次分桶；因此销售额和利润仍使用同一批原始金额，未改变订单数、成本、库存或品牌饼图口径。
 - 本年固定返回当年一月至当前月的连续月点，零营业额月份为零；总计仅对已有经营数据按自然年汇总，不伪造尚无经营数据年份。
 - 隔离 `money_pos_test` 的 `HomeCountSnapshotCharacterizationTest` 通过（11 tests，0 failures/errors）；`mvn -q package -DskipTests`、`bash scripts/test-architecture-scan.sh`、`bash scripts/architecture-scan.sh --check-new` 与 `git diff --check` 通过。
+- 用户已于 2026-10-15 确认完成 HOME 浏览器验收：本年仅显示月标签、总计仅显示年标签，空月按零值展示。

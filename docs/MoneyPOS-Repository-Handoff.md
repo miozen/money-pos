@@ -15,8 +15,8 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after the HOME trend-granularity handoff commit; `dev...origin/dev = 0/0`.** |
-| Current phase | `HOME 趋势图粒度调整 — completed; browser acceptance pending` |
-| Current plan | `MoneyPOS-Home-Trend-Granularity-Implementation-Plan.md` (complete) |
+| Current phase | `FCO-1 GMS 一致性审查 — ready to start` |
+| Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -407,7 +407,19 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 
 实现只在 `HomeServiceImpl` 的 HOME 读侧发生：订单日趋势和非商品收款日趋势先按原口径合并，再按月或按年二次汇总。路由、响应字段、订单/收款、库存、事务、品牌饼图和会员分布均未改变。`HomeCountSnapshotCharacterizationTest` 现覆盖月度累计、空月补齐与年度累计；隔离 `money_pos_test` 聚焦回归通过（11 tests，0 failures/errors），`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 通过。
 
-发行版本契约已补充本地浏览器联调标准命令：`mvn clean package -DskipTests` 后启动 `money-app-biz-0.0.0-DEV.jar`。本地调试不得手工使用 `-Drevision=1.0.0`；发行版本只能由 CI 从 `money-pos-web/package.json` 注入。下一动作：从同步的 `dev` 启动该 DEV JAR，在浏览器依次检查本年仅显示月标签、总计仅显示年标签，以及空月显示零值。
+发行版本契约已补充本地浏览器联调标准命令：`mvn clean package -DskipTests` 后启动 `money-app-biz-0.0.0-DEV.jar`。本地调试不得手工使用 `-Drevision=1.0.0`；发行版本只能由 CI 从 `money-pos-web/package.json` 注入。用户已于 2026-10-15 确认本年仅显示月标签、总计仅显示年标签，以及空月显示零值，HOME 浏览器验收通过。
+
+## 2026-10-15 Feature 一致性审查与渐进优化契约
+
+用户确认继续保持单一 `money-app-biz` Maven 业务模块，并授权按 “GMS → UMS → TRADE → FIN → HOME → SYS 横切复核”
+进行 Feature 一致性审查和最小优化。唯一当前契约为
+`MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md`：每个 Feature 必须先做只读审查，
+将已确认约束、问题和可选建议分开记录；只有审查已证实、可独立回归的维护问题才能进入单一优化切片。不得借此拆分 Maven、
+改变既有单库事务、公共 API、Flyway 历史、金额公式或历史数据。
+
+## Exact next action
+
+执行 FCO-1：GMS 一致性只读审查，输出商品/库存所有权、契约、事务/幂等、测试证据、风险和最小优化候选；不修改生产代码。
 
 ## Handoff rule
 
