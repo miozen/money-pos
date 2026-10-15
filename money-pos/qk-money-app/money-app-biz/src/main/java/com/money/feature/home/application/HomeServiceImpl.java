@@ -97,8 +97,8 @@ public class HomeServiceImpl implements HomeService {
 
         List<HomeSalesTrendSnapshot> trend = mergeNonProductTrend(
                 homeOrderReadQuery.listSalesTrend(trendStartTime, endTime), trendStartTime, endTime);
-        if ("today".equals(timeRange)) {
-            trend = completeRecentDailyTrend(trend, trendStartTime.toLocalDate(), LocalDate.now());
+        if ("today".equals(timeRange) || "month".equals(timeRange) || "year".equals(timeRange)) {
+            trend = completeDailyTrend(trend, trendStartTime.toLocalDate(), LocalDate.now());
         }
         chartsVO.setTrendData(toTrendChartData(trend));
         chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
@@ -135,8 +135,8 @@ public class HomeServiceImpl implements HomeService {
                 .collect(Collectors.toList());
     }
 
-    private List<HomeSalesTrendSnapshot> completeRecentDailyTrend(List<HomeSalesTrendSnapshot> trend,
-                                                                    LocalDate startInclusive, LocalDate endInclusive) {
+    private List<HomeSalesTrendSnapshot> completeDailyTrend(List<HomeSalesTrendSnapshot> trend,
+                                                             LocalDate startInclusive, LocalDate endInclusive) {
         Map<String, HomeSalesTrendSnapshot> pointsByDate = trend.stream()
                 .collect(Collectors.toMap(HomeSalesTrendSnapshot::getDate, point -> point));
         List<HomeSalesTrendSnapshot> completeTrend = new ArrayList<>();

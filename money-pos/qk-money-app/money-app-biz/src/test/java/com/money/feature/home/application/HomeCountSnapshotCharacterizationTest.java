@@ -359,8 +359,8 @@ class HomeCountSnapshotCharacterizationTest {
         List<HomeSalesTrendSnapshot> trendSnapshots = homeOrderReadQuery.listSalesTrend(trendStart, trendEnd);
         List<HomeBrandSalesSnapshot> brandSnapshots = homeOrderReadQuery.listBrandSales(brandStart, brandEnd);
         assertThat(charts.getPieData()).hasSameSizeAs(brandSnapshots);
-        if ("today".equals(timeRange)) {
-            assertRecentTrendIncludesEveryDate(charts.getTrendData(), trendSnapshots, trendStart.toLocalDate());
+        if ("today".equals(timeRange) || "month".equals(timeRange) || "year".equals(timeRange)) {
+            assertTrendIncludesEveryDateThroughToday(charts.getTrendData(), trendSnapshots, trendStart.toLocalDate());
         } else {
             assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);
             for (int i = 0; i < trendSnapshots.size(); i++) {
@@ -379,15 +379,16 @@ class HomeCountSnapshotCharacterizationTest {
         }
     }
 
-    private void assertRecentTrendIncludesEveryDate(List<TrendChartVO> actualTrend,
-                                                    List<HomeSalesTrendSnapshot> expectedTrend,
-                                                    LocalDate startDate) {
+    private void assertTrendIncludesEveryDateThroughToday(List<TrendChartVO> actualTrend,
+                                                           List<HomeSalesTrendSnapshot> expectedTrend,
+                                                           LocalDate startDate) {
         Map<String, HomeSalesTrendSnapshot> expectedByDate = new HashMap<>();
         for (HomeSalesTrendSnapshot point : expectedTrend) {
             expectedByDate.put(point.getDate(), point);
         }
-        assertThat(actualTrend).hasSize(7);
-        for (int i = 0; i < 7; i++) {
+        int expectedDayCount = (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, LocalDate.now()) + 1;
+        assertThat(actualTrend).hasSize(expectedDayCount);
+        for (int i = 0; i < expectedDayCount; i++) {
             LocalDate date = startDate.plusDays(i);
             TrendChartVO actual = actualTrend.get(i);
             HomeSalesTrendSnapshot expected = expectedByDate.get(date.toString());

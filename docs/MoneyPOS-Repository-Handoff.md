@@ -399,6 +399,8 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 `timeRange=today` 现在在既有订单与非商品收款合并后，固定补齐从今天往前六天到今天的七个点；没有数据的日期返回销售额和净利润均为零。
 月、年、累计趋势、路由、响应字段、金额公式和交易查询边界均未改变。`HomeCountSnapshotCharacterizationTest` 已扩展为断言七个连续日期及零值补齐；按既有固定凭据提取协议连接隔离 `money_pos_test` 的聚焦回归通过（9 tests，0 failures/errors），`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 均通过。
 
+用户进一步确认本月、本年趋势也不得跳过零营业额日期。相同的连续自然日补齐现已扩展为：本月从月初至今天、本年从年初至今天；不展示未来日期，累计趋势仍保持原有按实际数据点返回的行为。Home 聚焦回归（9 tests，0 failures/errors）、常规打包、两项架构门禁与差异检查再次通过。为兼容既有本地浏览器启动命令，还以 `-Drevision=1.0.0` 额外生成未提交的本地测试产物 `target/money-app-biz-1.0.0.jar`，并确认其已嵌入完整日期键和连续日补齐代码；这不改变正式发行版本来源或 Git 内容。
+
 ## Handoff rule
 
 Before ending a substantive session, update this file with the actual working-tree state and validations. Before a
