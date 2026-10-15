@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after TRADE-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-4 FIN consistency audit — complete; FIN-OPT-1 selection pending` |
+| Working tree | **Clean and synchronized after FIN-OPT-1; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-5 HOME consistency audit — read-only inventory in progress` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -184,6 +184,11 @@ FCO-4 is complete in the working tree: `MoneyPOS-FCO-4-Fin-Consistency-Audit.md`
 through Entity-free TRADE/GMS/UMS/SYS queries, without financial writes or formula ownership. It records one minimal
 issue: the full daily waterfall route is unprotected while the rest of FIN uses `omsOrder:list`. The exact next action
 is to commit this audit, then—if approved—freeze FIN-OPT-1 to apply only that existing permission.
+
+FIN-OPT-1 is complete in `b22b0cb` and synchronized to `origin/dev`. It applies only existing `omsOrder:list` to the
+daily waterfall report; financial formulas, response, role grants and upstream queries did not change. The exact next
+action is the read-only FCO-5 HOME audit of its daily snapshot task, read-model ownership, chart granularity, upstream
+projections, route permissions and post-browser-acceptance test evidence.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
