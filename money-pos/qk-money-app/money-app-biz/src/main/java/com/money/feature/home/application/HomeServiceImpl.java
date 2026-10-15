@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HomeServiceImpl implements HomeService {
     private static final DateTimeFormatter TREND_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MM-dd");
+    private static final DateTimeFormatter MONTH_TREND_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MM月");
 
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
@@ -97,10 +98,15 @@ public class HomeServiceImpl implements HomeService {
 
         List<HomeSalesTrendSnapshot> trend = mergeNonProductTrend(
                 homeOrderReadQuery.listSalesTrend(trendStartTime, endTime), trendStartTime, endTime);
-        if ("today".equals(timeRange) || "month".equals(timeRange) || "year".equals(timeRange)) {
+        TrendGranularity granularity = trendGranularityFor(timeRange);
+        if (granularity == TrendGranularity.DAILY) {
             trend = completeDailyTrend(trend, trendStartTime.toLocalDate(), LocalDate.now());
+        } else if (granularity == TrendGranularity.MONTHLY) {
+            trend = completeMonthlyTrend(aggregateTrend(trend, granularity), YearMonth.from(trendStartTime), YearMonth.now());
+        } else {
+            trend = aggregateTrend(trend, granularity);
         }
-        chartsVO.setTrendData(toTrendChartData(trend));
+        chartsVO.setTrendData(toTrendChartData(trend, granularity));
         chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
 
         // 会员等级是即时状态（总资产），不跟时间联动
@@ -109,14 +115,35 @@ public class HomeServiceImpl implements HomeService {
         return chartsVO;
     }
 
-    private List<TrendChartVO> toTrendChartData(List<HomeSalesTrendSnapshot> snapshots) {
+    private TrendGranularity trendGranularityFor(String timeRange) {
+        if ("year".equals(timeRange)) {
+            return TrendGranularity.MONTHLY;
+        }
+        if ("total".equals(timeRange)) {
+            return TrendGranularity.YEARLY;
+        }
+        return TrendGranularity.DAILY;
+    }
+
+    private List<TrendChartVO> toTrendChartData(List<HomeSalesTrendSnapshot> snapshots,
+                                                  TrendGranularity granularity) {
         return snapshots.stream().map(snapshot -> {
             TrendChartVO point = new TrendChartVO();
-            point.setDate(LocalDate.parse(snapshot.getDate()).format(TREND_LABEL_FORMATTER));
+            point.setDate(formatTrendLabel(snapshot.getDate(), granularity));
             point.setSales(snapshot.getSales());
             point.setProfit(snapshot.getProfit());
             return point;
         }).collect(Collectors.toList());
+    }
+
+    private String formatTrendLabel(String bucket, TrendGranularity granularity) {
+        if (granularity == TrendGranularity.MONTHLY) {
+            return YearMonth.parse(bucket).format(MONTH_TREND_LABEL_FORMATTER);
+        }
+        if (granularity == TrendGranularity.YEARLY) {
+            return bucket;
+        }
+        return LocalDate.parse(bucket).format(TREND_LABEL_FORMATTER);
     }
 
     private List<HomeSalesTrendSnapshot> mergeNonProductTrend(List<HomeSalesTrendSnapshot> orderTrend,
@@ -145,6 +172,43 @@ public class HomeServiceImpl implements HomeService {
                     new HomeSalesTrendSnapshot(date.toString(), BigDecimal.ZERO, BigDecimal.ZERO)));
         }
         return completeTrend;
+    }
+
+    private List<HomeSalesTrendSnapshot> aggregateTrend(List<HomeSalesTrendSnapshot> trend,
+                                                         TrendGranularity granularity) {
+        Map<String, BigDecimal[]> totals = new TreeMap<>();
+        for (HomeSalesTrendSnapshot point : trend) {
+            LocalDate date = LocalDate.parse(point.getDate());
+            String bucket = granularity == TrendGranularity.MONTHLY
+                    ? YearMonth.from(date).toString()
+                    : String.valueOf(date.getYear());
+            BigDecimal[] values = totals.computeIfAbsent(bucket,
+                    ignored -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            values[0] = values[0].add(point.getSales());
+            values[1] = values[1].add(point.getProfit());
+        }
+        return totals.entrySet().stream()
+                .map(entry -> new HomeSalesTrendSnapshot(entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
+                .collect(Collectors.toList());
+    }
+
+    private List<HomeSalesTrendSnapshot> completeMonthlyTrend(List<HomeSalesTrendSnapshot> trend,
+                                                               YearMonth startInclusive, YearMonth endInclusive) {
+        Map<String, HomeSalesTrendSnapshot> pointsByMonth = trend.stream()
+                .collect(Collectors.toMap(HomeSalesTrendSnapshot::getDate, point -> point));
+        List<HomeSalesTrendSnapshot> completeTrend = new ArrayList<>();
+        for (YearMonth month = startInclusive; !month.isAfter(endInclusive); month = month.plusMonths(1)) {
+            String bucket = month.toString();
+            completeTrend.add(pointsByMonth.getOrDefault(bucket,
+                    new HomeSalesTrendSnapshot(bucket, BigDecimal.ZERO, BigDecimal.ZERO)));
+        }
+        return completeTrend;
+    }
+
+    private enum TrendGranularity {
+        DAILY,
+        MONTHLY,
+        YEARLY
     }
 
     private List<BrandPieVO> toBrandPieData(List<HomeBrandSalesSnapshot> snapshots) {

@@ -21,6 +21,19 @@ Windows EXE 工作流必须从 `money-pos-web/package.json` 读取并校验 SemV
 
 任何绕过该工作流交付的包都不是受支持发行包。若本地调试需要构建后端，版本必须明确显示为 `0.0.0-DEV`，不得伪装为发行版本。
 
+### 本地浏览器联调标准命令
+
+本地联调后端时，以下两步是标准命令；每次后端源码变更后均先重新构建，再启动新 JAR：
+
+```bash
+mvn clean package -DskipTests
+java -jar qk-money-app/money-app-biz/target/money-app-biz-0.0.0-DEV.jar
+```
+
+`-DskipTests` 只用于快速联调，提交或发行前仍须运行既定隔离测试。不得在本地联调命令中手工传入
+`-Drevision=1.0.0`（或其他发行版本）；发行版本只由本契约定义的 CI 工作流从
+`money-pos-web/package.json` 注入。
+
 ## 展示与查询契约
 
 - POS 始终在顶部产品副标题显示 `v{version}`，不干扰扫码、收款或收银员切换。

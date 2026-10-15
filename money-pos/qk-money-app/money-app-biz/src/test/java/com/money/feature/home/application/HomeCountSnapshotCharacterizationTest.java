@@ -353,23 +353,62 @@ class HomeCountSnapshotCharacterizationTest {
         assertThat(trend).extracting(point -> datesInWindow.get(point.getDate())).isSorted();
     }
 
+    @Test
+    void yearTrendAggregatesDailyFiguresByMonthAndKeepsMonthsWithoutSales() {
+        LocalDate today = LocalDate.now();
+        String currentMonthLabel = YearMonth.from(today).format(DateTimeFormatter.ofPattern("MM月"));
+        HomeChartsVO before = homeController.getChartsData("year");
+        BigDecimal salesBefore = trendValueForLabel(before.getTrendData(), currentMonthLabel, TrendChartVO::getSales);
+        BigDecimal profitBefore = trendValueForLabel(before.getTrendData(), currentMonthLabel, TrendChartVO::getProfit);
+
+        insertOrder("PAID", new BigDecimal("20.00"), new BigDecimal("8.00"), today.atTime(9, 0));
+        insertOrder("PAID", new BigDecimal("5.00"), new BigDecimal("2.00"), today.atTime(15, 0));
+
+        List<TrendChartVO> trend = homeController.getChartsData("year").getTrendData();
+        assertThat(trend).hasSize(today.getMonthValue());
+        assertThat(trend).extracting(TrendChartVO::getDate)
+                .containsExactlyElementsOf(java.util.stream.IntStream.rangeClosed(1, today.getMonthValue())
+                        .mapToObj(month -> YearMonth.of(today.getYear(), month)
+                                .format(DateTimeFormatter.ofPattern("MM月")))
+                        .collect(java.util.stream.Collectors.toList()));
+        assertThat(trendValueForLabel(trend, currentMonthLabel, TrendChartVO::getSales))
+                .isEqualByComparingTo(salesBefore.add(new BigDecimal("25.00")));
+        assertThat(trendValueForLabel(trend, currentMonthLabel, TrendChartVO::getProfit))
+                .isEqualByComparingTo(profitBefore.add(new BigDecimal("15.00")));
+    }
+
+    @Test
+    void totalTrendAggregatesDailyFiguresByYear() {
+        LocalDate today = LocalDate.now();
+        String currentYearLabel = String.valueOf(today.getYear());
+        String previousYearLabel = String.valueOf(today.minusYears(1).getYear());
+        HomeChartsVO before = homeController.getChartsData("total");
+        BigDecimal currentYearSalesBefore = trendValueForLabel(before.getTrendData(), currentYearLabel, TrendChartVO::getSales);
+        BigDecimal previousYearSalesBefore = trendValueForLabel(before.getTrendData(), previousYearLabel, TrendChartVO::getSales);
+
+        insertOrder("PAID", new BigDecimal("20.00"), new BigDecimal("8.00"), today.atTime(10, 0));
+        insertOrder("PAID", new BigDecimal("9.00"), new BigDecimal("4.00"), today.minusYears(1).atTime(10, 0));
+
+        List<TrendChartVO> trend = homeController.getChartsData("total").getTrendData();
+        assertThat(trend).extracting(TrendChartVO::getDate).allMatch(label -> label.matches("\\d{4}"));
+        assertThat(trendValueForLabel(trend, currentYearLabel, TrendChartVO::getSales))
+                .isEqualByComparingTo(currentYearSalesBefore.add(new BigDecimal("20.00")));
+        assertThat(trendValueForLabel(trend, previousYearLabel, TrendChartVO::getSales))
+                .isEqualByComparingTo(previousYearSalesBefore.add(new BigDecimal("9.00")));
+    }
+
     private void assertChartsMatchTradeQuery(String timeRange, LocalDateTime trendStart, LocalDateTime trendEnd,
                                               LocalDateTime brandStart, LocalDateTime brandEnd) {
         HomeChartsVO charts = homeController.getChartsData(timeRange);
         List<HomeSalesTrendSnapshot> trendSnapshots = homeOrderReadQuery.listSalesTrend(trendStart, trendEnd);
         List<HomeBrandSalesSnapshot> brandSnapshots = homeOrderReadQuery.listBrandSales(brandStart, brandEnd);
         assertThat(charts.getPieData()).hasSameSizeAs(brandSnapshots);
-        if ("today".equals(timeRange) || "month".equals(timeRange) || "year".equals(timeRange)) {
+        if ("today".equals(timeRange) || "month".equals(timeRange)) {
             assertTrendIncludesEveryDateThroughToday(charts.getTrendData(), trendSnapshots, trendStart.toLocalDate());
+        } else if ("year".equals(timeRange)) {
+            assertYearTrendAggregatesMonths(charts.getTrendData(), trendSnapshots);
         } else {
-            assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);
-            for (int i = 0; i < trendSnapshots.size(); i++) {
-                TrendChartVO actual = charts.getTrendData().get(i);
-                HomeSalesTrendSnapshot expected = trendSnapshots.get(i);
-                assertThat(actual.getDate()).isEqualTo(LocalDate.parse(expected.getDate()).format(DateTimeFormatter.ofPattern("MM-dd")));
-                assertThat(actual.getSales()).isEqualByComparingTo(expected.getSales());
-                assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
-            }
+            assertTotalTrendAggregatesYears(charts.getTrendData(), trendSnapshots);
         }
         for (int i = 0; i < brandSnapshots.size(); i++) {
             BrandPieVO actual = charts.getPieData().get(i);
@@ -395,6 +434,48 @@ class HomeCountSnapshotCharacterizationTest {
             assertThat(actual.getDate()).isEqualTo(date.format(DateTimeFormatter.ofPattern("MM-dd")));
             assertThat(actual.getSales()).isEqualByComparingTo(expected == null ? BigDecimal.ZERO : expected.getSales());
             assertThat(actual.getProfit()).isEqualByComparingTo(expected == null ? BigDecimal.ZERO : expected.getProfit());
+        }
+    }
+
+    private void assertYearTrendAggregatesMonths(List<TrendChartVO> actualTrend,
+                                                  List<HomeSalesTrendSnapshot> expectedTrend) {
+        Map<YearMonth, BigDecimal[]> expectedByMonth = new HashMap<>();
+        for (HomeSalesTrendSnapshot point : expectedTrend) {
+            YearMonth month = YearMonth.from(LocalDate.parse(point.getDate()));
+            BigDecimal[] values = expectedByMonth.computeIfAbsent(month,
+                    ignored -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            values[0] = values[0].add(point.getSales());
+            values[1] = values[1].add(point.getProfit());
+        }
+        assertThat(actualTrend).hasSize(LocalDate.now().getMonthValue());
+        for (int month = 1; month <= LocalDate.now().getMonthValue(); month++) {
+            YearMonth bucket = YearMonth.of(LocalDate.now().getYear(), month);
+            TrendChartVO actual = actualTrend.get(month - 1);
+            BigDecimal[] expected = expectedByMonth.getOrDefault(bucket,
+                    new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            assertThat(actual.getDate()).isEqualTo(bucket.format(DateTimeFormatter.ofPattern("MM月")));
+            assertThat(actual.getSales()).isEqualByComparingTo(expected[0]);
+            assertThat(actual.getProfit()).isEqualByComparingTo(expected[1]);
+        }
+    }
+
+    private void assertTotalTrendAggregatesYears(List<TrendChartVO> actualTrend,
+                                                  List<HomeSalesTrendSnapshot> expectedTrend) {
+        Map<String, BigDecimal[]> expectedByYear = new java.util.TreeMap<>();
+        for (HomeSalesTrendSnapshot point : expectedTrend) {
+            String year = String.valueOf(LocalDate.parse(point.getDate()).getYear());
+            BigDecimal[] values = expectedByYear.computeIfAbsent(year,
+                    ignored -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            values[0] = values[0].add(point.getSales());
+            values[1] = values[1].add(point.getProfit());
+        }
+        assertThat(actualTrend).hasSize(expectedByYear.size());
+        int index = 0;
+        for (Map.Entry<String, BigDecimal[]> expected : expectedByYear.entrySet()) {
+            TrendChartVO actual = actualTrend.get(index++);
+            assertThat(actual.getDate()).isEqualTo(expected.getKey());
+            assertThat(actual.getSales()).isEqualByComparingTo(expected.getValue()[0]);
+            assertThat(actual.getProfit()).isEqualByComparingTo(expected.getValue()[1]);
         }
     }
 

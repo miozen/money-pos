@@ -1,6 +1,6 @@
 # MoneyPOS Repository-driven Handoff
 
-> Last updated: 2026-10-12. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
+> Last updated: 2026-10-15. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
 
 ## Recovery order
 
@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after this ME-1.6 closing handoff commit; `dev...origin/dev = 0/0`.** |
-| Current phase | `ME-1.6 — completed and accepted; do not enter a next phase without a new approved contract` |
-| Current plan | `MoneyPOS-ME-1.6J-Benefit-Workspace-Operation-History-Implementation-Plan.md` (complete) |
+| Working tree | **Clean and synchronized after the HOME trend-granularity handoff commit; `dev...origin/dev = 0/0`.** |
+| Current phase | `HOME 趋势图粒度调整 — completed; browser acceptance pending` |
+| Current plan | `MoneyPOS-Home-Trend-Granularity-Implementation-Plan.md` (complete) |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -400,6 +400,14 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 月、年、累计趋势、路由、响应字段、金额公式和交易查询边界均未改变。`HomeCountSnapshotCharacterizationTest` 已扩展为断言七个连续日期及零值补齐；按既有固定凭据提取协议连接隔离 `money_pos_test` 的聚焦回归通过（9 tests，0 failures/errors），`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 均通过。
 
 用户进一步确认本月、本年趋势也不得跳过零营业额日期。相同的连续自然日补齐现已扩展为：本月从月初至今天、本年从年初至今天；不展示未来日期，累计趋势仍保持原有按实际数据点返回的行为。Home 聚焦回归（9 tests，0 failures/errors）、常规打包、两项架构门禁与差异检查再次通过。为兼容既有本地浏览器启动命令，还以 `-Drevision=1.0.0` 额外生成未提交的本地测试产物 `target/money-app-biz-1.0.0.jar`，并确认其已嵌入完整日期键和连续日补齐代码；这不改变正式发行版本来源或 Git 内容。
+
+## 2026-10-15 HOME 本年/月度与总计/年度趋势聚合
+
+用户确认的最小范围已经完成：今日（近七日）和本月继续按日；本年改为按月，固定返回当年一月至当前月的连续月点，缺失月销售额和净利润均为零；“总计/库存”中的营业额与利润改为按自然年汇总，库存卡片仍只表示当前库存成本货值，未构造库存历史趋势。
+
+实现只在 `HomeServiceImpl` 的 HOME 读侧发生：订单日趋势和非商品收款日趋势先按原口径合并，再按月或按年二次汇总。路由、响应字段、订单/收款、库存、事务、品牌饼图和会员分布均未改变。`HomeCountSnapshotCharacterizationTest` 现覆盖月度累计、空月补齐与年度累计；隔离 `money_pos_test` 聚焦回归通过（11 tests，0 failures/errors），`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 通过。
+
+发行版本契约已补充本地浏览器联调标准命令：`mvn clean package -DskipTests` 后启动 `money-app-biz-0.0.0-DEV.jar`。本地调试不得手工使用 `-Drevision=1.0.0`；发行版本只能由 CI 从 `money-pos-web/package.json` 注入。下一动作：从同步的 `dev` 启动该 DEV JAR，在浏览器依次检查本年仅显示月标签、总计仅显示年标签，以及空月显示零值。
 
 ## Handoff rule
 
