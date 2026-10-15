@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after GMS-OPT-3; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-1 GMS — OPT-4 permission inventory and minimal design next` |
+| Working tree | **Clean and synchronized after GMS-OPT-4; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-2 UMS consistency audit — read-only inventory in progress` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -157,6 +157,11 @@ a package that remains, permits deleting a package and its components together, 
 counts on successful deletion. It deliberately does not cascade or newly reject historical stock/order/member records.
 The exact next action is to inventory existing GMS menu/role permission codes before freezing GMS-OPT-4; do not invent
 new permission identifiers or broaden existing role grants.
+
+GMS-OPT-4 is complete in `846bbc0` and synchronized to `origin/dev`. It applies only existing GMS permissions to the
+previously unguarded import, brand-policy and analysis routes; no permission, menu, migration or role grant changed.
+The exact next action is the read-only FCO-2 UMS audit: map UMS ownership, commands/queries, transaction/idempotency,
+cross-Feature contracts, permissions and test evidence; then record only independently verifiable minimal candidates.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
