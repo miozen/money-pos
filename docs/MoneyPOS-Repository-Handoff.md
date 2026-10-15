@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after the HOME trend-granularity handoff commit; `dev...origin/dev = 0/0`.** |
+| Working tree | **Clean and synchronized after the Feature consistency audit contract commit; `dev...origin/dev = 0/0`.** |
 | Current phase | `FCO-1 GMS 一致性审查 — ready to start` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
