@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after HOME-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-6 SYS consistency audit — read-only inventory pending` |
+| Current phase | `FCO-6 SYS consistency audit complete — SYS-OPT-1 design pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -197,6 +197,13 @@ remain unchanged. The focused HOME integration regression, isolated full `mvn -q
 `mvn -q package -DskipTests`, both architecture gates and `git diff --check` passed. The exact next action is the
 read-only FCO-6 SYS audit of shared dictionary, strategy, permission, printing and runtime configuration boundaries;
 do not mix it with unapproved HOME permission or member-recharge metric changes.
+
+FCO-6 SYS is complete in the working tree: `MoneyPOS-FCO-6-Sys-Consistency-Audit.md` records SYS-1, where the
+anonymous security whitelist exposes `/common/upload` and `PUT /common/display-settings`. SYS-OPT-1 can remove only
+those two write whitelist entries while retaining anonymous customer-display reads; it neither invents a permission nor
+changes valid authenticated behavior. The exact next action is to freeze and implement SYS-OPT-1, then revisit SYS-2
+only after the user confirms a configuration/backup role-permission matrix and SYS-3 only after a real-data strategy
+singleton decision.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

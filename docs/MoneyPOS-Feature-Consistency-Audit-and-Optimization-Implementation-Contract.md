@@ -144,3 +144,8 @@ HOME-OPT-1 图表时间范围白名单校验；HOME 权限模型留待 FCO-6 SYS
 `MoneyPOS-HOME-OPT-1-Chart-Time-Range-Validation-Implementation-Contract.md` 完成。图表服务现在只接受
 `today/month/year/total`，非法值在读取前以既有业务异常失败；未改变任何合法响应、趋势/金额公式、快照任务、权限、迁移或
 跨 Feature 契约。HOME 专项集成回归、隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。
+
+**完成记录（2026-10-15）：** FCO-6 SYS 只读审查已形成
+`MoneyPOS-FCO-6-Sys-Consistency-Audit.md`。已确认匿名白名单错误放行了文件上传和客显配置写入；建议先冻结并实施
+不改变权限模型的 SYS-OPT-1，撤销这两条写白名单而保留匿名客显读取。策略/打印/备份的细粒度权限与全局策略唯一性分别
+需要角色矩阵和历史数据处置决策，不能在维护切片中擅自改变。
