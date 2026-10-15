@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after FIN-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-5 HOME consistency audit — read-only inventory in progress` |
+| Current phase | `FCO-5 HOME consistency audit complete — HOME-OPT-1 design pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -186,9 +186,13 @@ issue: the full daily waterfall route is unprotected while the rest of FIN uses 
 is to commit this audit, then—if approved—freeze FIN-OPT-1 to apply only that existing permission.
 
 FIN-OPT-1 is complete in `b22b0cb` and synchronized to `origin/dev`. It applies only existing `omsOrder:list` to the
-daily waterfall report; financial formulas, response, role grants and upstream queries did not change. The exact next
-action is the read-only FCO-5 HOME audit of its daily snapshot task, read-model ownership, chart granularity, upstream
-projections, route permissions and post-browser-acceptance test evidence.
+daily waterfall report; financial formulas, response, role grants and upstream queries did not change.
+
+FCO-5 HOME is complete in the working tree: `MoneyPOS-FCO-5-Home-Consistency-Audit.md` verifies that GET endpoints
+remain read-only, HOME alone writes its daily snapshot through the startup/five-minute task, and GMS/UMS/TRADE data
+arrives only via Entity-free query contracts. It records HOME-1: invalid `/home/charts?timeRange=` values can reach a
+null time range and fail server-side. The exact next action is to freeze HOME-OPT-1 for whitelist validation of the four
+existing time ranges only; do not change valid responses, snapshot semantics, permissions, metrics or deployment model.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

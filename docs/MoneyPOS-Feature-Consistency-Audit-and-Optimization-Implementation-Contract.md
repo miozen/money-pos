@@ -134,3 +134,8 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 `MoneyPOS-FIN-OPT-1-Waterfall-Report-Permission-Alignment-Implementation-Contract.md` 完成。瀑布日报路由现复用
 `omsOrder:list`；未改变报表数据、公式、响应、角色授权或上游查询。路由契约测试、隔离全量 Maven 回归、打包、
 两项架构扫描与 `git diff --check` 均通过。
+
+**完成记录（2026-10-15）：** FCO-5 HOME 只读审查已形成
+`MoneyPOS-FCO-5-Home-Consistency-Audit.md`。HOME 的 GET 已确认只读，日快照写权仅在应用就绪/五分钟任务链；跨 Feature
+协作均为 Entity-free 查询契约。下一动作是冻结单一 HOME 最小优化设计，建议先处理不改变合法响应的
+HOME-OPT-1 图表时间范围白名单校验；HOME 权限模型留待 FCO-6 SYS 横切复核，会员充值快照口径须先有业务决策。
