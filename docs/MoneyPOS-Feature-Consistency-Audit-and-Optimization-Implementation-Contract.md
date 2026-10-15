@@ -107,3 +107,7 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 `MoneyPOS-GMS-OPT-4-Route-Permission-Alignment-Implementation-Contract.md` 完成。商品导入复用 `gmsGoods:add`，
 商品模板/导出及两类分析读取/导出复用 `gmsGoods:list`，品牌策略读写复用 `gmsBrand:list/edit`。未新增权限、菜单、
 迁移或角色授权。路由权限契约测试、隔离全量 Maven 回归、打包、两项架构扫描与空白检查均通过。
+
+**完成记录（2026-10-15）：** FCO-2 UMS 只读审查已形成
+`MoneyPOS-FCO-2-Ums-Consistency-Audit.md`。下一动作是冻结单一 UMS 最小优化设计，建议先处理不改变业务规则的
+UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确认业务规则。

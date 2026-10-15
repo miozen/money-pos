@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after GMS-OPT-4; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-2 UMS consistency audit — read-only inventory in progress` |
+| Current phase | `FCO-2 UMS consistency audit — complete; UMS-OPT-1 selection pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -162,6 +162,12 @@ GMS-OPT-4 is complete in `846bbc0` and synchronized to `origin/dev`. It applies 
 previously unguarded import, brand-policy and analysis routes; no permission, menu, migration or role grant changed.
 The exact next action is the read-only FCO-2 UMS audit: map UMS ownership, commands/queries, transaction/idempotency,
 cross-Feature contracts, permissions and test evidence; then record only independently verifiable minimal candidates.
+
+FCO-2 is complete in the working tree: `MoneyPOS-FCO-2-Ums-Consistency-Audit.md` records UMS-1 (unprotected member
+fund-log query) and UMS-2 (member cancellation clears assets without unresolved-asset/benefit guards). UMS-OPT-1 can
+reuse `umsMember:list` without a business-rule change; UMS-OPT-2 requires an explicit decision defining which asset and
+benefit states block cancellation. The exact next action is to commit this audit record, then freeze/implement only
+UMS-OPT-1 unless the user supplies the UMS-OPT-2 business rule.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
