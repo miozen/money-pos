@@ -154,3 +154,12 @@ HOME-OPT-1 图表时间范围白名单校验；HOME 权限模型留待 FCO-6 SYS
 `MoneyPOS-SYS-OPT-1-Anonymous-Write-Whitelist-Removal-Implementation-Contract.md` 完成。客显读取继续匿名可用；文件上传和
 客显配置写入已恢复默认认证要求。未改控制器、公开读取响应、权限码、角色、迁移、策略/打印/备份行为或跨 Feature 契约。
 SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。
+
+**已确认决策（2026-10-15）：** 日常 SYS 配置继续允许所有已认证用户操作，不引入细粒度权限码。备份导出与还原仅限既有
+`SUPER_ADMIN` 角色；**SYS-OPT-2** 按
+`MoneyPOS-SYS-OPT-2-Backup-Administrator-Guard-Implementation-Contract.md` 单独实施。匿名备份 SSE 日志的认证方案不属于本切片，
+须先确认 Electron/SSE 兼容方式。
+
+**完成记录（2026-10-15）：** SYS-OPT-2 已完成。备份导出与还原路由均复用既有
+`@rbac.hasRole('SUPER_ADMIN')`，没有新增权限码、菜单、迁移、角色授权或业务流程；日常 SYS 配置仍仅要求认证。路由授权契约测试、
+隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。

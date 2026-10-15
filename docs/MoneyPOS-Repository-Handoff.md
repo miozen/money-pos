@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after SYS-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `Feature consistency cycle complete — SYS-2/SYS-3 awaiting decisions` |
+| Working tree | **SYS-OPT-2 is locally validated and ready to commit; do not hand off across machines until committed and pushed.** |
+| Current phase | `SYS-OPT-2 ready to commit and synchronize` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -212,6 +212,15 @@ focused SYS configuration contract, isolated full `mvn -q test`, `mvn -q package
 gates and `git diff --check` passed. The exact next action requires a user decision: define the configuration/backup
 role-permission matrix before any SYS-2 work, or authorize a real-data inspection and canonical-row rule before any
 SYS-3 strategy singleton work.
+
+The user has now decided SYS-2: strategy, printing, customer-display and other ordinary SYS configuration stay
+available to every authenticated user; no fine-grained permission model is wanted. Backup export and restore are the
+only exception and require the existing `SUPER_ADMIN` role. SYS-OPT-2 is locally validated and uncommitted: it adds
+`@rbac.hasRole('SUPER_ADMIN')` only to `GET /sys/backup/export` and `POST /sys/backup/restore`, with a reflection
+route contract test. It deliberately leaves the existing anonymous backup SSE route unchanged until Electron/SSE
+authentication compatibility is separately decided. The focused route contract, isolated `money_pos_test` full
+`mvn -q test`, `mvn -q package -DskipTests`, both architecture gates and `git diff --check` passed. Exact next
+action: commit, push `dev`, fetch and verify `dev...origin/dev = 0/0`.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

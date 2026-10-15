@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,7 @@ public class SysBackupController {
     }
 
     @GetMapping("/export")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN')")
     @Operation(summary = "触发一键热备并流式下载归档 Zip")
     public void exportBackup(HttpServletResponse response) {
         File zipFile = null;
@@ -68,6 +70,7 @@ public class SysBackupController {
     }
 
     @PostMapping("/restore")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN')")
     @Operation(summary = "上传 Zip 压缩包执行系统灾难还原")
     public Map<String, Object> restoreBackup(@RequestPart("file") MultipartFile file) {
         Map<String, Object> result = new HashMap<>();

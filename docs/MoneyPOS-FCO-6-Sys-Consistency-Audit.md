@@ -30,7 +30,7 @@ SYS 横跨 `money-app-system` 与 `money-app-biz`：前者拥有用户、角色�
 | 编号 | 影响 | 证据 | 风险 |
 | --- | --- | --- | --- |
 | SYS-1 | 高 | `application-money.yml` 将 `POST /common/upload` 与 `PUT /common/display-settings` 加入 security ignore；`CommonController` 分别写本地资产和 `SYSTEM_SETTING/customer_display`。 | 未认证调用者可上传文件或篡改客显文案、支付码与营销阈值；前端菜单隐藏不能替代服务端授权。 |
-| SYS-2 | 高 | `SysStrategyController`、`SysPrintConfigController`、`SysBackupController` 的配置/备份/还原写操作没有 `@PreAuthorize`；`SecurityConfig` 还显式匿名放行备份 SSE。对应的策略、打印、备份、客显菜单均没有权限编码。 | 已认证低权限用户可改全局分析阈值、钱箱/打印行为或触发高影响恢复；匿名连接可接收灾备过程日志。由于没有可复用权限码，不能把任一既有业务权限擅自映射到这些系统能力。 |
+| SYS-2 | 高（已部分决策） | 日常 SYS 配置路由未使用 `@PreAuthorize`，`SysBackupController` 的导出/还原原先也未使用角色保护；`SecurityConfig` 仍显式匿名放行备份 SSE。对应菜单没有细粒度权限编码。 | 用户已确认日常 SYS 配置允许所有已认证用户，故不是缺陷；备份导出/还原必须仅限超级管理员。匿名 SSE 日志的认证与 Electron 兼容方式尚未决策。 |
 | SYS-3 | 中 | `SysStrategyService` 声明“唯一全局策略”，但表仅有自增主键；`SysStrategyMapper.getGlobalStrategy()` 使用无排序的 `SELECT ... LIMIT 1`。 | 若历史或并发写入产生多行，GMS/FIN 可能读取非确定的策略记录。当前初始化数据是一行，尚未发现生产重复数据。 |
 
 ## 最小优化候选
@@ -40,10 +40,16 @@ SYS 横跨 `money-app-system` 与 `money-app-biz`：前者拥有用户、角色�
 菜单、迁移或角色授权，不改客显读取、文件格式、响应、策略/打印/备份流程。验收应包含安全链/配置契约，证明匿名读取仍可用，
 匿名写被拒绝且认证写的现有行为不变。
 
+## 已确认的授权决策
+
+- 策略、打印、客显及其他日常 SYS 配置：所有已认证用户可操作，不引入细粒度权限设计。
+- 备份导出与还原：仅既有 `SUPER_ADMIN` 角色可操作，按
+  `MoneyPOS-SYS-OPT-2-Backup-Administrator-Guard-Implementation-Contract.md` 实施。
+
 ## 需先决策的事项
 
-- **SYS-2 的细粒度授权**：需明确策略、打印、客显写入、备份导出、备份还原和 SSE 日志各自允许的角色，并同时冻结权限码、
-迁移、存量角色授予和 Electron/SSE 的认证方案；不能以 `dict:*`、`omsOrder:*` 等不相关权限替代。
+- **备份 SSE 日志认证**：现有 `/sys/backup/stream` 显式匿名放行。其是否应认证及 Electron/SSE 如何携带认证信息仍需单独确认；
+  在没有兼容方案前，不在导出/还原权限切片中隐式修改。
 - **SYS-3 的唯一策略修复**：需要先盘点真实数据库中的重复行并确认以何行作为权威记录，再决定唯一约束、迁移和并发写入语义；
 不能在本轮无数据决策的情况下添加约束或删除记录。
 
@@ -53,3 +59,7 @@ SYS-OPT-1 已按 `MoneyPOS-SYS-OPT-1-Anonymous-Write-Whitelist-Removal-Implement
 `POST /common/upload` 与 `PUT /common/display-settings` 已移出匿名白名单，默认安全链要求认证；
 `GET /common/display-settings` 仍保持匿名读取。控制器、路径、请求/响应、文件格式、客显 JSON、权限码、角色授权、迁移及
 SYS-2/SYS-3 的待决事项均未改变。
+
+SYS-OPT-2 已按 `MoneyPOS-SYS-OPT-2-Backup-Administrator-Guard-Implementation-Contract.md` 完成：
+`GET /sys/backup/export` 与 `POST /sys/backup/restore` 现仅允许既有 `SUPER_ADMIN` 角色。备份 ZIP、流式下载、还原流程、
+响应和既有匿名 SSE 日志通道均未改变；SSE 认证仍为待决兼容性事项。
