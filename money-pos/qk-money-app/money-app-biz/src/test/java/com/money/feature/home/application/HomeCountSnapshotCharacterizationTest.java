@@ -29,6 +29,7 @@ import com.money.mapper.UmsMemberMapper;
 import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberAmountReceiptPayMapper;
 import com.money.feature.trade.infrastructure.persistence.mapper.OmsMemberTargetReceiptPayMapper;
 import com.money.support.TradeFixture;
+import com.money.web.exception.BaseException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Characterizes the existing write-on-read behavior of GET /home/count before HOME types move.
@@ -325,6 +327,13 @@ class HomeCountSnapshotCharacterizationTest {
         LocalDateTime yearStart = Year.now().atDay(1).atStartOfDay();
         assertChartsMatchTradeQuery("year", yearStart, yearStart.plusYears(1), yearStart, yearStart.plusYears(1));
         assertChartsMatchTradeQuery("total", null, null, null, null);
+    }
+
+    @Test
+    void chartsRejectUnsupportedTimeRangeBeforeReadingOrWritingAnySnapshot() {
+        assertThatThrownBy(() -> homeService.getChartsData("quarter"))
+                .isInstanceOf(BaseException.class)
+                .hasMessage("图表时间范围仅支持 today、month、year、total");
     }
 
     @Test

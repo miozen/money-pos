@@ -1,6 +1,6 @@
 # MoneyPOS FCO-5：HOME 一致性审查记录
 
-> 状态：**只读审查完成，未实施优化**；审查日期：2026-10-15；适用分支：`dev`。
+> 状态：**审查完成；HOME-OPT-1 已完成**；审查日期：2026-10-15；适用分支：`dev`。
 
 ## 现状地图
 
@@ -44,3 +44,10 @@ today/month/year/total 趋势粒度；`HomeDailySnapshotRefreshTaskTest` 覆盖�
 - `HomeController` 未使用细粒度权限注解是可见事实，但当前没有可复用的 HOME 权限编码，也没有“哪些已认证角色不得查看首页”的业务规则；将其列为后续 SYS 横切权限复核项，而非本阶段缺陷。
 - 日快照表保留 `member_recharge` 字段，但当前 HOME 读模型和对外响应均不消费该字段，刷新 SQL 也刻意不覆盖其既有值。是否把会员充值纳入首页快照属于指标口径变更，不能作为维护型小优化擅自实现。
 - 多实例任务互斥不是当前单机部署的缺陷；未来部署模型改变后再单独设计数据库锁或调度平台方案。
+
+## 实施结果
+
+HOME-OPT-1 已按 `MoneyPOS-HOME-OPT-1-Chart-Time-Range-Validation-Implementation-Contract.md` 完成。
+`HomeServiceImpl` 在任何查询前仅接受 `today`、`month`、`year`、`total`，其他值以项目既有
+`BaseException` 语义失败；新增 HOME 集成回归锁定该边界。合法范围的路径、响应、趋势粒度、金额公式、快照任务、权限、
+迁移和跨 Feature 契约均未改变。

@@ -11,6 +11,7 @@ import com.money.dto.Home.BrandPieVO;
 import com.money.dto.Home.HomeCountVO;
 import com.money.dto.Home.TrendChartVO;
 import com.money.dto.OmsOrder.OrderCountVO;
+import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ import java.time.YearMonth;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class HomeServiceImpl implements HomeService {
     private static final DateTimeFormatter TREND_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MM-dd");
     private static final DateTimeFormatter MONTH_TREND_LABEL_FORMATTER = DateTimeFormatter.ofPattern("MM月");
+    private static final Set<String> SUPPORTED_TIME_RANGES = Set.of("today", "month", "year", "total");
 
     private final InventoryValuationQuery inventoryValuationQuery;
     private final HomeOrderReadQuery homeOrderReadQuery;
@@ -73,6 +76,9 @@ public class HomeServiceImpl implements HomeService {
     // 🌟 图表引擎：动态计算时间范围
     @Override
     public com.money.dto.Home.HomeChartsVO getChartsData(String timeRange) {
+        if (!SUPPORTED_TIME_RANGES.contains(timeRange)) {
+            throw new BaseException("图表时间范围仅支持 today、month、year、total");
+        }
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
 

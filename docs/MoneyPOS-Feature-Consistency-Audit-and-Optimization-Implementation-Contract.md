@@ -139,3 +139,8 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 `MoneyPOS-FCO-5-Home-Consistency-Audit.md`。HOME 的 GET 已确认只读，日快照写权仅在应用就绪/五分钟任务链；跨 Feature
 协作均为 Entity-free 查询契约。下一动作是冻结单一 HOME 最小优化设计，建议先处理不改变合法响应的
 HOME-OPT-1 图表时间范围白名单校验；HOME 权限模型留待 FCO-6 SYS 横切复核，会员充值快照口径须先有业务决策。
+
+**完成记录（2026-10-15）：** HOME-OPT-1 已按
+`MoneyPOS-HOME-OPT-1-Chart-Time-Range-Validation-Implementation-Contract.md` 完成。图表服务现在只接受
+`today/month/year/total`，非法值在读取前以既有业务异常失败；未改变任何合法响应、趋势/金额公式、快照任务、权限、迁移或
+跨 Feature 契约。HOME 专项集成回归、隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。
