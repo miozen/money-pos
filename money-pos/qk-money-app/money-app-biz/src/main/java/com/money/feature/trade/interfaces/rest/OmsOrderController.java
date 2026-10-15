@@ -92,6 +92,7 @@ public class OmsOrderController {
 
     @Operation(summary = "硬件级：重打订单小票（不自动弹开钱箱）")
     @GetMapping("/hardware/print")
+    @PreAuthorize("@rbac.hasPermission('oms:order:list')")
     public Boolean printHardwareReceipt(@RequestParam String orderNo) {
         OrderDetailVO orderVO = omsOrderService.getOrderDetailByNo(orderNo);
         posPrinterService.printReceipt(orderVO, false);

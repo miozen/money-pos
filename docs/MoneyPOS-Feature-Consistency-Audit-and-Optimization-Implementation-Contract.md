@@ -120,3 +120,8 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 **完成记录（2026-10-15）：** FCO-3 TRADE 只读审查已形成
 `MoneyPOS-FCO-3-Trade-Consistency-Audit.md`。下一动作是冻结并实施单一 TRADE-OPT-1 订单重打权限对齐；它不改变
 交易、退款、库存、会员资产、打印内容或钱箱规则。
+
+**完成记录（2026-10-15）：** TRADE-OPT-1 已按
+`MoneyPOS-TRADE-OPT-1-Order-Reprint-Permission-Alignment-Implementation-Contract.md` 完成。订单重打路由现复用
+`oms:order:list`；未改变 GET 路径、打印内容、钱箱、交易或角色授权。路由契约测试、隔离全量 Maven 回归、打包、
+两项架构扫描与 `git diff --check` 均通过。
