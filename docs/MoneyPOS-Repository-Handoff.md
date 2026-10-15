@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after the Feature consistency audit contract commit; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-1 GMS 一致性审查 — ready to start` |
+| Working tree | **Clean and synchronized before the FCO-1 GMS audit-record commit; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-1 GMS 一致性审查 — audit complete; optimization selection pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -417,9 +417,15 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 将已确认约束、问题和可选建议分开记录；只有审查已证实、可独立回归的维护问题才能进入单一优化切片。不得借此拆分 Maven、
 改变既有单库事务、公共 API、Flyway 历史、金额公式或历史数据。
 
+FCO-1 GMS 只读审查完成并记录在 `MoneyPOS-FCO-1-Gms-Consistency-Audit.md`。已确认：GMS 的商品/库存所有权及
+Entity-free 跨 Feature 契约保持完整；同时存在周转 GET 写快照、手工报损库存并发窗口、商品删除统计/套餐引用完整性、
+以及部分 GMS 管理入口未做细粒度权限保护四项问题。审查未修改业务代码。候选 GMS-OPT-1 至 GMS-OPT-4 已记录；
+其中 OPT-1 是不改商品/库存/金额/响应的读写分离优先候选，OPT-3/4 分别需确认删除和角色权限规则。
+
 ## Exact next action
 
-执行 FCO-1：GMS 一致性只读审查，输出商品/库存所有权、契约、事务/幂等、测试证据、风险和最小优化候选；不修改生产代码。
+选择并冻结一个 GMS 最小优化设计（建议先 GMS-OPT-1 周转快照读写分离），或明确跳过 GMS 优化后开始 FCO-2 UMS 只读审查；
+在选择前不修改 GMS 业务代码。
 
 ## Handoff rule
 

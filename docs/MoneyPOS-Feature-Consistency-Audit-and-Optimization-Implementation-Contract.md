@@ -77,3 +77,7 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 
 开始 **FCO-1：GMS 一致性只读审查**。范围包括商品目录、品牌/分类、价格/套餐、库存命令、库存单据、库存流水、
 库存分析，以及 GMS 向 UMS、TRADE、FIN、HOME 暴露的契约。输出审查记录后，才决定是否存在 GMS 最小优化切片。
+
+**完成记录（2026-10-15）：** FCO-1 审查已形成
+`MoneyPOS-FCO-1-Gms-Consistency-Audit.md`。当前没有获准的 GMS 优化代码切片；下一动作是根据该记录选择并冻结
+一个单一最小优化设计，或明确跳过 GMS 优化后进入 FCO-2。
