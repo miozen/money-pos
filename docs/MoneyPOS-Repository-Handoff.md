@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after the FCO-1 GMS audit-record commit; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-1 GMS 一致性审查 — audit complete; optimization selection pending` |
+| Working tree | **GMS-OPT-1 implementation is locally complete but not yet committed; see Exact next action.** |
+| Current phase | `FCO-1 GMS — OPT-1 complete locally; validation and Git synchronization pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -138,6 +138,15 @@ The following product follow-ups are intentionally recorded only and are **not i
   ordinary order receipt and have no separate TARGET receipt.
 
 ## Exact next action
+
+GMS-OPT-1 separates GMS turnover-warning snapshot reads from writes. `GmsTurnoverService` now computes the dashboard
+and reads trends only; the new GMS-owned snapshot command writes the same-day row, and a GMS-owned startup/five-minute
+task triggers that command with a same-JVM overlap guard. The turnover SQL/formula, routes, responses, snapshot table,
+tenant exemption and historical data were not changed. The new focused tests passed: 3 tests, 0 failures, 0 errors.
+The documented isolated `money_pos_test` full `mvn -q test`, `mvn -q package -DskipTests`,
+`bash scripts/test-architecture-scan.sh`, `bash scripts/architecture-scan.sh --check-new` and `git diff --check` passed.
+Current changes are uncommitted; the exact next action is to inspect the diff, commit GMS-OPT-1, push `dev`, fetch, and
+verify `dev...origin/dev` is `0/0`. Only then begin the separately frozen GMS-OPT-2 design.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

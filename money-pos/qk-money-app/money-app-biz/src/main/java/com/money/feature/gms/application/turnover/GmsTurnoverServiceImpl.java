@@ -6,9 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.dto.GmsGoods.TurnoverDataVO.*;
 import com.money.contract.system.TurnoverStrategyQuery;
 import com.money.contract.system.TurnoverStrategySnapshot;
-import com.money.feature.gms.infrastructure.persistence.entity.GmsTurnoverWarningSnapshot;
 import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverMapper;
-import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverWarningSnapshotMapper; // 🌟 新增的快照 Mapper
+import com.money.feature.gms.infrastructure.persistence.entity.GmsTurnoverWarningSnapshot;
+import com.money.feature.gms.infrastructure.persistence.mapper.GmsTurnoverWarningSnapshotMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +25,7 @@ public class GmsTurnoverServiceImpl implements GmsTurnoverService {
 
     private final GmsTurnoverMapper gmsTurnoverMapper;
     private final TurnoverStrategyQuery turnoverStrategyQuery;
-    private final GmsTurnoverWarningSnapshotMapper snapshotMapper; // 🌟 注入快照库
-
+    private final GmsTurnoverWarningSnapshotMapper snapshotMapper;
     @Override
     public TurnoverDashboardVO getTurnoverWarnings() {
         List<WarningItemVO> rawList = gmsTurnoverMapper.scanAllGoodsTurnover();
@@ -81,46 +80,7 @@ public class GmsTurnoverServiceImpl implements GmsTurnoverService {
         dashboard.setReplenishList(replenishList);
         dashboard.setDeadStockList(deadStockList);
 
-        // 🌟 核心埋点：每次查询时，顺手静默生成/更新一次今日的快照！
-        upsertTodaySnapshot(replenishList, deadStockList);
-
         return dashboard;
-    }
-
-    // ==========================================
-    // 🌟 P0-5：每日快照自动留痕引擎 (截取 Top 20)
-    // ==========================================
-    private void upsertTodaySnapshot(List<WarningItemVO> replenishList, List<WarningItemVO> deadStockList) {
-        try {
-            LocalDate today = LocalDate.now();
-            GmsTurnoverWarningSnapshot snapshot = snapshotMapper.selectOne(
-                    new LambdaQueryWrapper<GmsTurnoverWarningSnapshot>().eq(GmsTurnoverWarningSnapshot::getSnapshotDate, today)
-            );
-
-            boolean isNew = (snapshot == null);
-            if (isNew) {
-                snapshot = new GmsTurnoverWarningSnapshot();
-                snapshot.setSnapshotDate(today);
-            }
-
-            snapshot.setReplenishCount(replenishList.size());
-            snapshot.setDeadStockCount(deadStockList.size());
-
-            // 截取前 20 名作为代表性样本存档
-            List<WarningItemVO> topRep = replenishList.subList(0, Math.min(20, replenishList.size()));
-            List<WarningItemVO> topDead = deadStockList.subList(0, Math.min(20, deadStockList.size()));
-
-            snapshot.setTopReplenishGoodsJson(JSONUtil.toJsonStr(topRep));
-            snapshot.setTopDeadStockGoodsJson(JSONUtil.toJsonStr(topDead));
-
-            if (isNew) {
-                snapshotMapper.insert(snapshot);
-            } else {
-                snapshotMapper.updateById(snapshot);
-            }
-        } catch (Exception e) {
-            // 静默处理，绝不阻断业务主流程
-        }
     }
 
     // ==========================================

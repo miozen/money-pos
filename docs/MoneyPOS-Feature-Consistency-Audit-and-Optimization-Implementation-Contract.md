@@ -79,5 +79,10 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 库存分析，以及 GMS 向 UMS、TRADE、FIN、HOME 暴露的契约。输出审查记录后，才决定是否存在 GMS 最小优化切片。
 
 **完成记录（2026-10-15）：** FCO-1 审查已形成
-`MoneyPOS-FCO-1-Gms-Consistency-Audit.md`。当前没有获准的 GMS 优化代码切片；下一动作是根据该记录选择并冻结
-一个单一最小优化设计，或明确跳过 GMS 优化后进入 FCO-2。
+`MoneyPOS-FCO-1-Gms-Consistency-Audit.md`。GMS-OPT-1 已按
+`MoneyPOS-GMS-OPT-1-Turnover-Snapshot-Read-Write-Separation-Implementation-Contract.md` 完成：周转预警查询与导出
+不再写日快照；GMS 自有命令在应用就绪和五分钟 fixed-delay 调度时写入当天快照，且同 JVM 不重叠执行。周转公式、
+路由、响应、快照表和历史数据均未变更。隔离 `money_pos_test` 的专项 3 项测试、全量 `mvn -q test`、
+`mvn -q package -DskipTests`、两项架构扫描和 `git diff --check` 均通过。
+
+下一动作：在 GMS 范围内单独冻结并实施 **GMS-OPT-2**；不得与 GMS-OPT-3 或 GMS-OPT-4 混合。

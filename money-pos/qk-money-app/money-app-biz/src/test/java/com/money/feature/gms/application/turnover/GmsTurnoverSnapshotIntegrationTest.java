@@ -32,6 +32,8 @@ class GmsTurnoverSnapshotIntegrationTest {
     @Autowired
     private GmsTurnoverService turnoverService;
     @Autowired
+    private GmsTurnoverSnapshotCommandService snapshotCommandService;
+    @Autowired
     private GmsTurnoverWarningSnapshotMapper snapshotMapper;
     @MockBean
     private GmsTurnoverMapper turnoverMapper;
@@ -45,7 +47,7 @@ class GmsTurnoverSnapshotIntegrationTest {
     }
 
     @Test
-    void warningQueryUpsertsOneDailySnapshotAndTrendReadsPersistedJsonInDateOrder() {
+    void warningQueryIsReadOnlyAndExplicitRefreshUpsertsOneDailySnapshot() {
         when(sysStrategyMapper.getGlobalStrategy()).thenReturn(null);
         when(turnoverMapper.scanAllGoodsTurnover()).thenReturn(Arrays.asList(
                 replenishItem(1L, "replenish-one"), deadStockItem(2L, "dead-one")));
@@ -53,6 +55,11 @@ class GmsTurnoverSnapshotIntegrationTest {
         turnoverService.getTurnoverWarnings();
 
         LocalDate today = LocalDate.now();
+        assertThat(snapshotMapper.selectCount(new LambdaQueryWrapper<GmsTurnoverWarningSnapshot>()
+                .eq(GmsTurnoverWarningSnapshot::getSnapshotDate, today))).isZero();
+
+        snapshotCommandService.refreshTodaySnapshot();
+
         assertThat(snapshotMapper.selectCount(new LambdaQueryWrapper<GmsTurnoverWarningSnapshot>()
                 .eq(GmsTurnoverWarningSnapshot::getSnapshotDate, today))).isEqualTo(1L);
         GmsTurnoverWarningSnapshot first = snapshotFor(today);
@@ -63,6 +70,10 @@ class GmsTurnoverSnapshotIntegrationTest {
 
         when(turnoverMapper.scanAllGoodsTurnover()).thenReturn(Collections.emptyList());
         turnoverService.getTurnoverWarnings();
+        assertThat(snapshotFor(today).getReplenishCount()).isEqualTo(1);
+        assertThat(snapshotFor(today).getDeadStockCount()).isEqualTo(1);
+
+        snapshotCommandService.refreshTodaySnapshot();
 
         GmsTurnoverWarningSnapshot updated = snapshotFor(today);
         assertThat(snapshotMapper.selectCount(new LambdaQueryWrapper<GmsTurnoverWarningSnapshot>()
