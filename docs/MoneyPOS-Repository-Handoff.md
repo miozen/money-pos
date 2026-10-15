@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **SYS-OPT-2 is locally validated and ready to commit; do not hand off across machines until committed and pushed.** |
-| Current phase | `SYS-OPT-2 ready to commit and synchronize` |
+| Working tree | **SYS-OPT-2 is committed and pushed; closure synchronization check is pending.** |
+| Current phase | `SYS-OPT-2 awaiting final fetch/synchronization evidence` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -218,9 +218,10 @@ available to every authenticated user; no fine-grained permission model is wante
 only exception and require the existing `SUPER_ADMIN` role. SYS-OPT-2 is locally validated and uncommitted: it adds
 `@rbac.hasRole('SUPER_ADMIN')` only to `GET /sys/backup/export` and `POST /sys/backup/restore`, with a reflection
 route contract test. It deliberately leaves the existing anonymous backup SSE route unchanged until Electron/SSE
-authentication compatibility is separately decided. The focused route contract, isolated `money_pos_test` full
-`mvn -q test`, `mvn -q package -DskipTests`, both architecture gates and `git diff --check` passed. Exact next
-action: commit, push `dev`, fetch and verify `dev...origin/dev = 0/0`.
+authentication compatibility is separately decided. The implementation is committed in `23f3ffb` and pushed to
+`origin/dev`. The focused route contract, isolated `money_pos_test` full `mvn -q test`, `mvn -q package -DskipTests`,
+both architecture gates and `git diff --check` passed. Exact next action: commit this handoff closure, push `dev`,
+fetch and verify `dev...origin/dev = 0/0`.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
