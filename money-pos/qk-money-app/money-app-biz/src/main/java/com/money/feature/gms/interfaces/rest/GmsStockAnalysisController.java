@@ -6,6 +6,7 @@ import com.money.feature.gms.application.stockanalysis.GmsStockAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +27,7 @@ public class GmsStockAnalysisController {
 
     @Operation(summary = "7.5 & 7.6 进销存汇总与盈亏审计")
     @GetMapping("/report")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public List<StockAnalysisReportVO> getStockAnalysisReport(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
@@ -35,6 +37,7 @@ public class GmsStockAnalysisController {
 
     @Operation(summary = "导出进销存财报 Excel")
     @GetMapping("/export")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public void exportStockAnalysisReport(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,

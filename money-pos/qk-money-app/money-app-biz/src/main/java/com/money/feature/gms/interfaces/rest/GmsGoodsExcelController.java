@@ -5,6 +5,7 @@ import com.money.feature.gms.application.product.GmsGoodsExcelReadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,17 +25,20 @@ public class GmsGoodsExcelController {
 
     @Operation(summary = "Excel智能矩阵批量导入商品")
     @PostMapping("/gms/goods/import")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:add')")
     public String importGoods(@RequestParam("file") MultipartFile file) {
         return gmsGoodsExcelManager.importGoods(file);
     }
 
     @GetMapping("/gms/goods/template")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     @Operation(summary = "下载智能商品导入模板")
     public void downloadTemplate(HttpServletResponse response) throws IOException {
         gmsGoodsExcelReadService.writeTemplate(response);
     }
 
     @GetMapping("/gms/goods/export")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     @Operation(summary = "导出全量商品资料到 Excel (包含完整价格矩阵)")
     public void exportGoods(HttpServletResponse response) throws IOException {
         gmsGoodsExcelReadService.writeExport(response);

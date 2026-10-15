@@ -102,3 +102,8 @@ GMS → UMS → TRADE → FIN → HOME → SYS 横切复核
 两项架构扫描和 `git diff --check` 均通过。
 
 下一动作：盘点并冻结 **GMS-OPT-4** 的现有菜单/角色权限映射；不得擅自创造权限编码或扩大既有角色授权。
+
+**完成记录（2026-10-15）：** GMS-OPT-4 已按
+`MoneyPOS-GMS-OPT-4-Route-Permission-Alignment-Implementation-Contract.md` 完成。商品导入复用 `gmsGoods:add`，
+商品模板/导出及两类分析读取/导出复用 `gmsGoods:list`，品牌策略读写复用 `gmsBrand:list/edit`。未新增权限、菜单、
+迁移或角色授权。路由权限契约测试、隔离全量 Maven 回归、打包、两项架构扫描与空白检查均通过。

@@ -9,6 +9,7 @@ import com.money.util.ExcelUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +30,7 @@ public class GmsTurnoverController {
 
     @Operation(summary = "获取全盘补货与死库存预警")
     @GetMapping("/turnover-warnings")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public TurnoverDashboardVO getTurnoverWarnings() {
         return gmsTurnoverService.getTurnoverWarnings();
     }
@@ -38,12 +40,14 @@ public class GmsTurnoverController {
     // ==========================================
     @Operation(summary = "获取历史预警压力趋势及Top顽疾黑榜")
     @GetMapping("/turnover-warning-trend")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public Map<String, Object> getWarningTrend() {
         return gmsTurnoverService.getWarningTrend();
     }
 
     @Operation(summary = "一键导出：智能采购建议单")
     @GetMapping("/export-replenish")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public void exportReplenish(HttpServletResponse response) throws IOException {
         TurnoverDashboardVO dashboard = gmsTurnoverService.getTurnoverWarnings();
         List<TurnoverReplenishExcelDTO> list = new ArrayList<>();
@@ -65,6 +69,7 @@ public class GmsTurnoverController {
 
     @Operation(summary = "一键导出：积压库存清仓单")
     @GetMapping("/export-deadstock")
+    @PreAuthorize("@rbac.hasPermission('gmsGoods:list')")
     public void exportDeadStock(HttpServletResponse response) throws IOException {
         TurnoverDashboardVO dashboard = gmsTurnoverService.getTurnoverWarnings();
         List<TurnoverDeadStockExcelDTO> list = new ArrayList<>();
