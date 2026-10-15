@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after HOME-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-6 SYS consistency audit complete — SYS-OPT-1 design pending` |
+| Working tree | **SYS-OPT-1 changes validated locally; commit/push pending.** |
+| Current phase | `FCO-6 SYS optimization closing — decision required for SYS-2/SYS-3` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -204,6 +204,14 @@ those two write whitelist entries while retaining anonymous customer-display rea
 changes valid authenticated behavior. The exact next action is to freeze and implement SYS-OPT-1, then revisit SYS-2
 only after the user confirms a configuration/backup role-permission matrix and SYS-3 only after a real-data strategy
 singleton decision.
+
+SYS-OPT-1 is complete in the working tree: it removes only `POST /common/upload` and
+`PUT /common/display-settings` from the anonymous whitelist. The public `GET /common/display-settings` remains in
+place; no controller, role, permission, route, response, migration, print, backup or strategy behavior changed. The
+focused SYS configuration contract, isolated full `mvn -q test`, and `mvn -q package -DskipTests` passed. The exact
+next action is to run both architecture gates and `git diff --check`, then commit/push this SYS-OPT-1 slice and verify
+branch synchronization. Afterwards, do not implement SYS-2 without a role-permission matrix or SYS-3 without a
+real-data singleton decision.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 

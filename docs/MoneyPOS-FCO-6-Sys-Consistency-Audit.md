@@ -1,6 +1,6 @@
 # MoneyPOS FCO-6：SYS 横切一致性审查记录
 
-> 状态：**只读审查完成，未实施优化**；审查日期：2026-10-15；适用分支：`dev`。
+> 状态：**审查完成；SYS-OPT-1 已完成**；审查日期：2026-10-15；适用分支：`dev`。
 
 ## 现状地图
 
@@ -46,3 +46,10 @@ SYS 横跨 `money-app-system` 与 `money-app-biz`：前者拥有用户、角色�
 迁移、存量角色授予和 Electron/SSE 的认证方案；不能以 `dict:*`、`omsOrder:*` 等不相关权限替代。
 - **SYS-3 的唯一策略修复**：需要先盘点真实数据库中的重复行并确认以何行作为权威记录，再决定唯一约束、迁移和并发写入语义；
 不能在本轮无数据决策的情况下添加约束或删除记录。
+
+## 实施结果
+
+SYS-OPT-1 已按 `MoneyPOS-SYS-OPT-1-Anonymous-Write-Whitelist-Removal-Implementation-Contract.md` 完成：
+`POST /common/upload` 与 `PUT /common/display-settings` 已移出匿名白名单，默认安全链要求认证；
+`GET /common/display-settings` 仍保持匿名读取。控制器、路径、请求/响应、文件格式、客显 JSON、权限码、角色授权、迁移及
+SYS-2/SYS-3 的待决事项均未改变。

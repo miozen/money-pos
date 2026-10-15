@@ -149,3 +149,8 @@ HOME-OPT-1 图表时间范围白名单校验；HOME 权限模型留待 FCO-6 SYS
 `MoneyPOS-FCO-6-Sys-Consistency-Audit.md`。已确认匿名白名单错误放行了文件上传和客显配置写入；建议先冻结并实施
 不改变权限模型的 SYS-OPT-1，撤销这两条写白名单而保留匿名客显读取。策略/打印/备份的细粒度权限与全局策略唯一性分别
 需要角色矩阵和历史数据处置决策，不能在维护切片中擅自改变。
+
+**完成记录（2026-10-15）：** SYS-OPT-1 已按
+`MoneyPOS-SYS-OPT-1-Anonymous-Write-Whitelist-Removal-Implementation-Contract.md` 完成。客显读取继续匿名可用；文件上传和
+客显配置写入已恢复默认认证要求。未改控制器、公开读取响应、权限码、角色、迁移、策略/打印/备份行为或跨 Feature 契约。
+SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。

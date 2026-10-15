@@ -59,9 +59,6 @@ money:
       post:
         - /auth/login
         - /auth/logout
-        - /common/upload
-      put:
-        - /common/display-settings
       pattern:
         - /error/**
         - /actuator/**
