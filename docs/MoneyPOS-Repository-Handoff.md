@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after GMS-OPT-1; `dev...origin/dev = 0/0`.** |
-| Current phase | `FCO-1 GMS — OPT-2 minimal design and implementation next` |
+| Working tree | **Clean and synchronized after GMS-OPT-2; `dev...origin/dev = 0/0`.** |
+| Current phase | `FCO-1 GMS — OPT-3 minimal design and implementation next` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -145,8 +145,12 @@ task triggers that command with a same-JVM overlap guard. The turnover SQL/formu
 tenant exemption and historical data were not changed. The new focused tests passed: 3 tests, 0 failures, 0 errors.
 The documented isolated `money_pos_test` full `mvn -q test`, `mvn -q package -DskipTests`,
 `bash scripts/test-architecture-scan.sh`, `bash scripts/architecture-scan.sh --check-new` and `git diff --check` passed.
-The exact next action is to freeze the separate GMS-OPT-2 design for atomic manual-outbound stock guards; do not mix
-GMS-OPT-3 or GMS-OPT-4 into that slice.
+GMS-OPT-2 is complete in `532d67c` and synchronized to `origin/dev`. Manual `OUTBOUND` now uses the existing
+conditional stock deduction (`UPDATE ... WHERE stock >= qty`); a zero-row deduction aborts the local transaction before
+documents/logs are created, while a successful deduction reads the transaction-local actual balance for its snapshots.
+Inbound, stock-check, package propagation, financial formula, routes and migrations were untouched. Five focused GMS
+tests, isolated full Maven regression, package, both architecture scans and diff check passed. The exact next action is
+to freeze GMS-OPT-3's deletion-integrity policy and implement only its agreed guards/counter recovery.
 
 ME-1.6F final automated gates passed against isolated `money_pos_test`: full Maven regression, package, Node 20 production build, both architecture scans and diff check. The Windows Electron/POS matrix is unrun: this Linux session exposed no controllable Windows UI target, so no manual evidence is claimed.
 
