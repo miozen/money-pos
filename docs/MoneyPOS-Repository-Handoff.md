@@ -390,8 +390,14 @@ POS header, admin footer, authenticated `/system/version` response and a new bac
 上述趋势修复最初新增的测试夹具错误地调用了 `OmsMemberAmountReceiptPay.setCreateTime(...)`；该 Entity 未映射该字段，
 所以用户重新打包时在 `testCompile` 阶段失败，未生成新 JAR/EXE。夹具已改为先插入支付记录、再仅在测试中以显式 SQL 列名更新
 其 `create_time`，不改变生产 Entity 或持久化模型。`mvn -q package -DskipTests` 已确认包括测试源码在内能够编译并生成 JAR；
-原记录中的 Home 聚焦测试“通过”不再作为有效证据。本机当前没有注入 `MONEY_TEST_DB_USERNAME` 和
-`MONEY_TEST_DB_PASSWORD`，故 Spring 集成测试无法连接隔离库，待具备该项目约定测试凭据的环境执行。
+原记录中的 Home 聚焦测试“通过”不再作为有效证据；未按协议注入 `MONEY_TEST_DB_*` 的命令不能作为测试结论。
+后续必须按 `MoneyPOS-AI-Handoff.md` 从 `application-dev.yml` 提取既有默认凭据并固定连接隔离 `money_pos_test`。
+
+## 2026-10-15 HOME 近七日零值日期补齐
+
+用户确认：HOME 的“近 7 日营业额与利润趋势”必须表达连续的七个自然日，而不是只显示发生交易或非商品收款的日期。
+`timeRange=today` 现在在既有订单与非商品收款合并后，固定补齐从今天往前六天到今天的七个点；没有数据的日期返回销售额和净利润均为零。
+月、年、累计趋势、路由、响应字段、金额公式和交易查询边界均未改变。`HomeCountSnapshotCharacterizationTest` 已扩展为断言七个连续日期及零值补齐；按既有固定凭据提取协议连接隔离 `money_pos_test` 的聚焦回归通过（9 tests，0 failures/errors），`mvn -q package -DskipTests`、两项架构门禁与 `git diff --check` 均通过。
 
 ## Handoff rule
 

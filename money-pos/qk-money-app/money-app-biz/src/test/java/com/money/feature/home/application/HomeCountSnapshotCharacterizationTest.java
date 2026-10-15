@@ -358,20 +358,42 @@ class HomeCountSnapshotCharacterizationTest {
         HomeChartsVO charts = homeController.getChartsData(timeRange);
         List<HomeSalesTrendSnapshot> trendSnapshots = homeOrderReadQuery.listSalesTrend(trendStart, trendEnd);
         List<HomeBrandSalesSnapshot> brandSnapshots = homeOrderReadQuery.listBrandSales(brandStart, brandEnd);
-        assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);
         assertThat(charts.getPieData()).hasSameSizeAs(brandSnapshots);
-        for (int i = 0; i < trendSnapshots.size(); i++) {
-            TrendChartVO actual = charts.getTrendData().get(i);
-            HomeSalesTrendSnapshot expected = trendSnapshots.get(i);
-            assertThat(actual.getDate()).isEqualTo(LocalDate.parse(expected.getDate()).format(DateTimeFormatter.ofPattern("MM-dd")));
-            assertThat(actual.getSales()).isEqualByComparingTo(expected.getSales());
-            assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
+        if ("today".equals(timeRange)) {
+            assertRecentTrendIncludesEveryDate(charts.getTrendData(), trendSnapshots, trendStart.toLocalDate());
+        } else {
+            assertThat(charts.getTrendData()).hasSameSizeAs(trendSnapshots);
+            for (int i = 0; i < trendSnapshots.size(); i++) {
+                TrendChartVO actual = charts.getTrendData().get(i);
+                HomeSalesTrendSnapshot expected = trendSnapshots.get(i);
+                assertThat(actual.getDate()).isEqualTo(LocalDate.parse(expected.getDate()).format(DateTimeFormatter.ofPattern("MM-dd")));
+                assertThat(actual.getSales()).isEqualByComparingTo(expected.getSales());
+                assertThat(actual.getProfit()).isEqualByComparingTo(expected.getProfit());
+            }
         }
         for (int i = 0; i < brandSnapshots.size(); i++) {
             BrandPieVO actual = charts.getPieData().get(i);
             HomeBrandSalesSnapshot expected = brandSnapshots.get(i);
             assertThat(actual.getName()).isEqualTo(expected.getName());
             assertThat(actual.getValue()).isEqualByComparingTo(expected.getValue());
+        }
+    }
+
+    private void assertRecentTrendIncludesEveryDate(List<TrendChartVO> actualTrend,
+                                                    List<HomeSalesTrendSnapshot> expectedTrend,
+                                                    LocalDate startDate) {
+        Map<String, HomeSalesTrendSnapshot> expectedByDate = new HashMap<>();
+        for (HomeSalesTrendSnapshot point : expectedTrend) {
+            expectedByDate.put(point.getDate(), point);
+        }
+        assertThat(actualTrend).hasSize(7);
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            TrendChartVO actual = actualTrend.get(i);
+            HomeSalesTrendSnapshot expected = expectedByDate.get(date.toString());
+            assertThat(actual.getDate()).isEqualTo(date.format(DateTimeFormatter.ofPattern("MM-dd")));
+            assertThat(actual.getSales()).isEqualByComparingTo(expected == null ? BigDecimal.ZERO : expected.getSales());
+            assertThat(actual.getProfit()).isEqualByComparingTo(expected == null ? BigDecimal.ZERO : expected.getProfit());
         }
     }
 

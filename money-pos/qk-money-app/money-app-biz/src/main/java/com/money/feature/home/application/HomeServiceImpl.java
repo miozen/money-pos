@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.Year;
 import java.time.YearMonth;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.List;
@@ -94,8 +95,12 @@ public class HomeServiceImpl implements HomeService {
             endTime = null; // 查到最新
         }
 
-        chartsVO.setTrendData(toTrendChartData(mergeNonProductTrend(
-                homeOrderReadQuery.listSalesTrend(trendStartTime, endTime), trendStartTime, endTime)));
+        List<HomeSalesTrendSnapshot> trend = mergeNonProductTrend(
+                homeOrderReadQuery.listSalesTrend(trendStartTime, endTime), trendStartTime, endTime);
+        if ("today".equals(timeRange)) {
+            trend = completeRecentDailyTrend(trend, trendStartTime.toLocalDate(), LocalDate.now());
+        }
+        chartsVO.setTrendData(toTrendChartData(trend));
         chartsVO.setPieData(toBrandPieData(homeOrderReadQuery.listBrandSales(startTime, endTime)));
 
         // 会员等级是即时状态（总资产），不跟时间联动
@@ -128,6 +133,18 @@ public class HomeServiceImpl implements HomeService {
         });
         return totals.entrySet().stream().map(entry -> new HomeSalesTrendSnapshot(entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
                 .collect(Collectors.toList());
+    }
+
+    private List<HomeSalesTrendSnapshot> completeRecentDailyTrend(List<HomeSalesTrendSnapshot> trend,
+                                                                    LocalDate startInclusive, LocalDate endInclusive) {
+        Map<String, HomeSalesTrendSnapshot> pointsByDate = trend.stream()
+                .collect(Collectors.toMap(HomeSalesTrendSnapshot::getDate, point -> point));
+        List<HomeSalesTrendSnapshot> completeTrend = new ArrayList<>();
+        for (LocalDate date = startInclusive; !date.isAfter(endInclusive); date = date.plusDays(1)) {
+            completeTrend.add(pointsByDate.getOrDefault(date.toString(),
+                    new HomeSalesTrendSnapshot(date.toString(), BigDecimal.ZERO, BigDecimal.ZERO)));
+        }
+        return completeTrend;
     }
 
     private List<BrandPieVO> toBrandPieData(List<HomeBrandSalesSnapshot> snapshots) {
