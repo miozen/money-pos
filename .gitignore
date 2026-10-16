@@ -4,3 +4,5 @@ node_modules/
 target/
 .DS_Store
 *.log
+**/.wrangler/
+**/wrangler.authorized.toml

@@ -6,5 +6,6 @@ compatibility_date = "2026-10-16"
 # Do not put a database id, sync key, Telegram token, or production hostname in Git.
 [[d1_databases]]
 binding = "DB"
-database_name = "omnia-cloud"
+database_name = "omnia-cloud-prod"
 database_id = "REPLACE_DURING_AUTHORIZED_DEPLOYMENT"
+migrations_dir = "../../migrations/d1"
