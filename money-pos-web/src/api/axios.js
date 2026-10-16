@@ -1,4 +1,5 @@
 import { getToken } from '@/composables/token.js';
+import { getApiBaseUrl } from '@/api/baseUrl.js';
 import MoneyConfig from '@/money.config.js';
 import { useUserStore } from '@/store';
 import axios from 'axios';
@@ -8,14 +9,10 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 // ==========================================
 // 🌟 核心修复：智能识别运行环境，动态修正 API 基准地址
 // ==========================================
-let apiBaseUrl = import.meta.env.VITE_BASE_URL;
-// 如果发现是 Electron 打包后的 file:// 协议，强行指向本地的 Java 后端端口
-if (window.location.protocol === 'file:') {
-    apiBaseUrl = 'http://127.0.0.1:9101/money-pos';
-}
+const apiBaseUrl = getApiBaseUrl();
 
 // EventSource 不经过 axios 拦截器；SSE 页面应复用这里已完成的运行时地址判定。
-export const getApiBaseUrl = () => apiBaseUrl;
+export { getApiBaseUrl };
 
 // 创建 axios 实例
 const instance = axios.create({

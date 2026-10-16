@@ -177,3 +177,10 @@ SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描
 换行的底层错误不会再破坏前端解析。手动导出和还原的前置保护快照会显示备份开始、数据库导出、静态资源归档、ZIP 打包、
 成功/失败阶段；定时 `AutoBackup_` 不额外干扰人工控制台。导出/还原/SSE 路径、响应、ZIP、权限、SSE 匿名兼容和还原算法
 均未改变。专项、隔离全量 Maven 回归、后端打包、前端 Node 20 生产构建、两项架构扫描与 `git diff --check` 均通过。
+
+**完成记录（2026-10-16）：** SYS-FIX-3 已按
+`MoneyPOS-SYS-FIX-3-Tenant-Logo-Upload-Compatibility-Implementation-Contract.md` 完成。Axios 与静态资源 URL 现共享
+同一运行时后端基址；浏览器 `blob:`/`data:` 预览地址与外部 `http(s):` 地址保持原样，数据库中的相对 Logo 路径则在
+Electron 与浏览器中正确解析到既有本地 assets 路由。租户新增/修改显式固定 `logo` 文件 part 名称，并新增 MVC 绑定回归。
+未修改租户路由、字段、权限、数据、存储目录、文件格式、删除时机或多租户规则。专项、隔离全量 Maven 回归、后端打包、
+前端 Node 20 生产构建、两项架构扫描与 `git diff --check` 均通过。

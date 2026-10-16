@@ -75,3 +75,8 @@ SYS-FIX-2 已按 `MoneyPOS-SYS-FIX-2-Backup-Console-Log-Reliability-Implementati
 备份控制台可观测性：SSE 与 Axios 共用 Electron/浏览器运行时服务地址，日志 payload 由 JSON 安全序列化，手动备份和
 还原前置快照会发布明确的阶段进度。导出/还原/SSE 路径、ZIP、影子库与资源切换、`SUPER_ADMIN` 导出/还原限制、匿名 SSE
 兼容性和定时自动备份行为均保持不变。
+
+SYS-FIX-3 已按 `MoneyPOS-SYS-FIX-3-Tenant-Logo-Upload-Compatibility-Implementation-Contract.md` 完成。确认问题位于
+前端资源地址兼容层：`blob:` 预览地址会被错误拼入 assets 路径，Electron `file://` 包又不会沿用 Axios 的本地 Java
+服务基址。现已统一运行时基址并透传本地/外部 URL；租户 Controller 同时显式固定既有 `logo` multipart part，并由 MVC
+回归覆盖。租户数据、存储目录、路由、权限、文件格式、Logo 删除时机和多租户规则均未改变。

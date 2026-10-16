@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from '@/api/baseUrl.js'
+
 export default {
     // 语言
     lang: 'zh-cn',
@@ -28,11 +30,11 @@ export default {
      * @returns {string}
      */
     getOssUrl(path, cloud = false) {
-        if (path && !path.includes('http')) {
+        if (path && !/^(?:https?:|blob:|data:)/i.test(path)) {
             if (cloud) {
                path = config.cloudOSSPath + path
             } else {
-                path = import.meta.env.VITE_BASE_URL + this.localOSSPath + path
+                path = getApiBaseUrl() + this.localOSSPath + path
             }
         }
         return path
