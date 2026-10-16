@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **UMS-OPT-2 browser acceptance closure is local and uncommitted.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — closed, awaiting closure sync` |
+| Working tree | **Clean and synchronized after UMS-OPT-2 closure; `dev...origin/dev = 0/0`.** |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — closed` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -65,8 +65,8 @@ continuing.
   failures/errors); `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`.
 - User has completed and confirmed browser acceptance of the manual merge/delete flow. UMS-OPT-2 is closed; no further
   merge-rule work is pending.
-- Exact next action: commit and push this acceptance closure, verify `dev...origin/dev = 0/0`, then await a new user-
-  approved optimization task.
+- Exact next action: await a new user-approved optimization task; do not expand the closed member-merge rules without a
+  new business decision.
 
 ## Local SYS-FIX-1 validation state
 
