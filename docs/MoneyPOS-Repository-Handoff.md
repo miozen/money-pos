@@ -641,7 +641,10 @@ Entity-free 跨 Feature 契约保持完整；同时存在周转 GET 写快照、
 
 等待新的用户确认任务。SYS-OPT-3 已以一次性票据保护备份 SSE 的 EventSource 兼容通道；SYS-OPT-4 的生产只读盘点
 确认 `sys_strategy` 只有一行，`V1.0.22` 已保护后续单例完整性。后续不得将 SSE 改回长期 JWT URL，且若任何已部署环境
-在应用 `V1.0.22` 前发现策略重复行，必须先人工决定数据处置，不能自动删除或合并。
+在应用 `V1.0.22` 前发现策略重复行，必须先人工决定数据处置，不能自动删除或合并。定向 SYS 回归（6 项）、后端
+`mvn -q package -DskipTests`、Node 20 `npm run build`、两项架构门禁和 `git diff --check` 通过。隔离全量 Maven
+回归曾被本工具约 30 秒执行上限中断，已生成的部分报告无失败，但不能记为全量通过；后续如需发布，应在可完成的环境
+按既有 `money_pos_test` 命令重跑完整回归。
 
 ## Handoff rule
 
