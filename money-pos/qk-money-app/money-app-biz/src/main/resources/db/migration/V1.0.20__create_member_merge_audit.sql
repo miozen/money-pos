@@ -1,0 +1,20 @@
+CREATE TABLE `ums_member_merge` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `merge_no` varchar(64) NOT NULL,
+  `source_member_id` bigint NOT NULL,
+  `target_member_id` bigint NOT NULL,
+  `reason` varchar(255) NOT NULL DEFAULT '',
+  `source_balance_before` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `target_balance_before` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `transferred_balance` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `transferred_unused_coupon_count` int NOT NULL DEFAULT 0,
+  `status` varchar(32) NOT NULL DEFAULT 'PENDING',
+  `operator_name` varchar(64) NOT NULL DEFAULT '',
+  `create_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `complete_time` datetime DEFAULT NULL,
+  `tenant_id` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_member_merge_no` (`merge_no`),
+  UNIQUE KEY `uk_member_merge_source` (`source_member_id`),
+  KEY `idx_member_merge_target_time` (`target_member_id`,`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员重复档案合并审计';

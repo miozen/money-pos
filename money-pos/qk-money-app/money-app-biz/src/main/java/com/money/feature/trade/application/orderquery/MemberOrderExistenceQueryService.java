@@ -16,7 +16,13 @@ class MemberOrderExistenceQueryService implements MemberOrderExistenceQuery {
 
     @Override
     public boolean hasOrderForMemberId(Long memberId) {
-        return memberId != null && omsOrderMapper.exists(new LambdaQueryWrapper<OmsOrder>()
-                .eq(OmsOrder::getMemberId, memberId));
+        return countOrdersForMemberId(memberId) > 0;
+    }
+
+    @Override
+    public long countOrdersForMemberId(Long memberId) {
+        if (memberId == null) return 0;
+        Long count = omsOrderMapper.selectCount(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getMemberId, memberId));
+        return count == null ? 0 : count;
     }
 }

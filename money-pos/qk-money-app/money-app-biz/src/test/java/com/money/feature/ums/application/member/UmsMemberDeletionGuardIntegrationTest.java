@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class UmsMemberDeletionGuardIntegrationTest {
 
     @Autowired private UmsMemberProfileService profileService;
+    @Autowired private MemberMergePreviewService memberMergePreviewService;
     @Autowired private TradeFixture tradeFixture;
     @Autowired private UmsMemberMapper memberMapper;
     @Autowired private OmsOrderMapper orderMapper;
@@ -114,6 +115,23 @@ class UmsMemberDeletionGuardIntegrationTest {
                 .hasMessageContaining("会员券记录");
         assertThatThrownBy(() -> profileService.delete(Set.of(levelOwner.getId())))
                 .hasMessageContaining("品牌等级记录");
+    }
+
+    @Test
+    void mergePreviewIsReadOnlyAndReportsCurrentTransferInputs() {
+        UmsMember source = tradeFixture.createMember(unique(), new BigDecimal("12.00"));
+        UmsMember target = tradeFixture.createMember(unique(), BigDecimal.ZERO);
+        PosMemberCoupon coupon = new PosMemberCoupon();
+        coupon.setMemberId(source.getId()); coupon.setRuleId(1L); coupon.setStatus("UNUSED"); coupon.setTenantId("0");
+        couponMapper.insert(coupon);
+
+        com.money.dto.UmsMember.MemberMergePreviewVO preview = memberMergePreviewService.preview(source.getId(), target.getId());
+
+        assertThat(preview.isMergeAllowed()).isTrue();
+        assertThat(preview.getSource().getBalance()).isEqualByComparingTo("12.00");
+        assertThat(preview.getSourceUnusedCouponCount()).isEqualTo(1);
+        assertThat(memberMapper.selectById(source.getId()).getDeleted()).isFalse();
+        assertThat(couponMapper.selectById(coupon.getId()).getMemberId()).isEqualTo(source.getId());
     }
 
     private String unique() {

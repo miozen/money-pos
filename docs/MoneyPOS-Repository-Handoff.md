@@ -15,7 +15,7 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after built-in menu icons; `dev...origin/dev = 0/0`.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-1 complete` |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-2 complete` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -37,6 +37,14 @@ continuing.
   both architecture gates and diff check passed.
 - Exact next action: freeze and implement UMS-MERGE-2's UMS-owned merge preview and audit model. Do not add a merge
   execution route, a Flyway migration or frontend UI before that slice's compatibility contract is accepted.
+
+## UMS-MERGE-2 state
+
+- `V1.0.20` adds the UMS-owned merge audit table. The new protected read-only preview returns two active member
+  summaries, source order count, unused-coupon count and first-version benefit/TARGET blockers; it does not reserve,
+  transfer or hide a member, and no execution route exists yet.
+- Exact next action: implement UMS-MERGE-3 as the only writer of this audit table and of balance/coupon transfer;
+  preserve the frozen no-right/no-TARGET merge guard and add idempotency/concurrency coverage before enabling it.
 
 ## Local SYS-FIX-1 validation state
 

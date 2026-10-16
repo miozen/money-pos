@@ -4,4 +4,6 @@ package com.money.contract.trade;
 public interface MemberOrderExistenceQuery {
 
     boolean hasOrderForMemberId(Long memberId);
+
+    long countOrdersForMemberId(Long memberId);
 }

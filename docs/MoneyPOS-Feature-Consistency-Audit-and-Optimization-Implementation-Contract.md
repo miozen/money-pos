@@ -132,6 +132,11 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 Entity-free `MemberOrderExistenceQuery` 提供。专项 3 项、隔离全量 Maven 回归（38 份 Surefire 报告，零 failure/error）、
 打包、两项架构扫描与 `git diff --check` 均通过。下一动作是冻结并实施 UMS-MERGE-2 的合并预览与审计模型。
 
+**完成记录（2026-10-16）：** UMS-MERGE-2 已完成。`V1.0.20` 新增 UMS 自有合并审计表；受 `umsMember:edit`
+保护的只读预览返回来源/目标摘要、来源订单数、未使用券数和权益/TARGET 阻断项。未新增合并执行入口，未转移资产、
+未隐藏会员且不写审计记录。TRADE 订单计数继续经 Entity-free 契约读取。专项 4 项、隔离全量 Maven 回归、打包、两项
+架构扫描与 `git diff --check` 均通过。下一动作是 UMS-MERGE-3 的受控合并命令设计与实施。
+
 **完成记录（2026-10-15）：** FCO-3 TRADE 只读审查已形成
 `MoneyPOS-FCO-3-Trade-Consistency-Audit.md`。下一动作是冻结并实施单一 TRADE-OPT-1 订单重打权限对齐；它不改变
 交易、退款、库存、会员资产、打印内容或钱箱规则。
