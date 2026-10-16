@@ -14,25 +14,24 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **SYS-FIX-1 is locally validated and ready to commit; do not hand off across machines until committed and pushed.** |
-| Current phase | `SYS-FIX-1 dictionary-detail sort persistence — ready to commit` |
+| Working tree | **SYS-FIX-1 implementation commit `84376ff` is pushed; this handoff-closure update is local and must be committed and pushed before cross-machine handoff.** |
+| Current phase | `SYS-FIX-1 dictionary-detail sort persistence — closure synchronization pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
 ## Local SYS-FIX-1 validation state
 
-- Uncommitted local files: `SysDictDetailDTO` now carries `sort`; `SysDictDetailServiceIntegrationTest` verifies add,
-  update and `sort ASC` list behavior; `MoneyPOS-SYS-FIX-1-Dict-Detail-Sort-Persistence-Implementation-Contract.md`
-  freezes this minimal scope.
+- Implementation commit `84376ff` (`fix(sys): persist dictionary detail sort`) contains the DTO field, isolated
+  regression, minimal-scope contract and the GMS test-fixture correction; it is pushed to `origin/dev`.
 - Focused isolated `SysDictDetailServiceIntegrationTest` passed (1 test, 0 failures, 0 errors). The existing
   `GmsBrandConfigControllerIntegrationTest` fixture was stale after the established `gmsBrand:list/edit` route guards;
   it now authenticates with those existing permissions and its focused regression passes without changing production
   behavior or authorization rules.
 - The focused two-class regression, isolated full `mvn -q test` (163 tests), `mvn -q package -DskipTests`,
   `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new`, and `git diff --check` passed.
-- Exact next action: commit and push SYS-FIX-1, fetch and verify `dev...origin/dev`, then record the synchronized
-  handoff state.
+- Exact next action: commit and push this closure update, fetch, verify `dev...origin/dev = 0/0`, then record the
+  final synchronized handoff state.
 
 ## Last completed reliable point
 
