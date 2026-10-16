@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after UMS-MERGE-3; `dev...origin/dev = 0/0`.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-3 complete` |
+| Working tree | **Clean after UMS-MERGE-4 closure; awaiting push/fetch synchronization.** |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-0～4 complete` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -52,6 +52,20 @@ continuing.
   (28 Surefire reports, zero failures/errors), `mvn -q package -DskipTests`, both architecture gates and `git diff --check`.
 - Exact next action: begin UMS-MERGE-4's management UI as the next isolated slice; preserve the frozen server-side
   merge route, asset-transfer scope and blocker semantics.
+
+## UMS-MERGE-4 state
+
+- UMS-MERGE-4 is committed in `8ab661a` and awaits push/fetch synchronization. The member list now exposes a manual merge entry only to existing `umsMember:edit` users. It fixes the current row as
+  the source, uses the existing human-driven member search to choose a different target, displays backend preview data
+  and blockers, requires a reason and presents a second confirmation before calling the existing idempotent merge route.
+  After success it states the source has been merged into the target and refreshes the list.
+- Both delete entry points now state that deletion is only for erroneous profiles with no business data. No menu,
+  permission, migration, automatic matching/merge or undo capability was added.
+- Validation actually passed: Node 20 `npm run build`; isolated full `mvn -q test` (83 Surefire reports, zero
+  failures/errors); `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`.
+- Browser/Electron manual acceptance remains unrun in this Linux session. Exact next action: push `8ab661a` and this
+  handoff closure, fetch and verify `dev...origin/dev = 0/0`, then have the user perform browser acceptance before
+  opening a new slice.
 
 ## Local SYS-FIX-1 validation state
 
