@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | OMNIA-CLOUD-3 publisher slice is ready to commit; inspect Git status before handoff. |
+| Working tree | Clean and synchronized after OMNIA-CLOUD-3 closure; `dev...origin/dev = 0/0`. |
 | Current phase | `OMNIA-CLOUD-3 local HTTPS member-snapshot publisher` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-3-Local-HTTPS-Publisher-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -26,10 +26,10 @@ continuing.
 - OMNIA-CLOUD-2 is committed in `1d4f124` (`feat(cloud): add signed member snapshot receiver`) and synchronized. It adds the independently deployable `omnia-cloud` receiver skeleton, append-only D1 migration `0001`, signed internal batch route, nonce replay protection and versioned D1 upsert. It contains no Cloudflare account identifier, secret, database instance, deployment command, public query route, webpage or Telegram integration.
 - The receiver accepts only transformed query material. It rejects raw phone fields, and the OMNIA-CLOUD-3 publisher transforms UMS snapshots before a configured HTTPS send; with the default disabled setting it makes no network call.
 - Node 20 receiver tests, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check` passed. The next functional slice is an explicitly authorized local HTTPS publisher plus isolated Cloudflare environment integration; do not expose a query endpoint first.
-- OMNIA-CLOUD-3 is implemented locally but not yet committed. The default local dispatcher remains disabled. When explicitly enabled with a complete HTTPS receiver configuration, it publishes at most 50 claimed UMS Outbox records per signed request, requires the receiver to acknowledge the complete count, then marks each record sent; batch failure returns every claim to the existing retry/backoff flow.
+- OMNIA-CLOUD-3 is committed in `5d853e1` (`feat(ums): publish signed cloud member snapshots`) and synchronized. The default local dispatcher remains disabled. When explicitly enabled with a complete HTTPS receiver configuration, it publishes at most 50 claimed UMS Outbox records per signed request, requires the receiver to acknowledge the complete count, then marks each record sent; batch failure returns every claim to the existing retry/backoff flow.
 - The local request factory never serializes a raw phone. It supplies a normalized name, separate full-phone/last-four HMAC values, a masked phone and the already frozen minimum asset projection; a tombstone has neither snapshot nor phone material. No endpoint, key or Cloudflare environment value is in Git.
 - Validation actually passed: `MemberCloudSyncRequestFactoryTest` (4/0/0), isolated credential-injected `money_pos_test` full Maven suite (86 Surefire reports, zero failure/error), `mvn -q package -DskipTests`, both architecture gates, Node 20 Worker tests and `git diff --check`. The initial sandbox full-suite attempt was blocked from loopback MariaDB; the approved rerun used only `money_pos_test` and passed.
-- Exact next action: commit/push OMNIA-CLOUD-3 and verify `dev...origin/dev = 0/0`. Afterwards, Cloudflare D1 creation/migration, Worker secret provisioning and end-to-end integration require explicit environment authorization; do not expose query, web or Telegram routes before that acceptance.
+- Exact next action: obtain explicit environment authorization before Cloudflare D1 creation/migration, Worker secret provisioning and end-to-end integration. Do not expose query, web or Telegram routes before that acceptance.
 
 ## UMS-MERGE-0 contract state
 
