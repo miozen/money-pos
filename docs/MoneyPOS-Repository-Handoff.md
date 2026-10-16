@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after UMS-MERGE-4; `dev...origin/dev = 0/0`.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-0～4 complete` |
+| Working tree | **UMS-OPT-2 browser acceptance closure is local and uncommitted.** |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — closed, awaiting closure sync` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -63,8 +63,10 @@ continuing.
   permission, migration, automatic matching/merge or undo capability was added.
 - Validation actually passed: Node 20 `npm run build`; isolated full `mvn -q test` (83 Surefire reports, zero
   failures/errors); `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`.
-- Browser/Electron manual acceptance remains unrun in this Linux session. Exact next action: have the user perform
-  browser acceptance of the manual merge/delete flow before opening a new optimization slice.
+- User has completed and confirmed browser acceptance of the manual merge/delete flow. UMS-OPT-2 is closed; no further
+  merge-rule work is pending.
+- Exact next action: commit and push this acceptance closure, verify `dev...origin/dev = 0/0`, then await a new user-
+  approved optimization task.
 
 ## Local SYS-FIX-1 validation state
 
