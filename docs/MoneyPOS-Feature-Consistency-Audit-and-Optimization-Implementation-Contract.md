@@ -118,7 +118,8 @@ UMS-OPT-1 资金流水权限对齐；UMS-OPT-2 会员注销资产守卫须先确
 `git diff --check` 均通过。UMS-OPT-2 继续等待“可注销会员”的资产/权益状态业务规则确认。
 
 **已确认决策（2026-10-16）：** UMS-OPT-2 不再将会员删除作为通用注销动作。误建的无业务痕迹档案可删除；存在业务数据的
-重复档案仅允许由管理员人工合并，绝不按同名自动判断。第一版仅转移余额和未使用会员券；数量/金额权益、TARGET 计划及其
+重复档案仅允许由管理员人工合并，绝不按同名自动判断。第一版仅转移余额和未使用会员券；金额型券额度 `ums_member.coupon`
+非零时阻止合并，不能擅自转移或清零；数量/金额权益、TARGET 计划及其
 复核状态均阻止合并，历史订单、充值、支付、退款和流水保持原会员归属。实施按
 `MoneyPOS-UMS-OPT-2-Member-Deletion-and-Merge-Implementation-Contract.md` 的 UMS-MERGE-0～4 逐切片进行。
 
@@ -136,6 +137,12 @@ Entity-free `MemberOrderExistenceQuery` 提供。专项 3 项、隔离全量 Mav
 保护的只读预览返回来源/目标摘要、来源订单数、未使用券数和权益/TARGET 阻断项。未新增合并执行入口，未转移资产、
 未隐藏会员且不写审计记录。TRADE 订单计数继续经 Entity-free 契约读取。专项 4 项、隔离全量 Maven 回归、打包、两项
 架构扫描与 `git diff --check` 均通过。下一动作是 UMS-MERGE-3 的受控合并命令设计与实施。
+
+**完成记录（2026-10-16）：** UMS-MERGE-3 已完成。`POST /ums/member/merge` 以请求号幂等地在单一 UMS 事务内按固定
+顺序锁定来源/目标会员，复检活动状态、同租户、金额型券额度和权益/TARGET 阻断条件；仅转移余额与 `UNUSED` 满减券，保留
+已使用券和所有历史 `member_id`。来源被标记已合并并逻辑删除，审计表记录方向、金额、券数量、操作人和完成时间；结算、充值、
+充值红冲也在写入前锁定活动会员，避免与合并交错。专项 6 项、隔离库 `mvn -q clean test`（28 份 Surefire 报告，零
+failure/error）、打包、两项架构扫描与 `git diff --check` 均通过。下一动作是 UMS-MERGE-4 的管理端最小交互。
 
 **完成记录（2026-10-15）：** FCO-3 TRADE 只读审查已形成
 `MoneyPOS-FCO-3-Trade-Consistency-Audit.md`。下一动作是冻结并实施单一 TRADE-OPT-1 订单重打权限对齐；它不改变

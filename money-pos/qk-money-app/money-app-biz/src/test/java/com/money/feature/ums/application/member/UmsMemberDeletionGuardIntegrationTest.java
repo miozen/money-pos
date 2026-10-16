@@ -5,10 +5,15 @@ import com.money.feature.trade.infrastructure.persistence.entity.OmsOrder;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberMerge;
+import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberMergeMapper;
+import com.money.dto.UmsMember.MemberMergeCommandDTO;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.mapper.UmsMemberLogMapper;
 import com.money.support.TradeFixture;
 import com.money.web.exception.BaseException;
 import org.junit.jupiter.api.AfterEach;
@@ -38,11 +43,14 @@ class UmsMemberDeletionGuardIntegrationTest {
 
     @Autowired private UmsMemberProfileService profileService;
     @Autowired private MemberMergePreviewService memberMergePreviewService;
+    @Autowired private MemberMergeCommandService memberMergeCommandService;
     @Autowired private TradeFixture tradeFixture;
     @Autowired private UmsMemberMapper memberMapper;
     @Autowired private OmsOrderMapper orderMapper;
     @Autowired private PosMemberCouponMapper couponMapper;
     @Autowired private UmsMemberBrandLevelMapper brandLevelMapper;
+    @Autowired private UmsMemberMergeMapper memberMergeMapper;
+    @Autowired private UmsMemberLogMapper memberLogMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -132,6 +140,51 @@ class UmsMemberDeletionGuardIntegrationTest {
         assertThat(preview.getSourceUnusedCouponCount()).isEqualTo(1);
         assertThat(memberMapper.selectById(source.getId()).getDeleted()).isFalse();
         assertThat(couponMapper.selectById(coupon.getId()).getMemberId()).isEqualTo(source.getId());
+    }
+
+    @Test
+    void blocksAmountStyleCouponCreditInPreviewAndExecution() {
+        UmsMember source = tradeFixture.createMember(unique(), BigDecimal.ZERO);
+        source.setCoupon(new BigDecimal("3.00")); memberMapper.updateById(source);
+        UmsMember target = tradeFixture.createMember(unique(), BigDecimal.ZERO);
+
+        assertThat(memberMergePreviewService.preview(source.getId(), target.getId()).isMergeAllowed()).isFalse();
+        assertThatThrownBy(() -> memberMergeCommandService.merge(command(source.getId(), target.getId(), "coupon")))
+                .isInstanceOf(BaseException.class).hasMessageContaining("金额型券额度");
+        assertThat(memberMapper.selectById(source.getId()).getDeleted()).isFalse();
+    }
+
+    @Test
+    void mergesBalanceAndOnlyUnusedVouchersOnceWhilePreservingHistoricalVoucherRows() {
+        UmsMember source = tradeFixture.createMember(unique(), new BigDecimal("12.00"));
+        UmsMember target = tradeFixture.createMember(unique(), new BigDecimal("5.00"));
+        PosMemberCoupon unused = coupon(source.getId(), "UNUSED");
+        PosMemberCoupon used = coupon(source.getId(), "USED");
+        MemberMergeCommandDTO command = command(source.getId(), target.getId(), "duplicate-import");
+
+        memberMergeCommandService.merge(command);
+        memberMergeCommandService.merge(command);
+
+        UmsMember mergedSource = memberMapper.selectById(source.getId());
+        UmsMember mergedTarget = memberMapper.selectById(target.getId());
+        assertThat(mergedSource.getDeleted()).isTrue();
+        assertThat(mergedSource.getMergedToMemberId()).isEqualTo(target.getId());
+        assertThat(mergedSource.getBalance()).isEqualByComparingTo("0.00");
+        assertThat(mergedTarget.getBalance()).isEqualByComparingTo("17.00");
+        assertThat(couponMapper.selectById(unused.getId()).getMemberId()).isEqualTo(target.getId());
+        assertThat(couponMapper.selectById(used.getId()).getMemberId()).isEqualTo(source.getId());
+        assertThat(memberMergeMapper.selectCount(new LambdaQueryWrapper<UmsMemberMerge>().eq(UmsMemberMerge::getSourceMemberId, source.getId()))).isEqualTo(1);
+        assertThat(memberLogMapper.selectCount(new LambdaQueryWrapper<UmsMemberLog>().eq(UmsMemberLog::getOrderNo, command.getRequestNo()).eq(UmsMemberLog::getOperateType, "MERGE"))).isEqualTo(2);
+    }
+
+    private MemberMergeCommandDTO command(Long sourceId, Long targetId, String reason) {
+        MemberMergeCommandDTO command = new MemberMergeCommandDTO();
+        command.setRequestNo("MERGE-" + unique()); command.setSourceMemberId(sourceId); command.setTargetMemberId(targetId); command.setReason(reason);
+        return command;
+    }
+
+    private PosMemberCoupon coupon(Long memberId, String status) {
+        PosMemberCoupon coupon = new PosMemberCoupon(); coupon.setMemberId(memberId); coupon.setRuleId(1L); coupon.setStatus(status); coupon.setTenantId("0"); couponMapper.insert(coupon); return coupon;
     }
 
     private String unique() {

@@ -11,6 +11,8 @@ public class MemberMergePreviewVO {
     private MemberSummary target;
     private long sourceOrderCount;
     private long sourceUnusedCouponCount;
+    /** Amount-style coupon credit is deliberately not transferred in the first merge version. */
+    private boolean sourceHasCouponCredit;
     private boolean mergeAllowed;
     private List<String> blockers;
 

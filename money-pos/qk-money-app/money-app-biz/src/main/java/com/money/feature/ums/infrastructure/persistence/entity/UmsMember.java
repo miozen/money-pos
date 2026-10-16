@@ -32,6 +32,9 @@ public class UmsMember extends BaseEntity {
     /** 最后一次到店消费时间。 */
     private LocalDateTime lastVisitTime;
     @Schema(description = "逻辑删除") private Boolean deleted;
+    /** 保留合并去向，区别于误建空档案删除。 */
+    private Long mergedToMemberId;
+    private LocalDateTime mergedTime;
     @Schema(description = "租户id") private Long tenantId;
     /** 会员等级 ID。 */
     private Long levelId;

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 /** Read-only UMS merge eligibility assessment; execution remains intentionally unavailable. */
 @Service
@@ -38,6 +39,9 @@ public class MemberMergePreviewService {
         result.setSourceOrderCount(orderExistenceQuery.countOrdersForMemberId(sourceMemberId));
         result.setSourceUnusedCouponCount(couponMapper.selectCount(new LambdaQueryWrapper<PosMemberCoupon>().eq(PosMemberCoupon::getMemberId, sourceMemberId).eq(PosMemberCoupon::getStatus, "UNUSED")));
         List<String> blockers = new ArrayList<>();
+        boolean sourceHasCouponCredit = source.getCoupon() != null && source.getCoupon().compareTo(BigDecimal.ZERO) != 0;
+        result.setSourceHasCouponCredit(sourceHasCouponCredit);
+        if (sourceHasCouponCredit) blockers.add("来源会员存在金额型券额度，请先人工处理");
         if (quantityRightMapper.exists(new LambdaQueryWrapper<UmsMemberQuantityRight>().eq(UmsMemberQuantityRight::getMemberId, sourceMemberId))) blockers.add("来源会员存在数量权益");
         if (amountRightMapper.exists(new LambdaQueryWrapper<UmsMemberAmountRight>().eq(UmsMemberAmountRight::getMemberId, sourceMemberId))) blockers.add("来源会员存在金额权益");
         if (targetPlanMapper.exists(new LambdaQueryWrapper<UmsMemberTargetPlan>().eq(UmsMemberTargetPlan::getMemberId, sourceMemberId))) blockers.add("来源会员存在TARGET计划");

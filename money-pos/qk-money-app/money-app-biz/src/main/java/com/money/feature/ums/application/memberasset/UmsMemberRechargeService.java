@@ -4,6 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.dto.Ums.RechargeDTO;
+import com.money.context.TenantContextHolder;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
@@ -41,8 +42,8 @@ public class UmsMemberRechargeService {
 
     @Transactional(rollbackFor = Exception.class)
     public void recharge(RechargeDTO dto) {
-        UmsMember member = umsMemberMapper.selectById(dto.getMemberId());
-        if (member == null) throw new BaseException("会员不存在");
+        UmsMember member = umsMemberMapper.selectActiveByIdForUpdate(dto.getMemberId(), currentTenantId());
+        if (member == null) throw new BaseException("会员不存在或已合并");
 
         LocalDateTime now = LocalDateTime.now();
         String orderNo = "RC" + now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + RandomUtil.randomNumbers(4);
@@ -115,8 +116,8 @@ public class UmsMemberRechargeService {
             throw new BaseException("单据无效或已撤销");
         }
 
-        UmsMember member = umsMemberMapper.selectById(order.getMemberId());
-        if (member == null) throw new BaseException("会员丢失");
+        UmsMember member = umsMemberMapper.selectActiveByIdForUpdate(order.getMemberId(), currentTenantId());
+        if (member == null) throw new BaseException("会员不存在或已合并");
 
         BigDecimal beforeBalance = member.getBalance() != null ? member.getBalance() : BigDecimal.ZERO;
         BigDecimal beforeCoupon = member.getCoupon() != null ? member.getCoupon() : BigDecimal.ZERO;
@@ -211,4 +212,6 @@ public class UmsMemberRechargeService {
         l.setCreateTime(LocalDateTime.now());
         return l;
     }
+
+    private Long currentTenantId() { return TenantContextHolder.getTenant() == null ? 0L : TenantContextHolder.getTenant(); }
 }

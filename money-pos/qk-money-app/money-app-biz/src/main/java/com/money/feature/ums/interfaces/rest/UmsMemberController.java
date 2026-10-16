@@ -6,6 +6,8 @@ import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.dto.UmsMember.MemberRankVO;
 import com.money.dto.UmsMember.MemberGoodsRankVO;
 import com.money.dto.UmsMember.MemberMergePreviewVO;
+import com.money.dto.UmsMember.MemberMergeCommandDTO;
+import com.money.feature.ums.application.member.MemberMergeCommandService;
 import com.money.feature.ums.application.member.MemberMergePreviewService;
 import com.money.feature.ums.application.member.UmsMemberService;
 import com.money.web.dto.ValidGroup;
@@ -30,6 +32,7 @@ public class UmsMemberController {
 
     private final UmsMemberService umsMemberService;
     private final MemberMergePreviewService memberMergePreviewService;
+    private final MemberMergeCommandService memberMergeCommandService;
 
     @Operation(summary = "分页查询")
     @GetMapping
@@ -79,6 +82,13 @@ public class UmsMemberController {
     @PreAuthorize("@rbac.hasPermission('umsMember:edit')")
     public MemberMergePreviewVO mergePreview(@RequestParam Long sourceMemberId, @RequestParam Long targetMemberId) {
         return memberMergePreviewService.preview(sourceMemberId, targetMemberId);
+    }
+
+    @Operation(summary = "合并重复会员档案")
+    @PostMapping("/merge")
+    @PreAuthorize("@rbac.hasPermission('umsMember:edit')")
+    public void merge(@Validated @RequestBody MemberMergeCommandDTO command) {
+        memberMergeCommandService.merge(command);
     }
 
     @GetMapping("/dormant")

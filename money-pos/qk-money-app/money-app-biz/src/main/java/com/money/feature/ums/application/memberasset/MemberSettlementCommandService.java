@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.constant.CouponStatusEnum;
 import com.money.contract.member.MemberSettlementCommand;
 import com.money.contract.member.MemberSettlementCommandHandler;
+import com.money.context.TenantContextHolder;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
@@ -34,6 +35,9 @@ class MemberSettlementCommandService implements MemberSettlementCommandHandler {
         if (command == null || command.getMemberId() == null || command.getOrderNo() == null) {
             throw new BaseException("会员结算命令不完整");
         }
+        if (umsMemberMapper.selectActiveByIdForUpdate(command.getMemberId(), currentTenantId()) == null) {
+            throw new BaseException("会员不存在或已合并");
+        }
         LocalDateTime now = LocalDateTime.now();
         memberAssetService.consume(
                 command.getMemberId(), command.getFinalPayAmount(), command.getMemberCouponDeduct(), command.getOrderNo());
@@ -55,6 +59,8 @@ class MemberSettlementCommandService implements MemberSettlementCommandHandler {
         update.setLastVisitTime(now);
         umsMemberMapper.updateById(update);
     }
+
+    private Long currentTenantId() { return TenantContextHolder.getTenant() == null ? 0L : TenantContextHolder.getTenant(); }
 
     private void consumeVouchers(MemberSettlementCommand command, LocalDateTime now) {
         int count = command.getVoucherCount() == null ? 0 : command.getVoucherCount();

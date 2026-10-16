@@ -88,4 +88,11 @@ public interface UmsMemberMapper extends BaseMapper<UmsMember> {
             "WHERE id = #{id}" +
             "</script>")
     int processReturnAsset(@Param("id") Long id, @Param("amount") BigDecimal amount, @Param("coupon") BigDecimal coupon, @Param("increaseCancelTimes") boolean increaseCancelTimes);
+
+    /** Locks an active member before a state-changing UMS command. */
+    @Select("SELECT * FROM ums_member WHERE id = #{id} AND tenant_id = #{tenantId} AND deleted = 0 FOR UPDATE")
+    UmsMember selectActiveByIdForUpdate(@Param("id") Long id, @Param("tenantId") Long tenantId);
+
+    @Select("SELECT * FROM ums_member WHERE id = #{id} AND tenant_id = #{tenantId} FOR UPDATE")
+    UmsMember selectByIdForUpdate(@Param("id") Long id, @Param("tenantId") Long tenantId);
 }
