@@ -639,8 +639,9 @@ Entity-free 跨 Feature 契约保持完整；同时存在周转 GET 写快照、
 
 ## Exact next action
 
-选择并冻结一个 GMS 最小优化设计（建议先 GMS-OPT-1 周转快照读写分离），或明确跳过 GMS 优化后开始 FCO-2 UMS 只读审查；
-在选择前不修改 GMS 业务代码。
+等待新的用户确认任务。SYS-OPT-3 已以一次性票据保护备份 SSE 的 EventSource 兼容通道；SYS-OPT-4 的生产只读盘点
+确认 `sys_strategy` 只有一行，`V1.0.22` 已保护后续单例完整性。后续不得将 SSE 改回长期 JWT URL，且若任何已部署环境
+在应用 `V1.0.22` 前发现策略重复行，必须先人工决定数据处置，不能自动删除或合并。
 
 ## Handoff rule
 

@@ -101,10 +101,14 @@ let sseSource = null;
 // ==========================================
 // 开启 SSE 实时监听通道，并复用 Axios 已确定的运行时基址。
 // ==========================================
-const initSseListener = () => {
+const initSseListener = async () => {
     const baseUrl = getApiBaseUrl();
-
-    const sseUrl = `${baseUrl.replace(/\/$/, '')}/sys/backup/stream`;
+    const ticketResponse = await req({ url: '/sys/backup/stream-ticket', method: 'post' });
+    const ticket = ticketResponse?.data?.ticket;
+    if (!ticket) {
+        throw new Error('未能获取备份日志连接凭据');
+    }
+    const sseUrl = `${baseUrl.replace(/\/$/, '')}/sys/backup/stream?ticket=${encodeURIComponent(ticket)}`;
 
     sseSource = new EventSource(sseUrl);
 
@@ -130,7 +134,7 @@ const initSseListener = () => {
 };
 
 onMounted(() => {
-    initSseListener();
+    initSseListener().catch((error) => console.error('初始化备份日志连接失败:', error));
 });
 
 onUnmounted(() => {

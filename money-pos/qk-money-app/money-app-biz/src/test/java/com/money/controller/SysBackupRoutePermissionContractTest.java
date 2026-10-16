@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,10 @@ class SysBackupRoutePermissionContractTest {
         Method restore = SysBackupController.class.getMethod("restoreBackup", MultipartFile.class);
         assertThat(restore.getAnnotation(PostMapping.class).value()).containsExactly("/restore");
         assertSuperAdministratorOnly(restore);
+
+        Method issueTicket = SysBackupController.class.getMethod("issueStreamTicket");
+        assertThat(issueTicket.getAnnotation(PostMapping.class).value()).containsExactly("/stream-ticket");
+        assertSuperAdministratorOnly(issueTicket);
     }
 
     private void assertSuperAdministratorOnly(Method method) {

@@ -231,3 +231,13 @@ Electron 与浏览器中正确解析到既有本地 assets 路由。租户新增
 操作，成功后清除浏览器会话及 POS 记忆登录名并回到后台登录页。未改变 JWT claim、登录/刷新/注销协议、通用用户编辑、
 角色模型或历史审计字段。专项 3 项、隔离全量 Maven 回归（168 项）、打包、前端 Node 20 生产构建、两项架构扫描与
 `git diff --check` 均通过。
+
+**完成记录（2026-10-16）：** SYS-OPT-3 已按
+`MoneyPOS-SYS-OPT-3-Backup-SSE-Authentication-Implementation-Contract.md` 完成。备份控制台先由既有
+`SUPER_ADMIN` Bearer 路径取得短时、一次性内存票据；保留 EventSource 所需的匿名传输端点，但只有原子消费有效票据后
+才建立 SSE。长期 JWT 不进入 URL，导出/还原、SSE payload、自动备份广播、权限码、菜单和迁移均未改变。
+
+**完成记录（2026-10-16）：** SYS-OPT-4 已按
+`MoneyPOS-SYS-OPT-4-Global-Strategy-Singleton-Implementation-Contract.md` 完成。只读盘点确认生产策略表仅有 ID 1 的
+一行；`V1.0.22` 使用固定单例键唯一索引阻止未来第二行。迁移不会改写数据，若其他环境已有重复行则会安全失败并要求
+人工处置。读取增加稳定 ID 排序；现有更新路由、策略字段及跨 Feature 快照契约未改变。

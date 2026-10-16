@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.dao.DuplicateKeyException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -20,7 +22,7 @@ class SysStrategyMapperIntegrationTest {
     private SysStrategyMapper strategyMapper;
 
     @Test
-    void mapperCrudUsesSysLocalStrategyEntity() {
+    void globalStrategyTableRejectsASecondRow() {
         SysStrategy strategy = new SysStrategy();
         strategy.setTrafficOrderThreshold(new BigDecimal("1.00"));
         strategy.setTrafficValueThreshold(new BigDecimal("50.00"));
@@ -31,24 +33,7 @@ class SysStrategyMapperIntegrationTest {
         strategy.setMonthlyAnalysisDays(180);
         strategy.setTenantId(0L);
 
-        assertThat(strategyMapper.insert(strategy)).isEqualTo(1);
-        assertThat(strategy.getId()).isNotNull();
-
-        SysStrategy persisted = strategyMapper.selectById(strategy.getId());
-        assertThat(persisted).extracting(
-                        SysStrategy::getTrafficOrderThreshold,
-                        SysStrategy::getTrafficValueThreshold,
-                        SysStrategy::getTurnoverLeadTime,
-                        SysStrategy::getTurnoverTargetDays,
-                        SysStrategy::getDeadStockDays,
-                        SysStrategy::getWeeklyAnalysisDays,
-                        SysStrategy::getMonthlyAnalysisDays,
-                        SysStrategy::getTenantId)
-                .containsExactly(new BigDecimal("1.00"), new BigDecimal("50.00"), 3, 14, 60, 90, 180, 0L);
-
-        strategy.setDeadStockDays(61);
-        assertThat(strategyMapper.updateById(strategy)).isEqualTo(1);
-        assertThat(strategyMapper.selectById(strategy.getId()).getDeadStockDays()).isEqualTo(61);
-        assertThat(strategyMapper.deleteById(strategy.getId())).isEqualTo(1);
+        assertThat(strategyMapper.getGlobalStrategy()).isNotNull();
+        assertThatThrownBy(() -> strategyMapper.insert(strategy)).isInstanceOf(DuplicateKeyException.class);
     }
 }

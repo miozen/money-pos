@@ -3,11 +3,14 @@ package com.money.controller;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import com.money.service.SysBackupService;
+import com.money.service.SysBackupStreamTicketService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +34,25 @@ import java.util.Map;
 public class SysBackupController {
 
     private final SysBackupService sysBackupService;
+    private final SysBackupStreamTicketService sysBackupStreamTicketService;
 
     // ==========================================
     // 🌟 核心新增：实时日志大屏 SSE 通道
     // ==========================================
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "开启实时日志大屏通道")
-    public SseEmitter streamLogs() {
+    public SseEmitter streamLogs(@RequestParam("ticket") String ticket) {
+        if (!sysBackupStreamTicketService.consumeTicket(ticket)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "备份日志连接凭据无效或已过期");
+        }
         return sysBackupService.createSseEmitter();
+    }
+
+    @PostMapping("/stream-ticket")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN')")
+    @Operation(summary = "获取一次性备份日志连接凭据")
+    public Map<String, String> issueStreamTicket() {
+        return Map.of("ticket", sysBackupStreamTicketService.issueTicket());
     }
 
     @GetMapping("/export")
