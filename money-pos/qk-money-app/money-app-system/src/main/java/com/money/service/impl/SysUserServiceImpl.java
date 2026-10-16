@@ -7,17 +7,21 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.money.web.exception.BaseException;
+import com.money.web.response.RStatus;
 import com.money.web.vo.PageVO;
 import com.money.constant.SysErrorStatus;
 import com.money.dto.ChangePasswordDTO;
+import com.money.dto.ChangeUsernameDTO;
 import com.money.dto.SysUserDTO;
 import com.money.dto.UpdateProfileDTO;
 import com.money.dto.query.SysUserPageQueryDTO;
 import com.money.entity.SysUser;
 import com.money.entity.SysUserRoleRelation;
+import com.money.entity.SysUsernameReservation;
 import com.money.entity.SysRole;
 import com.money.entity.SysPermission;
 import com.money.mapper.SysUserMapper;
+import com.money.mapper.SysUsernameReservationMapper;
 import com.money.oss.OSSDelegate;
 import com.money.oss.core.FileNameStrategy;
 import com.money.oss.core.FolderPath;
@@ -25,6 +29,7 @@ import com.money.oss.local.LocalOSS;
 import com.money.service.SysRoleService;
 import com.money.service.SysPermissionService;
 import com.money.service.SysUserService;
+import com.money.security.component.SecurityTokenSupport;
 import com.money.util.PageUtil;
 import com.money.vo.SysUserVO;
 import com.money.vo.LoginCandidateVO;
@@ -33,9 +38,13 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,6 +57,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final PasswordEncoder passwordEncoder;
     private final OSSDelegate<LocalOSS> localOSS;
+    private final SecurityTokenSupport securityTokenSupport;
+    private final SysUsernameReservationMapper sysUsernameReservationMapper;
 
     private final SysRoleService sysRoleService;
     private final SysPermissionService sysPermissionService;
@@ -128,6 +139,38 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.updateById(sysUser);
     }
 
+    @Override
+    public void changeOwnUsername(Long userId, ChangeUsernameDTO changeUsernameDTO) {
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BaseException(SysErrorStatus.DATA_NOT_FOUND);
+        }
+        boolean superAdmin = sysRoleService.getByUser(userId).stream()
+                .anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleCode()));
+        if (!superAdmin) {
+            throw new BaseException(RStatus.FORBIDDEN);
+        }
+
+        String oldUsername = sysUser.getUsername();
+        String newUsername = changeUsernameDTO.getUsername().trim();
+        if (oldUsername.equals(newUsername)) {
+            throw new BaseException(SysErrorStatus.DATA_ALREADY_EXIST, "新登录名不能与当前登录名相同");
+        }
+        assertUsernameAvailable(newUsername);
+
+        long reservationTtl = Math.max(securityTokenSupport.getTokenConfig().getTtl(),
+                securityTokenSupport.getTokenConfig().getRefreshTtl());
+        SysUsernameReservation reservation = new SysUsernameReservation();
+        reservation.setUsername(oldUsername);
+        reservation.setExpiresAt(LocalDateTime.now().plus(Duration.ofMillis(reservationTtl)));
+        reservation.setTenantId(sysUser.getTenantId());
+        sysUsernameReservationMapper.insert(reservation);
+
+        sysUser.setUsername(newUsername);
+        this.updateById(sysUser);
+        invalidateOldUsernameTokensAfterCommit(oldUsername);
+    }
+
     // ============================================================
 
     @Override
@@ -151,9 +194,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public void add(SysUserDTO sysUserDTO) {
         // 唯一性判断
-        if (this.getByUsername(sysUserDTO.getUsername()) != null) {
-            throw new BaseException(SysErrorStatus.DATA_ALREADY_EXIST, "用户已存在");
-        }
+        assertUsernameAvailable(sysUserDTO.getUsername());
         SysUser sysUser = new SysUser();
         BeanUtil.copyProperties(sysUserDTO, sysUser);
         // 加密密码
@@ -194,6 +235,32 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.removeBatchByIds(ids);
         // 删除角色关联
         ids.forEach(sysRoleService::relevanceByUser);
+    }
+
+    private void assertUsernameAvailable(String username) {
+        LocalDateTime now = LocalDateTime.now();
+        sysUsernameReservationMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUsernameReservation>()
+                .eq(SysUsernameReservation::getUsername, username)
+                .le(SysUsernameReservation::getExpiresAt, now));
+        if (this.getByUsername(username) != null
+                || sysUsernameReservationMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUsernameReservation>()
+                .eq(SysUsernameReservation::getUsername, username)
+                .gt(SysUsernameReservation::getExpiresAt, now)) > 0) {
+            throw new BaseException(SysErrorStatus.DATA_ALREADY_EXIST, "用户已存在或登录名仍在保护期");
+        }
+    }
+
+    private void invalidateOldUsernameTokensAfterCommit(String username) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            securityTokenSupport.invalidateTokensForUsername(username);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                securityTokenSupport.invalidateTokensForUsername(username);
+            }
+        });
     }
 
 }

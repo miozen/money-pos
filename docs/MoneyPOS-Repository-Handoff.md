@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after SYS-FIX-3; `dev...origin/dev = 0/0`.** |
-| Current phase | `Feature consistency cycle — SYS-FIX-4 administrator self-username compatibility diagnosis next` |
+| Working tree | **SYS-FIX-4 implementation is complete locally and uncommitted.** |
+| Current phase | `Feature consistency cycle — SYS-FIX-4 closeout (commit, push, branch-sync) next` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -62,6 +62,21 @@ continuing.
 - Exact next action: freeze SYS-FIX-4's administrator self-username compatibility scope before code changes; audit
   JWT subject, token/cache invalidation and current-user session behavior before deciding whether a forced relogin is
   required.
+
+## Local SYS-FIX-4 validation state
+
+- Contract `MoneyPOS-SYS-FIX-4-Super-Admin-Self-Username-Implementation-Contract.md` is frozen and implemented
+  locally. `POST /users/changeUsername` is restricted to `SUPER_ADMIN` and always identifies the target from the
+  authenticated current user; general `PUT /users` still never changes usernames.
+- `V1.0.17` creates the tenant-scoped renamed-username reservation. A successful self-rename reserves the prior name
+  for the longer of access/refresh token TTL, prevents application user creation from reusing it, and clears old-name
+  access/refresh cache keys after commit. Personal Center exposes the action only for a super administrator and clears
+  the local access token plus `vanapos_remember_username` before redirecting to login.
+- Focused `SysUserUsernameChangeIntegrationTest` and `SecurityTokenSupportContractTest` passed (3 tests, 0 failures,
+  0 errors). Full isolated `mvn -q test` passed (168 tests, 0 failures, 0 errors); `mvn -q package -DskipTests`, Node
+  20 `npm run build`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new`, and
+  `git diff --check` passed.
+- Exact next action: inspect the diff, commit SYS-FIX-4, push `dev`, fetch, and verify `dev...origin/dev = 0/0`.
 
 ## Last completed reliable point
 

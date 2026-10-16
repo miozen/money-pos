@@ -5,6 +5,7 @@ import com.money.dto.query.SysUserPageQueryDTO;
 import com.money.web.dto.ValidGroup;
 import com.money.web.vo.PageVO;
 import com.money.dto.ChangePasswordDTO;
+import com.money.dto.ChangeUsernameDTO;
 import com.money.dto.SysUserDTO;
 import com.money.dto.UpdateProfileDTO;
 import com.money.security.SecurityGuard;
@@ -48,6 +49,13 @@ public class SysUserController {
     @PostMapping("/changePassword")
     public void changePassword(@CurrentUser String username, @Validated @RequestBody ChangePasswordDTO changePasswordDTO) {
         sysUserService.changePassword(username, changePasswordDTO);
+    }
+
+    @Operation(summary = "超级管理员修改本人登录名")
+    @PostMapping("/changeUsername")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN')")
+    public void changeUsername(@CurrentUser Long userId, @Validated @RequestBody ChangeUsernameDTO changeUsernameDTO) {
+        sysUserService.changeOwnUsername(userId, changeUsernameDTO);
     }
 
     @Operation(summary = "分页查询用户信息")

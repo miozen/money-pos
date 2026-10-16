@@ -63,6 +63,32 @@
                         </el-form-item>
                     </el-form>
                 </el-tab-pane>
+
+                <el-tab-pane v-if="isSuperAdmin" label="修改登录名" name="changeUsername">
+                    <el-alert
+                        title="修改后将立即退出，请使用新登录名重新登录；旧登录名在令牌有效期内不可复用。"
+                        type="warning"
+                        :closable="false"
+                        class="mb-4"
+                    />
+                    <el-form
+                        ref="changeUsernameFormRef"
+                        :model="changeUsernameForm"
+                        :rules="changeUsernameFormRules"
+                        label-width="auto"
+                        label-position="top"
+                    >
+                        <el-form-item label="当前登录名">
+                            <el-input :model-value="userStore.info?.username" disabled />
+                        </el-form-item>
+                        <el-form-item label="新登录名" prop="username">
+                            <el-input v-model.trim="changeUsernameForm.username" autocomplete="username" />
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" :loading="loading" @click="changeUsername">确认修改并重新登录</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
             </el-tabs>
         </el-card>
     </div>
@@ -72,12 +98,14 @@
 import { useGlobalProp } from '@/composables/globalProp.js';
 import { getToken } from '@/composables/token.js';
 import { useUserStore } from '@/store';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import userApi from '@/api/system/user.js';
 
 const globalProp = useGlobalProp();
 const userStore = useUserStore();
 const activeName = ref('base');
 const loading = ref(false);
+const isSuperAdmin = computed(() => userStore.roles?.some(role => role.roleCode === 'SUPER_ADMIN'));
 
 // 上传头像配置
 const uploadUrl = `${import.meta.env.VITE_BASE_URL}/users/uploadAvatar`;
@@ -132,6 +160,15 @@ const changePwdFormRule = {
     ],
 };
 
+const changeUsernameFormRef = ref();
+const changeUsernameForm = ref({ username: '' });
+const changeUsernameFormRules = {
+    username: [
+        { required: true, message: '请输入新登录名', trigger: 'blur' },
+        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' },
+    ],
+};
+
 // 头像上传成功回调
 function handleAvatarSuccess(response, file) {
     infoForm.value.avatar = URL.createObjectURL(file.raw);
@@ -167,6 +204,32 @@ async function changePassword() {
         globalProp.$message.success('密码修改成功');
     } catch (error) {
         console.error(error)
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function changeUsername() {
+    const valid = await changeUsernameFormRef.value.validate();
+    if (!valid) return;
+
+    try {
+        await globalProp.$confirm(
+            '修改后当前会话将立即退出，需使用新登录名重新登录。是否继续？',
+            '确认修改登录名',
+            { confirmButtonText: '确认修改', cancelButtonText: '取消', type: 'warning' },
+        );
+    } catch (_) {
+        return;
+    }
+
+    loading.value = true;
+    try {
+        await userApi.changeUsername(changeUsernameForm.value);
+        globalProp.$message.success('登录名修改成功，请重新登录');
+        userStore.forceReauthentication();
+    } catch (error) {
+        console.error(error);
     } finally {
         loading.value = false;
     }

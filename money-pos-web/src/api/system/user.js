@@ -31,4 +31,9 @@ export default {
         method: 'POST',
         data,
     }),
+    changeUsername: (data) => req({
+        url: '/users/changeUsername',
+        method: 'POST',
+        data,
+    }),
 }

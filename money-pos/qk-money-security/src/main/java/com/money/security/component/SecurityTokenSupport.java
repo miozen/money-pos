@@ -109,6 +109,15 @@ public class SecurityTokenSupport {
     }
 
     /**
+     * Invalidates every cached token for a login name. The default JWT strategy is intentionally a no-op;
+     * stateful strategies remove both access and refresh entries.
+     */
+    public void invalidateTokensForUsername(String username) {
+        tokenStrategy.invalidateToken(accessTokenCacheKey(username), null);
+        tokenStrategy.invalidateToken(refreshTokenCacheKey(username), null);
+    }
+
+    /**
      * 访问令牌的缓存键
      *
      * @param username 用户名

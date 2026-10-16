@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.money.dto.query.SysUserPageQueryDTO;
 import com.money.web.vo.PageVO;
 import com.money.dto.ChangePasswordDTO;
+import com.money.dto.ChangeUsernameDTO;
 import com.money.dto.SysUserDTO;
 import com.money.dto.UpdateProfileDTO;
 import com.money.entity.SysUser;
@@ -63,6 +64,9 @@ public interface SysUserService extends IService<SysUser> {
      * @param username          用户名
      */
     void changePassword(String username, ChangePasswordDTO changePasswordDTO);
+
+    /** Changes the authenticated super administrator's own login name and requires a new login afterwards. */
+    void changeOwnUsername(Long userId, ChangeUsernameDTO changeUsernameDTO);
 
     // ============================================================
 

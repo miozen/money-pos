@@ -184,3 +184,11 @@ SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描
 Electron 与浏览器中正确解析到既有本地 assets 路由。租户新增/修改显式固定 `logo` 文件 part 名称，并新增 MVC 绑定回归。
 未修改租户路由、字段、权限、数据、存储目录、文件格式、删除时机或多租户规则。专项、隔离全量 Maven 回归、后端打包、
 前端 Node 20 生产构建、两项架构扫描与 `git diff --check` 均通过。
+
+**完成记录（2026-10-16）：** SYS-FIX-4 已按
+`MoneyPOS-SYS-FIX-4-Super-Admin-Self-Username-Implementation-Contract.md` 完成。新增仅限 `SUPER_ADMIN` 的本人
+登录名修改路径；通用用户编辑仍禁止改名。改名事务会保留旧登录名至 access/refresh token 的最长有效期，新增用户同样
+不能在保护期内复用该名称；提交后会清理可用的旧用户名 access/refresh token 缓存键。个人中心仅向超级管理员显示该
+操作，成功后清除浏览器会话及 POS 记忆登录名并回到后台登录页。未改变 JWT claim、登录/刷新/注销协议、通用用户编辑、
+角色模型或历史审计字段。专项 3 项、隔离全量 Maven 回归（168 项）、打包、前端 Node 20 生产构建、两项架构扫描与
+`git diff --check` 均通过。

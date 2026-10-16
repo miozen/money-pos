@@ -96,6 +96,16 @@ export const useUserStore = defineStore('user', {
             removeToken()
             window.location.reload()
         },
+        /** Used after changing the login name: the old identity must not make another API call. */
+        forceReauthentication() {
+            this.info = null
+            this.roles = null
+            this.permissions = null
+            removeToken()
+            localStorage.removeItem('vanapos_remember_username')
+            window.location.hash = '#/login?entry=admin'
+            window.location.reload()
+        },
         /**
          * 更新信息
          * @param data
