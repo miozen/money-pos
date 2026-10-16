@@ -38,6 +38,9 @@ public class SysDictDetailDTO {
     @Schema(description = "英文描述")
     private String enDesc;
 
+    @Schema(description = "排序")
+    private Integer sort;
+
     @Schema(description = "是否隐藏")
     private Boolean hidden;
 

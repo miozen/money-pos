@@ -63,3 +63,10 @@ SYS-2/SYS-3 的待决事项均未改变。
 SYS-OPT-2 已按 `MoneyPOS-SYS-OPT-2-Backup-Administrator-Guard-Implementation-Contract.md` 完成：
 `GET /sys/backup/export` 与 `POST /sys/backup/restore` 现仅允许既有 `SUPER_ADMIN` 角色。备份 ZIP、流式下载、还原流程、
 响应和既有匿名 SSE 日志通道均未改变；SSE 认证仍为待决兼容性事项。
+
+## 审查后最小修复
+
+SYS-FIX-1 已按 `MoneyPOS-SYS-FIX-1-Dict-Detail-Sort-Persistence-Implementation-Contract.md` 完成。确认原
+`SysDictDetailDTO` 遗漏 `sort`，使既有对象复制不能写入用户提交的排序，数据库默认值 `999` 因而掩盖了该问题。仅补齐
+DTO 字段，复用既有服务与 `sort ASC` 读取逻辑；新增、修改和读取顺序已有隔离集成回归覆盖。未改变字典路由、权限、响应、
+数据库默认值或历史数据。

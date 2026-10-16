@@ -163,3 +163,10 @@ SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描
 **完成记录（2026-10-15）：** SYS-OPT-2 已完成。备份导出与还原路由均复用既有
 `@rbac.hasRole('SUPER_ADMIN')`，没有新增权限码、菜单、迁移、角色授权或业务流程；日常 SYS 配置仍仅要求认证。路由授权契约测试、
 隔离全量 Maven 回归、打包、两项架构扫描与 `git diff --check` 均通过。
+
+**完成记录（2026-10-16）：** SYS-FIX-1 已按
+`MoneyPOS-SYS-FIX-1-Dict-Detail-Sort-Persistence-Implementation-Contract.md` 完成。字典详情请求 DTO 现显式承载
+`sort`，既有服务对象复制与既有 `sort ASC` 查询因此能正确持久化新增和修改后的排序值；路由、权限、响应、数据库默认值及
+历史数据均未改变。新增隔离集成回归覆盖新增、修改与读取顺序。同步修正了 GMS 品牌策略集成测试在既有路由授权加固后过时的
+认证夹具，仅补入既有 `gmsBrand:list/edit` 权限，未改变生产授权或业务行为。专项、全量 Maven 回归、打包、两项架构扫描与
+`git diff --check` 均通过。
