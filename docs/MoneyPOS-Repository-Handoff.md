@@ -15,10 +15,23 @@ continuing.
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
 | Working tree | **Clean and synchronized after built-in menu icons; `dev...origin/dev = 0/0`.** |
-| Current phase | `Feature consistency cycle — await next approved SYS item` |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-0 complete` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
+
+## UMS-MERGE-0 contract state
+
+- User approved the minimal membership-data policy and its implementation sequence. The frozen contract is
+  `MoneyPOS-UMS-OPT-2-Member-Deletion-and-Merge-Implementation-Contract.md`.
+- Existing member deletion is no longer treated as a normal cancellation workflow: UMS-MERGE-1 will permit it only
+  for an empty erroneous profile, without clearing balance/coupon or renaming it. A duplicate with business history
+  must use a later manual merge flow.
+- The first merge version transfers only balance and `UNUSED` coupons. Quantity/amount rights and TARGET plans block
+  merging. Historic TRADE/UMS records retain their original member IDs. No automatic same-name merge, role/menu/code
+  broadening, or cross-feature Entity/Mapper dependency is permitted.
+- This slice is documentation-only. Exact next action: implement UMS-MERGE-1's all-or-nothing empty-profile deletion
+  guard; expose TRADE order existence only through a new narrow Entity-free `money-app-api` query contract.
 
 ## Local SYS-FIX-1 validation state
 
