@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after built-in menu icons; `dev...origin/dev = 0/0`.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-2 complete` |
+| Working tree | **Clean after UMS-MERGE-3 closure; awaiting push/fetch synchronization.** |
+| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-3 complete` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -27,7 +27,8 @@ continuing.
 - Existing member deletion is no longer treated as a normal cancellation workflow. UMS-MERGE-1 now permits it only
   for an empty erroneous profile, without clearing balance/coupon or renaming it. A duplicate with business history
   must use a later manual merge flow.
-- The first merge version transfers only balance and `UNUSED` coupons. Quantity/amount rights and TARGET plans block
+- The first merge version transfers only balance and `UNUSED` coupons. The amount-style `ums_member.coupon` credit is
+  not transferred or cleared: a nonzero value blocks merging for manual handling. Quantity/amount rights and TARGET plans block
   merging. Historic TRADE/UMS records retain their original member IDs. No automatic same-name merge, role/menu/code
   broadening, or cross-feature Entity/Mapper dependency is permitted.
 - UMS-MERGE-1 adds the narrow Entity-free `MemberOrderExistenceQuery` implemented by TRADE. The existing delete route
@@ -43,8 +44,14 @@ continuing.
 - `V1.0.20` adds the UMS-owned merge audit table. The new protected read-only preview returns two active member
   summaries, source order count, unused-coupon count and first-version benefit/TARGET blockers; it does not reserve,
   transfer or hide a member, and no execution route exists yet.
-- Exact next action: implement UMS-MERGE-3 as the only writer of this audit table and of balance/coupon transfer;
-  preserve the frozen no-right/no-TARGET merge guard and add idempotency/concurrency coverage before enabling it.
+- UMS-MERGE-3 is committed in `fd851ca` and awaits push/fetch synchronization. `POST /ums/member/merge` is the only audit
+  writer and transfers only balance plus `UNUSED` vouchers. It locks both members in deterministic order, has request-number
+  replay protection, records balance transfer logs and marks the source as merged/deleted with its target/time. `V1.0.21`
+  adds those source markers. Settlement, recharge and recharge reversal lock active members before writes.
+- Validation actually passed: focused `UmsMemberDeletionGuardIntegrationTest` (6/0/0), isolated `mvn -q clean test`
+  (28 Surefire reports, zero failures/errors), `mvn -q package -DskipTests`, both architecture gates and `git diff --check`.
+- Exact next action: push `fd851ca` and this handoff closure, fetch and verify `dev...origin/dev = 0/0`; then begin
+  UMS-MERGE-4's management UI only after sync.
 
 ## Local SYS-FIX-1 validation state
 
