@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **SYS-FIX-3 is locally validated and ready to commit; do not hand off across machines until committed and pushed.** |
-| Current phase | `SYS-FIX-3 tenant-logo upload compatibility — ready to commit` |
+| Working tree | **SYS-FIX-3 implementation commit `7ce64af` is pushed; this handoff-closure update is local and must be committed and pushed before cross-machine handoff.** |
+| Current phase | `SYS-FIX-3 tenant-logo upload compatibility — closure synchronization pending` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -51,13 +51,15 @@ continuing.
 
 ## Local SYS-FIX-3 validation state
 
-- Uncommitted local files freeze and implement tenant Logo compatibility only: Axios and asset URLs use one runtime
-  backend base URL, `blob:`/`data:` previews are not rewritten, and the tenant Controller explicitly names the
-  established `logo` multipart part. No tenant route, data, permission, storage directory or file contract changes.
+- Implementation commit `7ce64af` (`fix(sys): support tenant logo uploads`) freezes and implements tenant Logo
+  compatibility only: Axios and asset URLs use one runtime backend base URL, `blob:`/`data:` previews are not
+  rewritten, and the tenant Controller explicitly names the established `logo` multipart part. It is pushed to
+  `origin/dev`; no tenant route, data, permission, storage directory or file contract changed.
 - `SysTenantMultipartContractTest` passed. It proves that the existing `tenant` JSON part and `logo` image part bind
   to `SysTenantController` and reach the service together. The isolated full `mvn -q test` passed; `mvn -q package
   -DskipTests`, Node 20 `npm run build`, both architecture gates, and `git diff --check` passed.
-- Exact next action: commit and push SYS-FIX-3, fetch and verify `dev...origin/dev`, then record synchronized handoff.
+- Exact next action: commit and push this closure update, fetch, verify `dev...origin/dev = 0/0`, then record the
+  final synchronized handoff state.
 
 ## Last completed reliable point
 
