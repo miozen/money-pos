@@ -2,7 +2,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import iconNames from 'virtual:svg-icons-names';
-import SvgIcon from '@/components/SvgIcon.vue';
+import MenuIcon from '@/components/MenuIcon.vue';
+import { builtInMenuIcons } from '@/constants/menuIcons.js';
 
 const { defaultIcon, dir } = defineProps({
     dir: {
@@ -25,10 +26,11 @@ const icons = computed(() =>
         .filter((name) => name.startsWith(prefix.value))
         .map((name) => name.replace(prefix.value, ''))
 );
+const options = computed(() => [...builtInMenuIcons, ...icons.value.map(value => ({ label: `历史 SVG：${value}`, value }))]);
 
 // 确保默认值为有效图标
-if (!icons.value.includes(icon.value)) {
-    icon.value = icons.value[0] || '';
+if (!options.value.some(item => item.value === icon.value)) {
+    icon.value = options.value[0]?.value || '';
 }
 </script>
 
@@ -40,18 +42,18 @@ if (!icons.value.includes(icon.value)) {
         @change="(value) => $emit('selected', value)"
     >
         <template #prefix>
-            <SvgIcon :dir="dir" :name="icon" class="w-4 h-4" />
+        <MenuIcon :name="icon" class="w-4 h-4" />
         </template>
         <div class="grid grid-cols-3 px-1">
             <el-option
-                v-for="item in icons"
-                :key="item"
-                :label="item"
-                :value="item"
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
                 class="flex items-center gap-1"
             >
-                <span><SvgIcon :dir="dir" :name="item" class="w-4 h-4" /></span>
-                <span>{{ item }}</span>
+                <span><MenuIcon :name="item.value" class="w-4 h-4" /></span>
+                <span>{{ item.label }}</span>
             </el-option>
         </div>
     </el-select>

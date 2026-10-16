@@ -66,6 +66,7 @@ declare module 'vue' {
     IconSelect: typeof import('./src/components/IconSelect.vue')['default']
     MemberProfileModal: typeof import('./src/components/common/MemberProfileModal.vue')['default']
     MemberSmartSearch: typeof import('./src/components/common/MemberSmartSearch.vue')['default']
+    MenuIcon: typeof import('./src/components/MenuIcon.vue')['default']
     MoneyCrudTable: typeof import('./src/components/Crud/MoneyCrudTable.vue')['default']
     MoneyCUD: typeof import('./src/components/Crud/MoneyCUD.vue')['default']
     MoneyDisplay: typeof import('./src/components/common/MoneyDisplay.vue')['default']

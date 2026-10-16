@@ -17,7 +17,7 @@
                 {{ dict.permissionTypeKv[scope.row.permissionType] }}
             </template>
             <template #icon="{scope}">
-                <svg-icon v-if="scope.row.icon" :name="scope.row.icon" dir="open" />
+                <MenuIcon v-if="scope.row.icon" :name="scope.row.icon" />
             </template>
             <template #hidden="{scope}">
                 <el-tag v-if="scope.row.hidden" type="info">是</el-tag>
@@ -114,6 +114,7 @@ import permissionApi from "@/api/system/permission.js";
 import dictApi from "@/api/system/dict.js";
 import {useUserStore} from "@/store/index.js";
 import IconSelect from "@/components/IconSelect.vue";
+import MenuIcon from "@/components/MenuIcon.vue";
 
 const userStore = useUserStore()
 const columns = [
@@ -170,7 +171,7 @@ const moneyCrud = ref(new MoneyCrud({
     isPage: false,
     crudMethod: permissionApi,
     defaultForm: {
-        icon: 'app',
+        icon: 'el:Setting',
         permissionType: 'DIR',
         parentId: null,
         sort: 999,
