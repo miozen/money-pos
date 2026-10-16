@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **SYS-FIX-2 implementation commit `0f598d5` is pushed; this handoff-closure update is local and must be committed and pushed before cross-machine handoff.** |
-| Current phase | `SYS-FIX-2 backup console log reliability — closure synchronization pending` |
+| Working tree | **Clean and synchronized after SYS-FIX-2; `dev...origin/dev = 0/0`.** |
+| Current phase | `Feature consistency cycle — SYS-FIX-3 tenant-logo upload diagnosis next` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -44,8 +44,10 @@ continuing.
 - `SysBackupServiceSseLogTest` passed. It proves that quoted, line-broken process text remains a parseable SSE JSON
   payload. The isolated full `mvn -q test` passed; `mvn -q package -DskipTests`, Node 20 `npm run build`, both
   architecture gates, and `git diff --check` passed.
-- Exact next action: commit and push this closure update, fetch, verify `dev...origin/dev = 0/0`, then record the
-  final synchronized handoff state.
+- The handoff closure is committed in `6399a2f` and synchronized after fetching `origin`: `dev...origin/dev = 0/0`.
+- Exact next action: freeze SYS-FIX-3's tenant-logo upload diagnosis and minimal compatibility scope before code
+  changes; preserve tenant routes, existing multipart conventions, storage behavior and authorization model unless the
+  evidence proves a narrow correction is necessary.
 
 ## Last completed reliable point
 
