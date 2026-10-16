@@ -1,0 +1,10 @@
+name = "omnia-cloud"
+main = "src/index.js"
+compatibility_date = "2026-10-16"
+
+# Bind this name to the independently provisioned D1 database at deployment time.
+# Do not put a database id, sync key, Telegram token, or production hostname in Git.
+[[d1_databases]]
+binding = "DB"
+database_name = "omnia-cloud"
+database_id = "REPLACE_DURING_AUTHORIZED_DEPLOYMENT"

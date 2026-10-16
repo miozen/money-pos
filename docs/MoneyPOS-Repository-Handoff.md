@@ -14,11 +14,18 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean and synchronized after UMS-OPT-2 closure; `dev...origin/dev = 0/0`.** |
-| Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — closed` |
-| Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
+| Working tree | Cloud receiver slice is in progress locally; inspect Git status before handoff. |
+| Current phase | `OMNIA-CLOUD-2 Worker/D1 signed member-snapshot receiver` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-2-Worker-D1-Receiver-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
+
+## OMNIA-CLOUD-1 / OMNIA-CLOUD-2 state
+
+- `fc6e01e` (`feat(ums): add local member cloud sync outbox`) is pushed and synchronized. It introduces only the local UMS snapshot/outbox foundation (`V1.0.23`); MariaDB remains authoritative and its default dispatcher makes no external call.
+- OMNIA-CLOUD-2 adds the independently deployable `omnia-cloud` receiver skeleton, append-only D1 migration `0001`, signed internal batch route, nonce replay protection and versioned D1 upsert. It contains no Cloudflare account identifier, secret, database instance, deployment command, public query route, webpage or Telegram integration.
+- The receiver accepts only transformed query material. It rejects raw phone fields, and a future authorized HTTPS publisher must transform UMS snapshots before sending them. The current Java dispatcher remains intentionally non-networked.
+- Local Node 20 receiver tests and repository architecture gates are the required verification before this slice can close. Exact next action: run those checks, commit/push the receiver slice and verify branch synchronization. The next functional slice is an explicitly authorized local HTTPS publisher plus isolated Cloudflare environment integration; do not expose a query endpoint first.
 
 ## UMS-MERGE-0 contract state
 
