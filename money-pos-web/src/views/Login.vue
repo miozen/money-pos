@@ -58,27 +58,15 @@
                 </el-button>
             </el-form>
 
-            <!-- 开发环境快捷登录 -->
-            <div v-if="noProd" class="quick-login-container">
+            <!-- 开发环境快捷选择：不保存用户名或密码，始终使用当前候选账号。 -->
+            <div v-if="noProd && loginCandidates.length" class="quick-login-container">
                 <el-tag
+                    v-for="candidate in loginCandidates"
+                    :key="candidate.username"
                     class="quick-login-tag"
-                    type="danger"
-                    @click="() => { loginForm.username = 'vana'; loginForm.password = '123' }"
+                    @click="selectQuickCandidate(candidate.username)"
                 >
-                    超级管理员
-                </el-tag>
-                <el-tag
-                    class="quick-login-tag"
-                    type="success"
-                    @click="() => { loginForm.username = 'admin'; loginForm.password = '123456' }"
-                >
-                    管理员
-                </el-tag>
-                <el-tag
-                    class="quick-login-tag"
-                    @click="() => { loginForm.username = 'guest'; loginForm.password = '123456' }"
-                >
-                    游客
+                    {{ candidate.displayName === candidate.username ? candidate.username : `${candidate.displayName}（${candidate.username}）` }}
                 </el-tag>
             </div>
         </div>
@@ -140,6 +128,11 @@ async function loadLoginCandidates() {
     } finally {
         candidateLoading.value = false;
     }
+}
+
+function selectQuickCandidate(username) {
+    loginForm.value.username = username;
+    nextTick(() => passwordInputRef.value?.focus());
 }
 
 async function login() {

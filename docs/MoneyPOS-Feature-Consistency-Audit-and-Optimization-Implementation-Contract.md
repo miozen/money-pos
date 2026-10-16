@@ -171,6 +171,11 @@ SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描
 认证夹具，仅补入既有 `gmsBrand:list/edit` 权限，未改变生产授权或业务行为。专项、全量 Maven 回归、打包、两项架构扫描与
 `git diff --check` 均通过。
 
+**完成记录（2026-10-16）：** SYS-FIX-5 已按
+`MoneyPOS-SYS-FIX-5-Development-Login-Shortcut-Compatibility-Implementation-Contract.md` 完成。非生产登录页的快捷
+账号改为复用既有实时登录候选，只选择当前用户名并聚焦密码输入，不再硬编码用户名或密码；生产/Electron 不渲染该区域。
+认证接口、候选接口、权限和 token 行为均未改变。前端 Node 20 生产构建、两项架构扫描与 `git diff --check` 均通过。
+
 **完成记录（2026-10-16）：** SYS-FIX-2 已按
 `MoneyPOS-SYS-FIX-2-Backup-Console-Log-Reliability-Implementation-Contract.md` 完成。备份控制台 SSE 现复用 Axios 的
 运行时后端基址，Electron `file://` 包与普通 Web 环境均指向同一服务；服务端事件改由 JSON 序列化，包含引号、反斜杠或
