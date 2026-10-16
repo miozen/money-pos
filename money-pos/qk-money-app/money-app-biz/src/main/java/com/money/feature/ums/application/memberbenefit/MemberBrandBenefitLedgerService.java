@@ -20,6 +20,7 @@ import com.money.contract.member.MemberBrandBenefitTierQuery;
 import com.money.contract.member.MemberBrandBenefitTierSnapshot;
 import com.money.contract.member.MemberTargetPlanQuery;
 import com.money.contract.member.MemberTargetPlanSnapshot;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
 import com.money.feature.ums.infrastructure.persistence.mapper.*;
 import com.money.mapper.UmsMemberBrandLevelMapper;
@@ -50,6 +51,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
     private final UmsMemberTargetPlanMapper targetPlanMapper;
     private final UmsMemberTargetProgressLogMapper targetLogMapper;
     private final UmsMemberBrandLevelMapper brandLevelMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,6 +69,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         quantityRightMapper.insert(right);
         quantityLogMapper.insert(quantityLog(right.getId(), "GRANT", c.getQuantity(), 0, c.getQuantity(), c.getRequestNo(),
                 "TRADE_ORDER", c.getSourceOrderNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(right.getMemberId());
         return right.getId();
     }
 
@@ -85,6 +88,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         require(quantityRightMapper.changeBalance(right.getId(), c.getDelta(), pickedDelta) == 1, "数量权益并发更新失败");
         quantityLogMapper.insert(quantityLog(right.getId(), c.getAction(), c.getDelta(), before, after, c.getRequestNo(),
                 c.getSourceType(), c.getSourceNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(right.getMemberId());
     }
 
     @Override
@@ -104,6 +108,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         right.setCreateRequestNo(c.getRequestNo()); right.setStatus("ACTIVE"); amountRightMapper.insert(right);
         amountLogMapper.insert(amountLog(right.getId(), "GRANT", c.getAmount(), BigDecimal.ZERO, c.getAmount(), c.getRequestNo(),
                 "BUSINESS_RECEIPT", c.getSourceReceiptNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(right.getMemberId());
         return right.getId();
     }
 
@@ -120,6 +125,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         require(amountRightMapper.changeBalance(right.getId(), c.getDelta()) == 1, "金额权益并发更新失败");
         amountLogMapper.insert(amountLog(right.getId(), c.getAction(), c.getDelta(), before, after, c.getRequestNo(),
                 c.getSourceType(), c.getSourceNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(right.getMemberId());
     }
 
     @Override
@@ -141,6 +147,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         plan.setRemark(blank(c.getReason())); plan.setCreateRequestNo(c.getRequestNo()); targetPlanMapper.insert(plan);
         targetLogMapper.insert(targetLog(plan.getId(), "INITIAL_PROGRESS", initial, BigDecimal.ZERO, initial, c.getRequestNo(),
                 c.getSourceType(), c.getSourceNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(plan.getMemberId());
         return plan.getId();
     }
 
@@ -157,6 +164,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         require(targetPlanMapper.changeProgress(plan.getId(), c.getDelta()) == 1, "TARGET进度并发更新失败");
         targetLogMapper.insert(targetLog(plan.getId(), c.getAction(), c.getDelta(), before, after, c.getRequestNo(),
                 c.getSourceType(), c.getSourceNo(), c.getOperatorName(), c.getReason()));
+        cloudSyncOutboxService.markUpsert(plan.getMemberId());
     }
 
     @Override
@@ -170,6 +178,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         targetPlanMapper.confirm(planId, operatorName, reason);
         targetLogMapper.insert(targetLog(planId, "MANUAL_CONFIRM", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
                 "TARGET_MANUAL_CONFIRM", null, operatorName, reason));
+        cloudSyncOutboxService.markUpsert(plan.getMemberId());
     }
 
     @Override
@@ -182,6 +191,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         targetPlanMapper.markReviewRequired(planId);
         targetLogMapper.insert(targetLog(planId, "REFUND_REVIEW_REQUIRED", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
                 "TARGET_SALE_REFUND", sourceNo, null, reason));
+        cloudSyncOutboxService.markUpsert(plan.getMemberId());
     }
 
     @Override
@@ -198,6 +208,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         require(targetPlanMapper.cancel(planId, requestNo, blank(operatorName), reason.trim()) == 1, "TARGET计划取消失败");
         targetLogMapper.insert(targetLog(planId, "CANCELLED", BigDecimal.ZERO, plan.getProgressAmount(), plan.getProgressAmount(), requestNo,
                 "TARGET_PLAN", String.valueOf(planId), operatorName, reason));
+        cloudSyncOutboxService.markUpsert(plan.getMemberId());
     }
 
     @Override
@@ -237,7 +248,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
         if (current == null) {
             UmsMemberBrandLevel created = new UmsMemberBrandLevel();
             created.setMemberId(memberId); created.setBrand(brandId); created.setLevelCode(candidate.getPricingLevelCode());
-            brandLevelMapper.insert(created); return;
+            brandLevelMapper.insert(created); cloudSyncOutboxService.markUpsert(memberId); return;
         }
         UmsBrandBenefitTier currentTier = tierMapper.selectOne(new LambdaQueryWrapper<UmsBrandBenefitTier>()
                 .eq(UmsBrandBenefitTier::getBrandId, brandId)
@@ -247,6 +258,7 @@ public class MemberBrandBenefitLedgerService implements MemberBrandBenefitLedger
             UmsMemberBrandLevel update = new UmsMemberBrandLevel();
             update.setId(current.getId()); update.setLevelCode(candidate.getPricingLevelCode());
             brandLevelMapper.updateById(update);
+            cloudSyncOutboxService.markUpsert(memberId);
         }
     }
 

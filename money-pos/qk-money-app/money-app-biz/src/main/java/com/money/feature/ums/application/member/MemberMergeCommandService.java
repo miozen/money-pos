@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.context.TenantContextHolder;
 import com.money.dto.UmsMember.MemberMergeCommandDTO;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
@@ -38,6 +39,7 @@ public class MemberMergeCommandService {
     private final UmsMemberQuantityRightMapper quantityRightMapper;
     private final UmsMemberAmountRightMapper amountRightMapper;
     private final UmsMemberTargetPlanMapper targetPlanMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     @Transactional(rollbackFor = Exception.class)
     public void merge(MemberMergeCommandDTO command) {
@@ -101,6 +103,8 @@ public class MemberMergeCommandService {
 
         audit.setStatus("COMPLETED"); audit.setCompleteTime(now);
         mergeMapper.updateById(audit);
+        cloudSyncOutboxService.markUpsert(target.getId());
+        cloudSyncOutboxService.markTombstone(source.getId());
     }
 
     private void requireTransferEligible(UmsMember source) {

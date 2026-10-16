@@ -2,6 +2,7 @@ package com.money.feature.ums.application.memberasset;
 
 import com.money.contract.member.MemberBalancePaymentCommand;
 import com.money.contract.member.MemberBalancePaymentCommandHandler;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class MemberBalancePaymentCommandService implements MemberBalancePaymentCommandHandler {
     private final UmsMemberAssetService memberAssetService;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     @Override @Transactional(rollbackFor = Exception.class)
     public void handle(MemberBalancePaymentCommand command) {
@@ -21,5 +23,6 @@ class MemberBalancePaymentCommandService implements MemberBalancePaymentCommandH
         }
         if (command.isRefund()) memberAssetService.addBalance(command.getMemberId(), command.getAmount(), command.getReceiptNo(), "业务凭证退款");
         else memberAssetService.deductBalance(command.getMemberId(), command.getAmount(), command.getReceiptNo(), "业务凭证支付扣除");
+        cloudSyncOutboxService.markUpsert(command.getMemberId());
     }
 }

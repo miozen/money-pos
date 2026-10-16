@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.dto.Ums.RechargeDTO;
 import com.money.context.TenantContextHolder;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
@@ -32,6 +33,7 @@ public class UmsMemberRechargeService {
     private final UmsRechargeOrderMapper umsRechargeOrderMapper;
     private final UmsMemberLogMapper umsMemberLogMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     private static final String STATUS_PAID = "PAID";
     private static final String STATUS_VOID = "VOID";
@@ -107,6 +109,7 @@ public class UmsMemberRechargeService {
             // 🌟 重点：这里把真实张数存在了 Log 的 amount 字段里
             umsMemberLogMapper.insert(createLog(member, TYPE_VOUCHER, "RECHARGE", BigDecimal.valueOf(dto.getQuantity()), order.getRealAmount(), BigDecimal.valueOf(total), orderNo, "购买满减券"));
         }
+        cloudSyncOutboxService.markUpsert(member.getId());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -195,6 +198,7 @@ public class UmsMemberRechargeService {
         order.setStatus(STATUS_VOID);
         order.setRemark(order.getRemark() + " | 撤销原因：" + reason);
         umsRechargeOrderMapper.updateById(order);
+        cloudSyncOutboxService.markUpsert(member.getId());
     }
 
     private UmsMemberLog createLog(UmsMember m, String type, String opType, BigDecimal amt, BigDecimal realAmt, BigDecimal afterAmt, String orderNo, String remark) {

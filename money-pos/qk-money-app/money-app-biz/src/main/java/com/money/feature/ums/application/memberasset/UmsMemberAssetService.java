@@ -2,6 +2,7 @@ package com.money.feature.ums.application.memberasset;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.constant.BizErrorStatus;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
@@ -28,6 +29,7 @@ public class UmsMemberAssetService {
     private final UmsMemberMapper umsMemberMapper;
     private final UmsMemberLogMapper umsMemberLogMapper;
     private final UmsRechargeOrderMapper umsRechargeOrderMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     private static final String TYPE_BALANCE = "BALANCE";
     private static final String TYPE_COUPON = "COUPON";
@@ -78,6 +80,7 @@ public class UmsMemberAssetService {
         if (couponAmount != null && couponAmount.compareTo(BigDecimal.ZERO) > 0) {
             umsMemberLogMapper.insert(createLog(member, TYPE_COUPON, "CONSUME", couponAmount.negate(), BigDecimal.ZERO, beforeCoupon.subtract(couponAmount), orderNo, "订单自动抵扣会员券"));
         }
+        cloudSyncOutboxService.markUpsert(id);
     }
 
     public void deductBalance(Long memberId, BigDecimal amount, String orderNo, String remark) {
@@ -96,6 +99,7 @@ public class UmsMemberAssetService {
         }
 
         umsMemberLogMapper.insert(createLog(member, TYPE_BALANCE, "CONSUME", amount.negate(), BigDecimal.ZERO, beforeBalance.subtract(amount), orderNo, remark));
+        cloudSyncOutboxService.markUpsert(memberId);
     }
 
     // ==========================================
@@ -116,6 +120,7 @@ public class UmsMemberAssetService {
         umsMemberMapper.addBalanceAtomically(memberId, amount);
 
         umsMemberLogMapper.insert(createLog(member, TYPE_BALANCE, "REFUND", amount, BigDecimal.ZERO, beforeBalance.add(amount), orderNo, remark));
+        cloudSyncOutboxService.markUpsert(memberId);
     }
 
     public void logVoucherRefund(Long memberId, BigDecimal amount, BigDecimal afterAmount, String orderNo) {
@@ -150,6 +155,8 @@ public class UmsMemberAssetService {
 
         if (rows == 0) {
             log.warn("【数据预警】会员(ID:{})资产退回 SQL 未命中任何行", id);
+        } else {
+            cloudSyncOutboxService.markUpsert(id);
         }
     }
 

@@ -39,6 +39,7 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
     @Autowired private UmsMemberTargetProgressLogMapper targetLogMapper;
     @Autowired private UmsMemberBrandLevelMapper brandLevelMapper;
     @Autowired private MemberBenefitReadService readService;
+    @Autowired private CloudMemberSyncOutboxMapper cloudMemberSyncOutboxMapper;
 
     @BeforeEach void auth() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("test", "N/A"));
@@ -60,6 +61,10 @@ class MemberBrandBenefitLedgerServiceIntegrationTest {
         service.changeAmount(pickup); service.changeAmount(pickup);
         assertThat(amountRightMapper.selectById(rightId).getRemainingAmount()).isEqualByComparingTo("40");
         assertThat(amountLogMapper.selectCount(new LambdaQueryWrapper<UmsMemberAmountRightLog>().eq(UmsMemberAmountRightLog::getRightId, rightId))).isEqualTo(2);
+        assertThat(cloudMemberSyncOutboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, 91001L)))
+                .extracting(CloudMemberSyncOutbox::getOperation, CloudMemberSyncOutbox::getSnapshotVersion)
+                .containsExactly("UPSERT", 2L);
         pickup.setRequestNo("REQ-OVER-" + brand); pickup.setDelta(new BigDecimal("-41"));
         assertThatThrownBy(() -> service.changeAmount(pickup)).isInstanceOf(BaseException.class).hasMessageContaining("不足");
     }

@@ -6,6 +6,7 @@ import com.money.constant.CouponStatusEnum;
 import com.money.contract.member.MemberSettlementCommand;
 import com.money.contract.member.MemberSettlementCommandHandler;
 import com.money.context.TenantContextHolder;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
@@ -29,6 +30,7 @@ class MemberSettlementCommandService implements MemberSettlementCommandHandler {
     private final UmsMemberMapper umsMemberMapper;
     private final UmsMemberLogMapper umsMemberLogMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     @Override
     public void handle(MemberSettlementCommand command) {
@@ -58,6 +60,7 @@ class MemberSettlementCommandService implements MemberSettlementCommandHandler {
         update.setId(command.getMemberId());
         update.setLastVisitTime(now);
         umsMemberMapper.updateById(update);
+        cloudSyncOutboxService.markUpsert(command.getMemberId());
     }
 
     private Long currentTenantId() { return TenantContextHolder.getTenant() == null ? 0L : TenantContextHolder.getTenant(); }

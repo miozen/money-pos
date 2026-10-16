@@ -8,6 +8,7 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.money.contract.goods.BrandSelectionQuery;
 import com.money.contract.goods.BrandSelectionSnapshot;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
@@ -46,6 +47,7 @@ public class UmsMemberImportService {
     private final BrandSelectionQuery brandSelectionQuery;
     private final SysDictDetailService sysDictDetailService;
     private final UmsMemberLogMapper umsMemberLogMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     private static final String STATUS_UNUSED = "UNUSED";
     private static final String TYPE_BALANCE = "BALANCE";
@@ -67,6 +69,7 @@ public class UmsMemberImportService {
                 pc.setGetTime(now);
                 posMemberCouponMapper.insert(pc);
             }
+            cloudSyncOutboxService.markUpsert(memberId);
         }
     }
 
@@ -237,6 +240,7 @@ public class UmsMemberImportService {
                 }
                 umsMemberLogMapper.insert(createLog(targetLogMember, TYPE_VOUCHER, "IMPORT", BigDecimal.valueOf(vCount), BigDecimal.ZERO, BigDecimal.valueOf(vCount), "SYS_IMPORT", "导入初始满减券"));
             }
+            cloudSyncOutboxService.markUpsert(targetMemberId);
         }
 
         // 🌟 核心：组合漂亮的战报话术返回

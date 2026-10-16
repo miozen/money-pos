@@ -8,6 +8,8 @@ import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLev
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberMerge;
 import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberMergeMapper;
+import com.money.feature.ums.infrastructure.persistence.mapper.CloudMemberSyncOutboxMapper;
+import com.money.feature.ums.infrastructure.persistence.entity.CloudMemberSyncOutbox;
 import com.money.dto.UmsMember.MemberMergeCommandDTO;
 import com.money.mapper.OmsOrderMapper;
 import com.money.mapper.PosMemberCouponMapper;
@@ -51,6 +53,7 @@ class UmsMemberDeletionGuardIntegrationTest {
     @Autowired private UmsMemberBrandLevelMapper brandLevelMapper;
     @Autowired private UmsMemberMergeMapper memberMergeMapper;
     @Autowired private UmsMemberLogMapper memberLogMapper;
+    @Autowired private CloudMemberSyncOutboxMapper cloudMemberSyncOutboxMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -175,6 +178,10 @@ class UmsMemberDeletionGuardIntegrationTest {
         assertThat(couponMapper.selectById(used.getId()).getMemberId()).isEqualTo(source.getId());
         assertThat(memberMergeMapper.selectCount(new LambdaQueryWrapper<UmsMemberMerge>().eq(UmsMemberMerge::getSourceMemberId, source.getId()))).isEqualTo(1);
         assertThat(memberLogMapper.selectCount(new LambdaQueryWrapper<UmsMemberLog>().eq(UmsMemberLog::getOrderNo, command.getRequestNo()).eq(UmsMemberLog::getOperateType, "MERGE"))).isEqualTo(2);
+        assertThat(cloudMemberSyncOutboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, source.getId())).getOperation()).isEqualTo("TOMBSTONE");
+        assertThat(cloudMemberSyncOutboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, target.getId())).getOperation()).isEqualTo("UPSERT");
     }
 
     private MemberMergeCommandDTO command(Long sourceId, Long targetId, String reason) {

@@ -12,6 +12,7 @@ import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
 import com.money.contract.goods.BrandNameQuery;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
@@ -65,6 +66,7 @@ public class UmsMemberProfileService {
     // 🌟 注入双擎翻译服务
     private final SysDictDetailService sysDictDetailService;
     private final BrandNameQuery brandNameQuery;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
 
     private static final String STATUS_UNUSED = "UNUSED";
 
@@ -183,6 +185,7 @@ public class UmsMemberProfileService {
         umsMemberMapper.insert(umsMember);
 
         saveBrandLevels(umsMember.getId(), addDTO.getBrandLevels());
+        cloudSyncOutboxService.markUpsert(umsMember.getId());
     }
 
     public void update(UmsMemberDTO updateDTO) {
@@ -195,6 +198,7 @@ public class UmsMemberProfileService {
         umsMemberMapper.updateById(umsMember);
 
         saveBrandLevels(umsMember.getId(), updateDTO.getBrandLevels());
+        cloudSyncOutboxService.markUpsert(umsMember.getId());
     }
 
     public List<MemberGoodsRankVO> getTop20Goods(Long memberId) {
@@ -236,6 +240,7 @@ public class UmsMemberProfileService {
             updateEntity.setId(member.getId());
             updateEntity.setDeleted(true);
             umsMemberMapper.updateById(updateEntity);
+            cloudSyncOutboxService.markTombstone(member.getId());
         }
     }
 

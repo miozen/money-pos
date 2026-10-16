@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.money.contract.member.MemberRefundCommand;
 import com.money.contract.member.MemberRefundCommandHandler;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncOutboxService;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.mapper.PosMemberCouponMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 class MemberRefundCommandService implements MemberRefundCommandHandler {
     private final UmsMemberAssetService memberAssetService;
     private final PosMemberCouponMapper posMemberCouponMapper;
+    private final MemberCloudSyncOutboxService cloudSyncOutboxService;
     @Override
     public void handle(MemberRefundCommand command) {
         if (command == null || command.getMemberId() == null || command.getOrderNo() == null) {
@@ -33,6 +35,7 @@ class MemberRefundCommandService implements MemberRefundCommandHandler {
             memberAssetService.addBalance(
                     command.getMemberId(), command.getBalanceRefundAmount(), command.getOrderNo(), "整单退款:返还余额");
         }
+        cloudSyncOutboxService.markUpsert(command.getMemberId());
     }
 
     private void restoreVouchers(MemberRefundCommand command) {

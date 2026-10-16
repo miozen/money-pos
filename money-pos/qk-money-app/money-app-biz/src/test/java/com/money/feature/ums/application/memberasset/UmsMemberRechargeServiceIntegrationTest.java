@@ -5,6 +5,8 @@ import com.money.dto.Ums.RechargeDTO;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.entity.CloudMemberSyncOutbox;
+import com.money.feature.ums.infrastructure.persistence.mapper.CloudMemberSyncOutboxMapper;
 import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
 import com.money.mapper.UmsRechargeOrderMapper;
@@ -43,6 +45,8 @@ class UmsMemberRechargeServiceIntegrationTest {
     private UmsMemberLogMapper memberLogMapper;
     @Autowired
     private UmsRechargeOrderMapper rechargeOrderMapper;
+    @Autowired
+    private CloudMemberSyncOutboxMapper cloudMemberSyncOutboxMapper;
 
     @BeforeEach
     void authenticateTenant() {
@@ -93,6 +97,10 @@ class UmsMemberRechargeServiceIntegrationTest {
                 .eq(UmsMemberLog::getOrderNo, paid.getOrderNo())))
                 .extracting(UmsMemberLog::getType, UmsMemberLog::getOperateType)
                 .contains(tuple("BALANCE", "RECHARGE"), tuple("COUPON", "GIFT"));
+        assertThat(cloudMemberSyncOutboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, member.getId())))
+                .extracting(CloudMemberSyncOutbox::getOperation, CloudMemberSyncOutbox::getStatus)
+                .containsExactly("UPSERT", "PENDING");
 
         rechargeService.voidRecharge(paid.getOrderNo(), "AD-2.27 red void");
 
@@ -106,5 +114,7 @@ class UmsMemberRechargeServiceIntegrationTest {
                 .eq(UmsMemberLog::getOrderNo, paid.getOrderNo()));
         assertThat(logs).extracting(UmsMemberLog::getType, UmsMemberLog::getOperateType)
                 .contains(tuple("BALANCE", "REVERSAL"), tuple("COUPON", "REVERSAL"));
+        assertThat(cloudMemberSyncOutboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, member.getId())).getSnapshotVersion()).isEqualTo(2L);
     }
 }
