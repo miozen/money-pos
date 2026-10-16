@@ -65,16 +65,20 @@
 import MoneyCrud from "@/components/Crud/MoneyCrud.js";
 import { computed, ref } from "vue";
 
-const { moneyCrud } = defineProps({
+const { moneyCrud, delConfirmMsg } = defineProps({
     moneyCrud: {
         required: true,
         type: MoneyCrud,
+    },
+    delConfirmMsg: {
+        type: String,
+        default: '',
     },
 });
 
 const confirm = () => {
     moneyCrud.$confirm(
-        `确认删除选中的 ${moneyCrud.selections.length} 数据?`,
+        delConfirmMsg || `确认删除选中的 ${moneyCrud.selections.length} 数据?`,
         '提示',
         {
             confirmButtonText: '确定',

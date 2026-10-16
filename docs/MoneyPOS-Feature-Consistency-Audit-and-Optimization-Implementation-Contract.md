@@ -144,6 +144,12 @@ Entity-free `MemberOrderExistenceQuery` 提供。专项 3 项、隔离全量 Mav
 充值红冲也在写入前锁定活动会员，避免与合并交错。专项 6 项、隔离库 `mvn -q clean test`（28 份 Surefire 报告，零
 failure/error）、打包、两项架构扫描与 `git diff --check` 均通过。下一动作是 UMS-MERGE-4 的管理端最小交互。
 
+**完成记录（2026-10-16）：** UMS-MERGE-4 已完成。会员管理列表增加人工“来源 → 保留”合并交互：目标必须由操作员
+以既有会员搜索手动选择，界面先显示服务端预览、转移摘要和阻断原因，再要求必填原因与二次确认；成功后提示来源已合并至
+目标并刷新列表。删除单行/批量确认均明确其仅适用于无业务数据的误建档案。未新增菜单、权限、后端规则或自动化合并能力。
+前端 Node 20 生产构建、隔离全量 Maven 回归（83 份 Surefire 报告，零 failure/error）、后端打包、两项架构扫描与
+`git diff --check` 均通过。UMS-OPT-2 的 UMS-MERGE-0～4 已全部完成；下一动作应等待用户浏览器验收后再决定新的优化切片。
+
 **完成记录（2026-10-15）：** FCO-3 TRADE 只读审查已形成
 `MoneyPOS-FCO-3-Trade-Consistency-Audit.md`。下一动作是冻结并实施单一 TRADE-OPT-1 订单重打权限对齐；它不改变
 交易、退款、库存、会员资产、打印内容或钱箱规则。

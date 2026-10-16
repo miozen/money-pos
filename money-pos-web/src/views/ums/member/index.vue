@@ -27,7 +27,8 @@
                 <el-button v-if="userStore.hasPermission(['memberBenefit:operate', 'memberBenefit:manage'])" type="primary" link @click="$router.push({ name: 'MemberBenefit', query: { memberId: scope.row.id, memberName: scope.row.name, memberPhone: scope.row.phone } })">
                     权益中心
                 </el-button>
-                <MoneyUD :money-crud="moneyCrud" :scope="scope" />
+                <el-button v-if="userStore.hasPermission('umsMember:edit')" type="warning" link @click="openMerge(scope.row)">合并</el-button>
+                <MoneyUD :money-crud="moneyCrud" :scope="scope" del-confirm-msg="仅无业务数据的误建档案可删除，确认继续？" />
             </template>
         </MoneyCrudTable>
 
@@ -50,6 +51,7 @@
         />
 
         <MemberRechargeDialog v-model="rechargeVisible" :member-info="currentMember" @success="moneyCrud.doQuery()" />
+        <MemberMergeDialog v-model="mergeVisible" :source="mergeSource" @success="onMergeSuccess" />
     </PageWrapper>
 </template>
 
@@ -64,6 +66,7 @@ import PageWrapper from "@/components/PageWrapper.vue";
 import MemberToolbar from "./components/MemberToolbar.vue";
 import MemberFormContent from "./components/MemberFormContent.vue";
 import MemberRechargeDialog from "./components/MemberRechargeDialog.vue";
+import MemberMergeDialog from "./components/MemberMergeDialog.vue";
 import MemberProfileModal from "@/components/common/MemberProfileModal.vue";
 
 import memberApi from "@/api/ums/member.js";
@@ -81,9 +84,13 @@ const formKey = ref(Date.now());
 const profileVisible = ref(false);
 const rechargeVisible = ref(false);
 const currentMember = ref({});
+const mergeVisible = ref(false);
+const mergeSource = ref(null);
 
 const openMember360 = (row) => { currentMember.value = row; profileVisible.value = true; };
 const openRecharge = (row) => { currentMember.value = row; rechargeVisible.value = true; };
+const openMerge = (row) => { mergeSource.value = row; mergeVisible.value = true; };
+const onMergeSuccess = () => moneyCrud.value.doQuery(true);
 
 // 核心审计拦截：将组件内部的 _brandLevels 同步给后端
 const hookedApi = {
@@ -111,7 +118,7 @@ const moneyCrud = ref(new MoneyCrud({
         {prop: 'balance', label: '余额', width: 100},
         {prop: 'coupon', label: '会员券', width: 100},
         {prop: 'voucherCount', label: '满减券', width: 80},
-        {prop: 'opt', label: '操作', width: 220, align: 'center', fixed: 'right', isMoneyUD: true},
+        {prop: 'opt', label: '操作', width: 280, align: 'center', fixed: 'right', isMoneyUD: true},
     ],
     crudMethod: hookedApi,
     defaultForm: { type: 'MEMBER', coupon: 0 }

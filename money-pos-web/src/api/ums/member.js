@@ -5,6 +5,8 @@ export default {
   add: (data) => req({ url: '/ums/member', method: 'POST', data }),
   edit: (data) => req({ url: '/ums/member', method: 'PUT', data }),
   del: (ids) => req({ url: '/ums/member', method: 'DELETE', data: ids }),
+  mergePreview: (params) => req({ url: '/ums/member/merge-preview', method: 'GET', params }),
+  merge: (data) => req({ url: '/ums/member/merge', method: 'POST', data }),
   recharge: (data) => req({ url: '/ums/member/recharge', method: 'post', data }),
   // 🌟 新增：获取充值单详情
   getRechargeOrderDetail: (orderNo) => req({ url: `/ums/member/recharge/order/${orderNo}`, method: 'GET' }),

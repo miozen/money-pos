@@ -11,7 +11,7 @@
         </MoneyRR>
 
         <div class="flex items-center gap-2">
-            <MoneyCUD :money-crud="moneyCrud" />
+            <MoneyCUD :money-crud="moneyCrud" del-confirm-msg="仅无业务数据的误建档案可删除，确认继续？" />
 
             <el-button type="info" icon="Download" plain @click="handleDownloadTemplate">下载模板</el-button>
 
