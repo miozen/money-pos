@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Local readiness loop only. It is disabled until a separately authorized signed Worker publisher is provided.
  * Enabling this property without such a publisher must remain impossible.
@@ -18,18 +20,25 @@ import org.springframework.stereotype.Component;
 public class MemberCloudSyncDispatcher {
     private final MemberCloudSyncOutboxService outboxService;
     private final MemberCloudSnapshotAssembler snapshotAssembler;
+    private final MemberCloudSyncProperties properties;
+    private final HttpsMemberCloudSyncPublisher publisher;
 
     @Scheduled(fixedDelayString = "${omnia.cloud.sync.fixed-delay-ms:60000}")
     public void dispatchWhenPublisherIsInstalled() {
-        for (CloudMemberSyncOutbox item : outboxService.claimDue(50)) {
-            try {
-                // Materialize now so a later authorized publisher always receives the latest local state.
-                snapshotAssembler.assemble(item.getMemberId());
-                outboxService.fail(item, "未配置经授权的Omnia Cloud发布器");
-            } catch (Exception ex) {
-                log.warn("Omnia Cloud会员同步准备失败，memberId={}", item.getMemberId(), ex);
-                outboxService.fail(item, ex.getMessage());
+        List<CloudMemberSyncOutbox> claimed = outboxService.claimDue(50);
+        if (claimed.isEmpty()) return;
+        try {
+            List<MemberCloudSyncRequestFactory.CloudSyncItem> items = claimed.stream().map(item ->
+                    new MemberCloudSyncRequestFactory.CloudSyncItem(item, "UPSERT".equals(item.getOperation()) ? snapshotAssembler.assemble(item.getMemberId()) : null))
+                    .collect(java.util.stream.Collectors.toList());
+            if (properties.getTenantId() != null && items.stream().anyMatch(item -> !properties.getTenantId().equals(item.getOutbox().getTenantId()))) {
+                throw new IllegalStateException("Outbox租户与Omnia Cloud发布器配置不一致");
             }
+            publisher.publish(items);
+            claimed.forEach(outboxService::acknowledge);
+        } catch (Exception ex) {
+            log.warn("Omnia Cloud会员同步批次失败，count={}", claimed.size(), ex);
+            claimed.forEach(item -> outboxService.fail(item, ex.getMessage()));
         }
     }
 }
