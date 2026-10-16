@@ -70,3 +70,8 @@ SYS-FIX-1 已按 `MoneyPOS-SYS-FIX-1-Dict-Detail-Sort-Persistence-Implementation
 `SysDictDetailDTO` 遗漏 `sort`，使既有对象复制不能写入用户提交的排序，数据库默认值 `999` 因而掩盖了该问题。仅补齐
 DTO 字段，复用既有服务与 `sort ASC` 读取逻辑；新增、修改和读取顺序已有隔离集成回归覆盖。未改变字典路由、权限、响应、
 数据库默认值或历史数据。
+
+SYS-FIX-2 已按 `MoneyPOS-SYS-FIX-2-Backup-Console-Log-Reliability-Implementation-Contract.md` 完成。修复范围只覆盖
+备份控制台可观测性：SSE 与 Axios 共用 Electron/浏览器运行时服务地址，日志 payload 由 JSON 安全序列化，手动备份和
+还原前置快照会发布明确的阶段进度。导出/还原/SSE 路径、ZIP、影子库与资源切换、`SUPER_ADMIN` 导出/还原限制、匿名 SSE
+兼容性和定时自动备份行为均保持不变。

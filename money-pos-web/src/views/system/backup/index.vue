@@ -87,6 +87,7 @@
 <script setup>
 import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { req } from '@/api/index.js'; // 确保路径正确
+import { getApiBaseUrl } from '@/api/axios.js';
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
 import { DataAnalysis, Download, Box, RefreshLeft, WarnTriangleFilled, Upload, Monitor } from '@element-plus/icons-vue';
 
@@ -98,15 +99,12 @@ const consoleRef = ref(null);
 let sseSource = null;
 
 // ==========================================
-// 🌟 开启 SSE 实时监听通道 (完美适配 Vite 代理底层路由)
+// 开启 SSE 实时监听通道，并复用 Axios 已确定的运行时基址。
 // ==========================================
 const initSseListener = () => {
-    // 🌟 核心修复：使用与 axios.js 完全一致的环境变量！(通常会被解析为 /api)
-    const baseUrl = import.meta.env.VITE_BASE_URL || '/api';
+    const baseUrl = getApiBaseUrl();
 
-    // 拼接成 /api/sys/backup/stream
-    // 您的 vite.config.js 会自动拦截 /api，并将其转换为后端的 /money-pos/sys/backup/stream 发给 9101
-    const sseUrl = `${baseUrl}/sys/backup/stream`.replace(/\/\//g, '/');
+    const sseUrl = `${baseUrl.replace(/\/$/, '')}/sys/backup/stream`;
 
     sseSource = new EventSource(sseUrl);
 

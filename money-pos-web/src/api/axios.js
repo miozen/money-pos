@@ -14,6 +14,9 @@ if (window.location.protocol === 'file:') {
     apiBaseUrl = 'http://127.0.0.1:9101/money-pos';
 }
 
+// EventSource 不经过 axios 拦截器；SSE 页面应复用这里已完成的运行时地址判定。
+export const getApiBaseUrl = () => apiBaseUrl;
+
 // 创建 axios 实例
 const instance = axios.create({
     baseURL: apiBaseUrl, // 替换为智能推导后的地址

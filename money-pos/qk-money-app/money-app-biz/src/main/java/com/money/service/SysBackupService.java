@@ -58,11 +58,13 @@ public class SysBackupService {
     }
 
     private void sendLog(String level, String msg) {
-        String logLine = String.format("{\"time\":\"%s\", \"level\":\"%s\", \"msg\":\"%s\"}",
-                DateUtil.formatTime(DateUtil.date()), level, msg);
+        JSONObject logLine = JSONUtil.createObj()
+                .set("time", DateUtil.formatTime(DateUtil.date()))
+                .set("level", level)
+                .set("msg", msg);
         for (SseEmitter emitter : emitters) {
             try {
-                emitter.send(logLine);
+                emitter.send(logLine.toString());
             } catch (Exception e) {
                 emitters.remove(emitter);
             }
@@ -70,6 +72,7 @@ public class SysBackupService {
     }
 
     public File createBackupZip(String prefix) {
+        boolean publishLogs = !prefix.startsWith("AutoBackup_");
         // 🌟 核心修复 1：动静分离，引擎拿 Home，数据拿 Data
         String appHome = RuntimeWorkspace.getAppHome(); // 程序区
         File backupDir = RuntimeFileStorage.backupsDirectory(); // 备份文件夹在数据区
@@ -78,6 +81,7 @@ public class SysBackupService {
 
         FileUtil.mkdir(tempBatchDir);
         try {
+            if (publishLogs) sendLog("INFO", "开始生成备份归档...");
             // 1. 生成标准的备份清单
             JSONObject manifest = new JSONObject();
             manifest.set("appName", "MoneyPOS");
@@ -91,6 +95,8 @@ public class SysBackupService {
             // 🌟 跨平台自适应执行程序后缀
             String exeSuffix = System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : "";
             File mysqldumpExe = new File(mariadbBin + File.separator + "mysqldump" + exeSuffix); // 这里用 appHome
+
+            if (publishLogs) sendLog("INFO", "正在导出数据库快照...");
 
             ProcessBuilder pb = new ProcessBuilder(
                     mysqldumpExe.getAbsolutePath(), "--host=127.0.0.1", "--port=" + EmbeddedMariaDbGuardian.DB_PORT,
@@ -109,18 +115,23 @@ public class SysBackupService {
                 String errorMsg = errorLogFile.exists() ? FileUtil.readUtf8String(errorLogFile) : "未知进程错误";
                 throw new RuntimeException("数据库底层导出失败: " + errorMsg);
             }
+            if (publishLogs) sendLog("SUCCESS", "数据库快照导出完成。");
 
             // 2. 备份静态资源
             File assetsDir = RuntimeFileStorage.assetsDirectory(); // 🌟 核心修复：找数据区的 assets
+            if (publishLogs) sendLog("INFO", "正在归档静态资源...");
             if (assetsDir.exists()) FileUtil.copy(assetsDir, new File(tempBatchDir), true);
 
             // 3. 打包 ZIP
+            if (publishLogs) sendLog("INFO", "正在生成 ZIP 归档包...");
             String zipFileName = prefix + "VanaPOS_" + DateUtil.format(DateUtil.date(), "yyyyMMdd_HHmmss") + ".zip";
             File zipFile = new File(backupDir, zipFileName);
             cn.hutool.core.util.ZipUtil.zip(tempBatchDir, zipFile.getAbsolutePath(), true);
+            if (publishLogs) sendLog("SUCCESS", "备份归档生成完成，等待下载。");
             return zipFile;
         } catch (Exception e) {
             log.error("❌ 备份失败", e);
+            if (publishLogs) sendLog("ERROR", "备份失败：" + e.getMessage());
             throw new RuntimeException("备份异常: " + e.getMessage(), e);
         } finally {
             FileUtil.del(tempBatchDir);

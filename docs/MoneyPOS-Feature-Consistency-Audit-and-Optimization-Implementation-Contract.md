@@ -170,3 +170,10 @@ SYS 配置契约测试、隔离全量 Maven 回归、打包、两项架构扫描
 历史数据均未改变。新增隔离集成回归覆盖新增、修改与读取顺序。同步修正了 GMS 品牌策略集成测试在既有路由授权加固后过时的
 认证夹具，仅补入既有 `gmsBrand:list/edit` 权限，未改变生产授权或业务行为。专项、全量 Maven 回归、打包、两项架构扫描与
 `git diff --check` 均通过。
+
+**完成记录（2026-10-16）：** SYS-FIX-2 已按
+`MoneyPOS-SYS-FIX-2-Backup-Console-Log-Reliability-Implementation-Contract.md` 完成。备份控制台 SSE 现复用 Axios 的
+运行时后端基址，Electron `file://` 包与普通 Web 环境均指向同一服务；服务端事件改由 JSON 序列化，包含引号、反斜杠或
+换行的底层错误不会再破坏前端解析。手动导出和还原的前置保护快照会显示备份开始、数据库导出、静态资源归档、ZIP 打包、
+成功/失败阶段；定时 `AutoBackup_` 不额外干扰人工控制台。导出/还原/SSE 路径、响应、ZIP、权限、SSE 匿名兼容和还原算法
+均未改变。专项、隔离全量 Maven 回归、后端打包、前端 Node 20 生产构建、两项架构扫描与 `git diff --check` 均通过。
