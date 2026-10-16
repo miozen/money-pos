@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.money.constant.BizErrorStatus;
+import com.money.contract.trade.MemberOrderExistenceQuery;
 import com.money.dto.UmsMember.UmsMemberDTO;
 import com.money.dto.UmsMember.UmsMemberQueryDTO;
 import com.money.dto.UmsMember.UmsMemberVO;
@@ -14,9 +15,19 @@ import com.money.contract.goods.BrandNameQuery;
 import com.money.feature.ums.infrastructure.persistence.entity.PosMemberCoupon;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberBrandLevel;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberAmountRight;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberQuantityRight;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberTargetPlan;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsMemberLog;
+import com.money.feature.ums.infrastructure.persistence.entity.UmsRechargeOrder;
+import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberAmountRightMapper;
+import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberQuantityRightMapper;
+import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberTargetPlanMapper;
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
+import com.money.mapper.UmsMemberLogMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.mapper.UmsRechargeOrderMapper;
 import com.money.dto.UmsMember.MemberGoodsRankVO;
 import com.money.service.SysDictDetailService;
 import com.money.util.PageUtil;
@@ -25,6 +36,7 @@ import com.money.web.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,6 +55,12 @@ public class UmsMemberProfileService {
     private final UmsMemberMapper umsMemberMapper;
     private final PosMemberCouponMapper posMemberCouponMapper;
     private final UmsMemberBrandLevelMapper umsMemberBrandLevelMapper;
+    private final UmsMemberLogMapper umsMemberLogMapper;
+    private final UmsRechargeOrderMapper umsRechargeOrderMapper;
+    private final UmsMemberQuantityRightMapper quantityRightMapper;
+    private final UmsMemberAmountRightMapper amountRightMapper;
+    private final UmsMemberTargetPlanMapper targetPlanMapper;
+    private final MemberOrderExistenceQuery memberOrderExistenceQuery;
 
     // 🌟 注入双擎翻译服务
     private final SysDictDetailService sysDictDetailService;
@@ -205,23 +223,60 @@ public class UmsMemberProfileService {
         return BeanUtil.copyToList(list, UmsMemberVO.class);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Set<Long> ids) {
         if (ids == null || ids.isEmpty()) return;
         List<UmsMember> membersToDelete = umsMemberMapper.selectBatchIds(ids);
         if (membersToDelete == null || membersToDelete.isEmpty()) return;
         for (UmsMember member : membersToDelete) {
+            requireEmptyErroneousProfile(member);
+        }
+        for (UmsMember member : membersToDelete) {
             UmsMember updateEntity = new UmsMember();
             updateEntity.setId(member.getId());
             updateEntity.setDeleted(true);
-            updateEntity.setBalance(BigDecimal.ZERO);
-            updateEntity.setCoupon(BigDecimal.ZERO);
-            String oldName = member.getName() != null ? member.getName() : "未知";
-            if (oldName.length() > 20) {
-                oldName = oldName.substring(0, 20);
-            }
-            updateEntity.setName("[注销]" + oldName);
             umsMemberMapper.updateById(updateEntity);
         }
+    }
+
+    private void requireEmptyErroneousProfile(UmsMember member) {
+        Long memberId = member.getId();
+        if (positive(member.getBalance()) || positive(member.getCoupon())) {
+            rejectDeletion(memberId, "仍有余额或券额度");
+        }
+        if (umsRechargeOrderMapper.exists(new LambdaQueryWrapper<UmsRechargeOrder>()
+                .eq(UmsRechargeOrder::getMemberId, memberId))
+                || umsMemberLogMapper.exists(new LambdaQueryWrapper<UmsMemberLog>()
+                .eq(UmsMemberLog::getMemberId, memberId))) {
+            rejectDeletion(memberId, "存在充值或资产流水");
+        }
+        if (posMemberCouponMapper.exists(new LambdaQueryWrapper<PosMemberCoupon>()
+                .eq(PosMemberCoupon::getMemberId, memberId))) {
+            rejectDeletion(memberId, "存在会员券记录");
+        }
+        if (umsMemberBrandLevelMapper.exists(new LambdaQueryWrapper<UmsMemberBrandLevel>()
+                .eq(UmsMemberBrandLevel::getMemberId, memberId))) {
+            rejectDeletion(memberId, "存在品牌等级记录");
+        }
+        if (quantityRightMapper.exists(new LambdaQueryWrapper<UmsMemberQuantityRight>()
+                .eq(UmsMemberQuantityRight::getMemberId, memberId))
+                || amountRightMapper.exists(new LambdaQueryWrapper<UmsMemberAmountRight>()
+                .eq(UmsMemberAmountRight::getMemberId, memberId))
+                || targetPlanMapper.exists(new LambdaQueryWrapper<UmsMemberTargetPlan>()
+                .eq(UmsMemberTargetPlan::getMemberId, memberId))) {
+            rejectDeletion(memberId, "存在会员权益或目标计划");
+        }
+        if (memberOrderExistenceQuery.hasOrderForMemberId(memberId)) {
+            rejectDeletion(memberId, "存在订单记录");
+        }
+    }
+
+    private boolean positive(BigDecimal amount) {
+        return amount != null && amount.compareTo(BigDecimal.ZERO) != 0;
+    }
+
+    private void rejectDeletion(Long memberId, String reason) {
+        throw new BaseException("会员“" + memberId + "”不能删除：" + reason + "；请保留档案或使用会员合并");
     }
 
     public void saveBrandLevels(Long memberId, Map<String, String> brandLevels) {
