@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | **Clean after UMS-MERGE-3 closure; awaiting push/fetch synchronization.** |
+| Working tree | **Clean and synchronized after UMS-MERGE-3; `dev...origin/dev = 0/0`.** |
 | Current phase | `UMS-OPT-2 member deletion and duplicate-member merge — UMS-MERGE-3 complete` |
 | Current plan | `MoneyPOS-Feature-Consistency-Audit-and-Optimization-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -44,14 +44,14 @@ continuing.
 - `V1.0.20` adds the UMS-owned merge audit table. The new protected read-only preview returns two active member
   summaries, source order count, unused-coupon count and first-version benefit/TARGET blockers; it does not reserve,
   transfer or hide a member, and no execution route exists yet.
-- UMS-MERGE-3 is committed in `fd851ca` and awaits push/fetch synchronization. `POST /ums/member/merge` is the only audit
+- UMS-MERGE-3 is committed in `fd851ca` and synchronized with its handoff closure. `POST /ums/member/merge` is the only audit
   writer and transfers only balance plus `UNUSED` vouchers. It locks both members in deterministic order, has request-number
   replay protection, records balance transfer logs and marks the source as merged/deleted with its target/time. `V1.0.21`
   adds those source markers. Settlement, recharge and recharge reversal lock active members before writes.
 - Validation actually passed: focused `UmsMemberDeletionGuardIntegrationTest` (6/0/0), isolated `mvn -q clean test`
   (28 Surefire reports, zero failures/errors), `mvn -q package -DskipTests`, both architecture gates and `git diff --check`.
-- Exact next action: push `fd851ca` and this handoff closure, fetch and verify `dev...origin/dev = 0/0`; then begin
-  UMS-MERGE-4's management UI only after sync.
+- Exact next action: begin UMS-MERGE-4's management UI as the next isolated slice; preserve the frozen server-side
+  merge route, asset-transfer scope and blocker semantics.
 
 ## Local SYS-FIX-1 validation state
 
