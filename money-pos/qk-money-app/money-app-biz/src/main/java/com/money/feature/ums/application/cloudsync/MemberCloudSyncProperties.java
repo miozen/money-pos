@@ -1,7 +1,7 @@
 package com.money.feature.ums.application.cloudsync;
 
+import com.money.feature.ums.infrastructure.persistence.entity.CloudMemberSyncConfig;
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -9,7 +9,6 @@ import java.net.URI;
 /** Deliberately has no production defaults: cloud publishing needs explicit local configuration. */
 @Data
 @Component
-@ConfigurationProperties(prefix = "omnia.cloud.sync")
 public class MemberCloudSyncProperties {
     private boolean enabled = false;
     private long fixedDelayMs = 60000L;
@@ -22,6 +21,19 @@ public class MemberCloudSyncProperties {
     /** Explicitly opt-in one-time bootstrap; the checkpoint prevents restart replays after completion. */
     private boolean initialBackfillEnabled = false;
     private int initialBackfillBatchSize = 500;
+
+    public void apply(CloudMemberSyncConfig config) {
+        if (config == null) return;
+        enabled = Boolean.TRUE.equals(config.getEnabled());
+        endpoint = config.getEndpoint();
+        storeId = config.getStoreId();
+        tenantId = config.getTenantId();
+        keyId = config.getKeyId();
+        signingSecretBase64 = config.getSigningSecretBase64();
+        searchHmacSecretBase64 = config.getSearchHmacSecretBase64();
+        initialBackfillEnabled = Boolean.TRUE.equals(config.getInitialBackfillEnabled());
+        if (config.getInitialBackfillBatchSize() != null) initialBackfillBatchSize = config.getInitialBackfillBatchSize();
+    }
 
     /** Safe readiness predicate for the administrator status screen; it never exposes credential values. */
     public boolean hasCompletePublishingConfiguration() {

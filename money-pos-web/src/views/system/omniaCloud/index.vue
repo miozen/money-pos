@@ -4,15 +4,31 @@
       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 class="text-2xl font-black text-gray-800">Omnia Cloud 会员同步</h1>
-          <p class="text-sm text-gray-500 mt-2">本页只显示本机状态；不会显示或保存云端密钥，也不能在此开启同步。</p>
+          <p class="text-sm text-gray-500 mt-2">配置只保存在本机 POS。保存、启停和首次回填仅允许从本机后台执行。</p>
         </div>
         <el-button :loading="loading" @click="loadStatus">刷新状态</el-button>
       </div>
 
       <el-alert v-if="status" :type="alertType" :closable="false" show-icon>
-        <template #title>{{ status.enabled ? (status.configurationComplete ? '同步调度已启用' : '同步已启用，但外部配置不完整') : '同步当前未启用' }}</template>
-        <template #default>配置文件应位于 <code>%ProgramData%\\VanaPOS\\config\\omnia-cloud.yml</code>。修改后需重启万象收银才会生效。</template>
+        <template #title>{{ status.enabled ? (status.configurationComplete ? '同步调度已启用' : '同步已启用，但配置不完整') : '同步当前未启用' }}</template>
+        <template #default>填写并保存下方配置后立即生效；启用同步前必须提供有效地址、门店、Key ID 和两个密钥。</template>
       </el-alert>
+
+      <el-card shadow="never">
+        <template #header><span class="font-bold">本机连接配置</span></template>
+        <el-form :model="config" label-width="132px" class="max-w-3xl" @submit.prevent>
+          <el-form-item label="Worker 地址"><el-input v-model="config.endpoint" placeholder="https://…/internal/v1/member-snapshots:batch" /></el-form-item>
+          <el-form-item label="门店编号"><el-input v-model="config.storeId" placeholder="例如 store-001" /></el-form-item>
+          <el-form-item label="租户编号"><el-input-number v-model="config.tenantId" :min="0" :precision="0" /></el-form-item>
+          <el-form-item label="Key ID（用户名）"><el-input v-model="config.keyId" placeholder="例如 moneypos-sync-001" /></el-form-item>
+          <el-form-item label="签名密钥（密码）"><el-input v-model="config.signingSecretBase64" type="password" show-password :placeholder="config.signingSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'" /></el-form-item>
+          <el-form-item label="检索 HMAC 密钥"><el-input v-model="config.searchHmacSecretBase64" type="password" show-password :placeholder="config.searchHmacSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'" /></el-form-item>
+          <el-form-item label="同步开关"><el-switch v-model="config.enabled" active-text="启用" inactive-text="关闭" /></el-form-item>
+          <el-form-item label="首次全量回填"><el-switch v-model="config.initialBackfillEnabled" active-text="允许执行" inactive-text="暂不执行" /></el-form-item>
+          <el-form-item label="每轮回填数量"><el-input-number v-model="config.initialBackfillBatchSize" :min="1" :max="1000" /></el-form-item>
+          <el-form-item><el-button type="primary" :loading="saving" @click="saveConfig">保存本机配置</el-button></el-form-item>
+        </el-form>
+      </el-card>
 
       <div v-if="status" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <el-card shadow="never"><div class="text-sm text-gray-500">发布配置</div><div class="mt-2 font-bold text-lg">{{ status.configurationComplete ? '完整' : '未完整配置' }}</div></el-card>
@@ -50,7 +66,9 @@ import { ElMessage } from 'element-plus'
 import memberCloudSyncApi from '@/api/ums/memberCloudSync.js'
 
 const loading = ref(false)
+const saving = ref(false)
 const status = ref(null)
+const config = ref({ endpoint: '', storeId: '', tenantId: 0, keyId: '', signingSecretBase64: '', searchHmacSecretBase64: '', signingSecretConfigured: false, searchHmacSecretConfigured: false, enabled: false, initialBackfillEnabled: false, initialBackfillBatchSize: 500 })
 const alertType = computed(() => status.value?.enabled && !status.value?.configurationComplete ? 'error' : status.value?.enabled ? 'success' : 'warning')
 
 async function loadStatus() {
@@ -65,9 +83,30 @@ async function loadStatus() {
   }
 }
 
+async function loadConfig() {
+  const response = await memberCloudSyncApi.config()
+  config.value = { ...config.value, ...response.data, signingSecretBase64: '', searchHmacSecretBase64: '' }
+}
+
+async function saveConfig() {
+  saving.value = true
+  try {
+    const response = await memberCloudSyncApi.saveConfig(config.value)
+    config.value = { ...config.value, ...response.data, signingSecretBase64: '', searchHmacSecretBase64: '' }
+    ElMessage.success('Omnia Cloud 本机配置已保存')
+    await loadStatus()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '保存 Omnia Cloud 配置失败')
+  } finally {
+    saving.value = false
+  }
+}
+
 function formatTime(value) {
   return value ? String(value).replace('T', ' ') : '—'
 }
 
-onMounted(loadStatus)
+onMounted(async () => {
+  try { await Promise.all([loadStatus(), loadConfig()]) } catch (error) { ElMessage.error('读取 Omnia Cloud 配置失败') }
+})
 </script>

@@ -3,7 +3,6 @@ package com.money.feature.ums.application.cloudsync;
 import com.money.feature.ums.infrastructure.persistence.entity.CloudMemberSyncOutbox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,6 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "omnia.cloud.sync", name = "enabled", havingValue = "true")
 public class MemberCloudSyncDispatcher {
     private final MemberCloudSyncOutboxService outboxService;
     private final MemberCloudInitialBackfillService initialBackfillService;
@@ -26,6 +24,7 @@ public class MemberCloudSyncDispatcher {
 
     @Scheduled(fixedDelayString = "${omnia.cloud.sync.fixed-delay-ms:60000}")
     public void dispatchWhenPublisherIsInstalled() {
+        if (!properties.isEnabled()) return;
         int backfilled = initialBackfillService.enqueueNextChunk();
         if (backfilled > 0) log.info("Omnia Cloud首次会员回填已入待发箱，count={}", backfilled);
         List<CloudMemberSyncOutbox> claimed = outboxService.claimDue(50);

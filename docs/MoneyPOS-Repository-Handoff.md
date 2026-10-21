@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean and synchronized after OMNIA-CLOUD-5 implementation commit; `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-5 external configuration and read-only sync status` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-5-External-Configuration-and-Status-Implementation-Contract.md` |
+| Working tree | OMNIA-CLOUD-6 implementation is ready to commit locally; all required validation has passed, with commit/push/synchronization remaining. |
+| Current phase | `OMNIA-CLOUD-6 in-app configuration with loopback-only writes` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-6-In-App-Configuration-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -34,7 +34,9 @@ continuing.
 - OMNIA-CLOUD-5 is committed in `ec5076d` (`feat(ums): expose cloud sync status safely`) and synchronized. It adds optional packaged-Electron loading of `%ProgramData%\\VanaPOS\\config\\omnia-cloud.yml`, a non-secret example, `V1.0.25` SUPER_ADMIN-only status menu/permission, and a UMS read-only local Outbox/bootstrap status API/page. It does not store secrets in Git, MariaDB or the renderer, and does not enable publishing.
 - Validation actually passed: route contract plus first-backfill integration test (including Flyway `V1.0.25`), isolated full Maven suite (88 reports, zero failure/error), `mvn -q package -DskipTests`, Node 20 `npm run build`, both architecture gates and staged `git diff --check`. One first full-suite run had an existing `SysAuthControllerIntegrationTest` 500; its focused rerun and the second complete full-suite rerun passed.
 - CI-FIX-1 is committed in `60f3f54` (`fix(ci): quote Maven release revision`) and synchronized. The Windows EXE workflow now passes its dotted release version as one quoted PowerShell argument, preventing Maven from treating a suffix such as `.0.12` as a lifecycle phase. Local equivalent Maven packaging with `-Drevision=1.0.12` completed successfully; GitHub Actions execution is the remaining external confirmation.
-- Exact next action: build a Windows Electron package and separately perform external configuration/real POS acceptance before enabling any actual member synchronization.
+- OMNIA-CLOUD-6 is ready to commit locally. It supersedes the OMNIA-CLOUD-5 external YAML decision: the Electron loader and example are removed, the local MariaDB owns one configurable Cloud sync record, and configuration mutation requires both `SUPER_ADMIN` and `omniaCloud:manage` while the direct socket address is loopback. It does not enable or send real-member data by default.
+- Validation actually passed: route contract, isolated credential-injected `money_pos_test` full Maven suite (88 Surefire reports, zero failure/error), `mvn -q package -DskipTests`, Node 20 `npm run build`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`.
+- Exact next action: commit/push/synchronize OMNIA-CLOUD-6, then build a Windows Electron package and separately configure/accept real POS synchronization.
 
 ## UMS-MERGE-0 contract state
 
