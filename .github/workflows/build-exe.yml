@@ -33,7 +33,9 @@ jobs:
 
       - name: Build Backend (Maven)
         working-directory: ./money-pos
-        run: mvn clean package -DskipTests -Drevision=${{ steps.release_version.outputs.value }}
+        # PowerShell splits an unquoted dotted version (for example 1.0.12) into a separate token.
+        # Keep the Maven revision property as one argument so `.0.12` is never treated as a lifecycle phase.
+        run: mvn clean package -DskipTests "-Drevision=${{ steps.release_version.outputs.value }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
