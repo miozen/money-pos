@@ -95,4 +95,13 @@ public interface UmsMemberMapper extends BaseMapper<UmsMember> {
 
     @Select("SELECT * FROM ums_member WHERE id = #{id} AND tenant_id = #{tenantId} FOR UPDATE")
     UmsMember selectByIdForUpdate(@Param("id") Long id, @Param("tenantId") Long tenantId);
+
+    /** Cloud bootstrap is UMS-local and deliberately ignores any request-scoped tenant filter. */
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT DISTINCT tenant_id FROM ums_member WHERE deleted = 0 ORDER BY tenant_id")
+    List<Long> selectActiveTenantIdsForCloudBootstrap();
+
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT id, tenant_id FROM ums_member WHERE deleted = 0 AND tenant_id = #{tenantId} AND id > #{afterId} ORDER BY id ASC LIMIT #{limit}")
+    List<UmsMember> selectActiveMembersForCloudBootstrap(@Param("tenantId") Long tenantId, @Param("afterId") Long afterId, @Param("limit") int limit);
 }

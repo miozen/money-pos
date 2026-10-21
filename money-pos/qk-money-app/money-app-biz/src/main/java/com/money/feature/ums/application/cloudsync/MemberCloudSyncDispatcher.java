@@ -19,12 +19,15 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "omnia.cloud.sync", name = "enabled", havingValue = "true")
 public class MemberCloudSyncDispatcher {
     private final MemberCloudSyncOutboxService outboxService;
+    private final MemberCloudInitialBackfillService initialBackfillService;
     private final MemberCloudSnapshotAssembler snapshotAssembler;
     private final MemberCloudSyncProperties properties;
     private final HttpsMemberCloudSyncPublisher publisher;
 
     @Scheduled(fixedDelayString = "${omnia.cloud.sync.fixed-delay-ms:60000}")
     public void dispatchWhenPublisherIsInstalled() {
+        int backfilled = initialBackfillService.enqueueNextChunk();
+        if (backfilled > 0) log.info("Omnia Cloud首次会员回填已入待发箱，count={}", backfilled);
         List<CloudMemberSyncOutbox> claimed = outboxService.claimDue(50);
         if (claimed.isEmpty()) return;
         try {

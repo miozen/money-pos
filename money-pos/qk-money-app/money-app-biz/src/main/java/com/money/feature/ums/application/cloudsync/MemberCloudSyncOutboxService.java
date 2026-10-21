@@ -19,6 +19,7 @@ public class MemberCloudSyncOutboxService {
     private final CloudMemberSyncOutboxMapper mapper;
 
     public void markUpsert(Long memberId) { mark(memberId, "UPSERT"); }
+    public void markUpsert(Long tenantId, Long memberId) { mark(tenantId, memberId, "UPSERT"); }
     public void markTombstone(Long memberId) { mark(memberId, "TOMBSTONE"); }
 
     /** Claims a bounded batch using compare-and-set state changes; safe for future multi-task deployments. */
@@ -62,7 +63,8 @@ public class MemberCloudSyncOutboxService {
     private void mark(Long memberId, String operation) {
         if (memberId == null) return;
         Long tenantId = TenantContextHolder.getTenant() == null ? 0L : TenantContextHolder.getTenant();
-        mapper.markLatest(tenantId, memberId, operation);
+        mark(tenantId, memberId, operation);
     }
+    private void mark(Long tenantId, Long memberId, String operation) { if (memberId != null) mapper.markLatest(tenantId == null ? 0L : tenantId, memberId, operation); }
     private String trim(String value) { return value == null ? null : value.substring(0, Math.min(500, value.length())); }
 }

@@ -17,4 +17,7 @@ public class MemberCloudSyncProperties {
     private String keyId;
     private String signingSecretBase64;
     private String searchHmacSecretBase64;
+    /** Explicitly opt-in one-time bootstrap; the checkpoint prevents restart replays after completion. */
+    private boolean initialBackfillEnabled = false;
+    private int initialBackfillBatchSize = 500;
 }
