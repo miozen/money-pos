@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean and synchronized after OMNIA-CLOUD-4 closure; `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-4 resumable initial member backfill` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-4-Initial-Backfill-Implementation-Contract.md` |
+| Working tree | OMNIA-CLOUD-5 implementation is staged locally; commit/push/synchronization verification remain pending. |
+| Current phase | `OMNIA-CLOUD-5 external configuration and read-only sync status` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-5-External-Configuration-and-Status-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -31,7 +31,9 @@ continuing.
 - Validation actually passed: `MemberCloudSyncRequestFactoryTest` (4/0/0), isolated credential-injected `money_pos_test` full Maven suite (86 Surefire reports, zero failure/error), `mvn -q package -DskipTests`, both architecture gates, Node 20 Worker tests and `git diff --check`. The initial sandbox full-suite attempt was blocked from loopback MariaDB; the approved rerun used only `money_pos_test` and passed.
 - ENV-1 is committed in `ab0ed8d` (`chore(cloud): record deployed receiver environment`) and synchronized. It created the APAC-hinted D1 `omnia-cloud-prod`, applied `0001`, deployed the internal-only Worker at `https://omnia-cloud.miozen.workers.dev`, set its signing Secret and performed a synthetic signed/replay/D1 persistence acceptance. Synthetic rows, nonce and audit records were removed afterwards; D1 snapshot/nonce/audit counts were each `0`. No custom domain, public query, web UI, Telegram route or actual local member synchronization exists.
 - OMNIA-CLOUD-4 is committed in `f949c01` (`feat(ums): add resumable cloud member backfill`) and synchronized. It adds `V1.0.24` and a UMS-owned persisted checkpoint. With its explicit default-false property enabled, it places active members into the existing UPSERT Outbox in bounded, resumable chunks; it performs no HTTP inside the transaction and does not repeat after completion. Focused integration test, isolated full Maven suite (87 reports, zero failure/error), package, architecture gates and diff check passed.
-- Exact next action: rotate the temporary Worker signing secret and configure matching local signing/search HMAC secrets outside Git before any real-member-data synchronization is enabled.
+- OMNIA-CLOUD-5 is staged locally. It adds optional packaged-Electron loading of `%ProgramData%\\VanaPOS\\config\\omnia-cloud.yml`, a non-secret example, `V1.0.25` SUPER_ADMIN-only status menu/permission, and a UMS read-only local Outbox/bootstrap status API/page. It does not store secrets in Git, MariaDB or the renderer, and does not enable publishing.
+- Validation actually passed: route contract plus first-backfill integration test (including Flyway `V1.0.25`), isolated full Maven suite (88 reports, zero failure/error), `mvn -q package -DskipTests`, Node 20 `npm run build`, both architecture gates and staged `git diff --check`. One first full-suite run had an existing `SysAuthControllerIntegrationTest` 500; its focused rerun and the second complete full-suite rerun passed.
+- Exact next action: commit and push OMNIA-CLOUD-5, fetch and verify `dev...origin/dev = 0/0`; after that, build a Windows Electron package and separately perform external configuration/real POS acceptance before enabling any actual member synchronization.
 
 ## UMS-MERGE-0 contract state
 

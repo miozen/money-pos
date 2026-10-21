@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, Menu, dialog, ipcMain } = require('electron');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { spawn, exec } = require('child_process');
 const http = require('http');
 
@@ -9,6 +10,10 @@ const RESOURCES_DIR = isPackaged ? process.resourcesPath : __dirname;
 
 const JAVA_BIN = isPackaged ? path.join(APP_ROOT, 'jre', 'bin', 'vana-java.exe') : 'java';
 const JAR_PATH = isPackaged ? path.join(RESOURCES_DIR, 'backend', 'vana-pos.jar') : path.join(__dirname, '../qk-money-app/money-app-biz/target/money-pos.jar');
+// Secrets must survive installer upgrades and never enter the installation directory or Electron renderer.
+const OMNIA_CLOUD_CONFIG_PATH = isPackaged
+    ? path.join(process.env.ProgramData || 'C:\\ProgramData', 'VanaPOS', 'config', 'omnia-cloud.yml')
+    : null;
 
 let mainWindow;
 let guestWindow;
@@ -175,7 +180,12 @@ function createWindows() {
 
 function startBackend() {
     console.log("🚀 [VanaPOS总控] 正在拉起专属 Java 引擎...");
-    backendProcess = spawn(JAVA_BIN, ['-jar', JAR_PATH, `--app.home=${APP_ROOT}`], { cwd: APP_ROOT });
+    const backendArgs = ['-jar', JAR_PATH, `--app.home=${APP_ROOT}`];
+    if (OMNIA_CLOUD_CONFIG_PATH) {
+        backendArgs.push(`--spring.config.additional-location=optional:${pathToFileURL(OMNIA_CLOUD_CONFIG_PATH).href}`);
+        console.log(`[VanaPOS] Omnia Cloud 外部配置位置: ${OMNIA_CLOUD_CONFIG_PATH}`);
+    }
+    backendProcess = spawn(JAVA_BIN, backendArgs, { cwd: APP_ROOT });
     backendProcess.stdout.on('data', (data) => console.log(`[VanaPOS] ${data.toString().trim()}`));
     backendProcess.stderr.on('data', (data) => console.error(`[VanaPOS Error] ${data.toString().trim()}`));
     checkHealth();
