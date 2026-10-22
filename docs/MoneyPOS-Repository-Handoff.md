@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after local OMNIA-CLOUD-7 commit `237e8fe`; push/fetch synchronization remains. |
-| Current phase | `OMNIA-CLOUD-7 complete locally; push/fetch verification remains` |
+| Working tree | Clean after the OMNIA-CLOUD-7 implementation and handoff closure commits. |
+| Current phase | `OMNIA-CLOUD-7 complete and synchronized` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -39,7 +39,8 @@ continuing.
 - OMNIA-CLOUD-7 is complete locally under `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md`. It keeps the visible/configurable `storeId` (default `store-01`) as the D1 partition, removes local Key ID configuration and Worker runtime `sync_clients` dependence, adds signed no-data connection testing, one-shot dispatch and explicit repair controls, recovers stale Outbox `PROCESSING` work, and makes Worker snapshot/audit writes a single D1 batch. Local repair includes deleted/merged TOMBSTONE records; it does not alter local member data.
 - `V1.0.27`–`V1.0.29` applied successfully to isolated `money_pos_test`; D1 `0002`–`0003` are committed as unexecuted deployment migrations. No Worker deployment, secret change or real-member sync occurred in this slice.
 - Validation actually passed: focused cloud regression (10 tests, zero failure/error), isolated credential-injected full Maven suite (187 tests, zero failure/error), `mvn -q package -DskipTests`, Node 20 Worker `npm test`, Node 20 frontend `npm run build`, both architecture gates and `git diff --check`. The frontend build has only pre-existing Browserslist/CSS/dynamic-import/chunk warnings.
-- Exact next action: push commit `237e8fe`, fetch and verify `dev...origin/dev = 0/0`; separately authorize D1 migration/deployment before real synchronization or Windows POS acceptance.
+- The implementation commit is `d0c84ca` (`feat(cloud): simplify single-store member sync`) and is pushed to `origin/dev`; immediately after fetch, `dev...origin/dev = 0/0`.
+- Exact next action: separately authorize D1 `0002/0003` migration and Worker deployment before real synchronization, then build a Windows Electron package and perform the `store-01-test` POS acceptance without querying that test partition from the future web/Telegram surfaces.
 
 ## UMS-MERGE-0 contract state
 
