@@ -25,4 +25,18 @@ class UmsMemberCloudSyncRouteContractTest {
         assertThat(save.getAnnotation(PreAuthorize.class).value()).isEqualTo("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')");
         assertThat(UmsMemberCloudSyncController.class.getDeclaredMethod("requireLoopback", javax.servlet.http.HttpServletRequest.class).getReturnType()).isEqualTo(void.class);
     }
+
+    @Test
+    void localOperationalCommandsUseTheSameProtectedBoundary() {
+        assertProtected("beginRepair", "/repair");
+        assertProtected("dispatchNow", "/dispatch");
+        assertProtected("testConnection", "/test-connection");
+    }
+
+    private void assertProtected(String methodName, String route) {
+        java.lang.reflect.Method method = java.util.Arrays.stream(UmsMemberCloudSyncController.class.getDeclaredMethods())
+                .filter(candidate -> candidate.getName().equals(methodName)).findFirst().orElseThrow();
+        assertThat(method.getAnnotation(PostMapping.class).value()).containsExactly(route);
+        assertThat(method.getAnnotation(PreAuthorize.class).value()).isEqualTo("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')");
+    }
 }

@@ -47,40 +47,40 @@ function containsRawPhone(value) {
 }
 
 export async function verifySignedRequest(request, env, now = Date.now()) {
-  const keyId = request.headers.get('X-Omnia-Key-Id');
   const timestamp = Number(request.headers.get('X-Omnia-Timestamp'));
   const nonce = request.headers.get('X-Omnia-Nonce');
   const bodyHash = request.headers.get('X-Omnia-Body-SHA256');
   const signature = request.headers.get('X-Omnia-Signature');
-  if (!keyId || !nonce || !bodyHash || !signature || !Number.isSafeInteger(timestamp) || Math.abs(now - timestamp) > MAX_CLOCK_SKEW_MS) {
+  if (!nonce || !bodyHash || !signature || !Number.isSafeInteger(timestamp) || Math.abs(now - timestamp) > MAX_CLOCK_SKEW_MS) {
     return { error: 'invalid signing headers', status: 401 };
   }
-  let keys;
-  try { keys = JSON.parse(env.OMNIA_SYNC_KEYS_JSON); } catch { return { error: 'receiver key configuration is invalid', status: 500 }; }
-  const secret = keys[keyId];
-  if (typeof secret !== 'string') return { error: 'unknown sync key', status: 401 };
   const body = await request.text();
   if (!constantTimeEqual(await sha256Hex(body), bodyHash)) return { error: 'body hash mismatch', status: 401 };
+  let payload;
+  let stores;
+  try { payload = JSON.parse(body); stores = JSON.parse(env.OMNIA_SYNC_STORE_SECRETS_JSON); } catch { return { error: 'receiver configuration or body is invalid', status: 400 }; }
+  const storeId = payload?.storeId;
+  const secrets = stores[storeId];
+  const candidates = Array.isArray(secrets) ? secrets : [secrets];
+  if (typeof storeId !== 'string' || !candidates.some(secret => typeof secret === 'string')) return { error: 'unknown sync store', status: 401 };
   const canonical = `${request.method}\n${new URL(request.url).pathname}\n${timestamp}\n${nonce}\n${bodyHash}`;
-  if (!constantTimeEqual(await hmacHex(secret, canonical), signature)) return { error: 'signature mismatch', status: 401 };
-  return { keyId, nonce, body };
+  for (const secret of candidates) if (typeof secret === 'string' && constantTimeEqual(await hmacHex(secret, canonical), signature)) return { storeId, nonce, body };
+  return { error: 'signature mismatch', status: 401 };
 }
 
-async function claimNonceAndClient(db, keyId, nonce, now) {
-  const client = await db.prepare('SELECT store_id, active FROM sync_clients WHERE key_id = ?').bind(keyId).first();
-  if (!client || client.active !== 1) return { error: 'sync client is not active', status: 403 };
+async function claimNonce(db, storeId, nonce, now) {
   try {
-    await db.prepare('INSERT INTO sync_nonces (key_id, nonce, expires_at) VALUES (?, ?, ?)').bind(keyId, nonce, now + MAX_CLOCK_SKEW_MS).run();
+    await db.prepare('INSERT INTO sync_nonces (store_id, nonce, expires_at) VALUES (?, ?, ?)').bind(storeId, nonce, now + MAX_CLOCK_SKEW_MS).run();
   } catch {
     return { error: 'replayed request', status: 409 };
   }
-  return { storeId: client.store_id };
+  return {};
 }
 
-async function persistSnapshot(db, storeId, snapshot, now) {
+function persistSnapshotStatement(db, storeId, snapshot, now) {
   const isUpsert = snapshot.operation === 'UPSERT';
   const data = isUpsert ? snapshot.snapshot : {};
-  await db.prepare(`INSERT INTO member_snapshots (
+  return db.prepare(`INSERT INTO member_snapshots (
       store_id, member_id, snapshot_version, status, name, name_normalized, phone_hmac, phone_last4_hmac, phone_masked, snapshot_json, source_updated_at, synced_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(store_id, member_id) DO UPDATE SET
@@ -91,7 +91,7 @@ async function persistSnapshot(db, storeId, snapshot, now) {
     WHERE excluded.snapshot_version >= member_snapshots.snapshot_version`)
     .bind(storeId, snapshot.memberId, snapshot.version, isUpsert ? 'ACTIVE' : 'DELETED',
       data.name ?? null, data.nameNormalized ?? null, data.phoneHmac ?? null, data.phoneLast4Hmac ?? null,
-      data.phoneMasked ?? null, isUpsert ? JSON.stringify(data) : null, snapshot.sourceUpdatedAt, now).run();
+      data.phoneMasked ?? null, isUpsert ? JSON.stringify(data) : null, snapshot.sourceUpdatedAt, now);
 }
 
 export async function handleSync(request, env, now = Date.now()) {
@@ -104,18 +104,37 @@ export async function handleSync(request, env, now = Date.now()) {
   }
   const invalid = payload.snapshots.map(validateSnapshot).find(Boolean);
   if (invalid) return json({ error: invalid }, 400);
-  const client = await claimNonceAndClient(env.DB, verified.keyId, verified.nonce, now);
-  if (client.error) return json({ error: client.error }, client.status);
-  if (client.storeId !== payload.storeId) return json({ error: 'store does not match sync key' }, 403);
-  for (const snapshot of payload.snapshots) await persistSnapshot(env.DB, payload.storeId, snapshot, now);
-  await env.DB.prepare('INSERT INTO sync_audit (store_id, key_id, received_at, item_count, accepted_count) VALUES (?, ?, ?, ?, ?)')
-    .bind(payload.storeId, verified.keyId, now, payload.snapshots.length, payload.snapshots.length).run();
+  const nonceClaim = await claimNonce(env.DB, verified.storeId, verified.nonce, now);
+  if (nonceClaim.error) return json({ error: nonceClaim.error }, nonceClaim.status);
+  const statements = payload.snapshots.map(snapshot => persistSnapshotStatement(env.DB, payload.storeId, snapshot, now));
+  statements.push(env.DB.prepare('INSERT INTO sync_audit (store_id, received_at, item_count, accepted_count) VALUES (?, ?, ?, ?)')
+    .bind(payload.storeId, now, payload.snapshots.length, payload.snapshots.length));
+  try {
+    await env.DB.batch(statements);
+  } catch {
+    return json({ error: 'snapshot persistence failed' }, 503);
+  }
   return json({ accepted: payload.snapshots.length });
+}
+
+export async function handleConnectionTest(request, env, now = Date.now()) {
+  const verified = await verifySignedRequest(request, env, now);
+  if (verified.error) return json({ error: verified.error }, verified.status);
+  let payload;
+  try { payload = JSON.parse(verified.body); } catch { return json({ error: 'invalid JSON' }, 400); }
+  if (!payload || payload.storeId !== verified.storeId) return json({ error: 'invalid connection test' }, 400);
+  try {
+    await env.DB.prepare('SELECT 1').first();
+  } catch {
+    return json({ error: 'database unavailable' }, 503);
+  }
+  return json({ ok: true });
 }
 
 export default {
   fetch(request, env) {
     if (request.method === 'POST' && new URL(request.url).pathname === '/internal/v1/member-snapshots:batch') return handleSync(request, env);
+    if (request.method === 'POST' && new URL(request.url).pathname === '/internal/v1/member-snapshots:test') return handleConnectionTest(request, env);
     return json({ error: 'not found' }, 404);
   }
 };

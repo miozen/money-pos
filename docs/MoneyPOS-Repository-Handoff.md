@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after the OMNIA-CLOUD-6 implementation and handoff closure commits. |
-| Current phase | `OMNIA-CLOUD-6 complete; awaiting deployment acceptance` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-6-In-App-Configuration-Implementation-Contract.md` |
+| Working tree | Clean after local OMNIA-CLOUD-7 commit `237e8fe`; push/fetch synchronization remains. |
+| Current phase | `OMNIA-CLOUD-7 complete locally; push/fetch verification remains` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -36,7 +36,10 @@ continuing.
 - CI-FIX-1 is committed in `60f3f54` (`fix(ci): quote Maven release revision`) and synchronized. The Windows EXE workflow now passes its dotted release version as one quoted PowerShell argument, preventing Maven from treating a suffix such as `.0.12` as a lifecycle phase. Local equivalent Maven packaging with `-Drevision=1.0.12` completed successfully; GitHub Actions execution is the remaining external confirmation.
 - OMNIA-CLOUD-6 is implemented in `f5093c0` (`feat(ums): configure cloud sync in app`). It supersedes the OMNIA-CLOUD-5 external YAML decision: the Electron loader and example are removed, the local MariaDB owns one configurable Cloud sync record, and configuration mutation requires both `SUPER_ADMIN` and `omniaCloud:manage` while the direct socket address is loopback. It does not enable or send real-member data by default.
 - Validation actually passed: route contract, isolated credential-injected `money_pos_test` full Maven suite (88 Surefire reports, zero failure/error), `mvn -q package -DskipTests`, Node 20 `npm run build`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`.
-- Exact next action: push/fetch-synchronize the OMNIA-CLOUD-6 closure, then build a Windows Electron package and separately configure/accept real POS synchronization.
+- OMNIA-CLOUD-7 is complete locally under `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md`. It keeps the visible/configurable `storeId` (default `store-01`) as the D1 partition, removes local Key ID configuration and Worker runtime `sync_clients` dependence, adds signed no-data connection testing, one-shot dispatch and explicit repair controls, recovers stale Outbox `PROCESSING` work, and makes Worker snapshot/audit writes a single D1 batch. Local repair includes deleted/merged TOMBSTONE records; it does not alter local member data.
+- `V1.0.27`–`V1.0.29` applied successfully to isolated `money_pos_test`; D1 `0002`–`0003` are committed as unexecuted deployment migrations. No Worker deployment, secret change or real-member sync occurred in this slice.
+- Validation actually passed: focused cloud regression (10 tests, zero failure/error), isolated credential-injected full Maven suite (187 tests, zero failure/error), `mvn -q package -DskipTests`, Node 20 Worker `npm test`, Node 20 frontend `npm run build`, both architecture gates and `git diff --check`. The frontend build has only pre-existing Browserslist/CSS/dynamic-import/chunk warnings.
+- Exact next action: push commit `237e8fe`, fetch and verify `dev...origin/dev = 0/0`; separately authorize D1 migration/deployment before real synchronization or Windows POS acceptance.
 
 ## UMS-MERGE-0 contract state
 

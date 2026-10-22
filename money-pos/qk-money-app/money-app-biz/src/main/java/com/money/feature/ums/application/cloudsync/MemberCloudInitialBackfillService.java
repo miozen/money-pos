@@ -21,23 +21,36 @@ public class MemberCloudInitialBackfillService {
 
     @Transactional
     public int enqueueNextChunk() {
-        if (!properties.isInitialBackfillEnabled()) return 0;
         int total = 0;
         int limit = Math.max(1, Math.min(properties.getInitialBackfillBatchSize(), 1000));
-        for (Long tenantId : memberMapper.selectActiveTenantIdsForCloudBootstrap()) {
+        for (Long tenantId : memberMapper.selectTenantIdsForCloudRepair()) {
             bootstrapMapper.insertIfAbsent(tenantId);
             CloudMemberSyncBootstrap checkpoint = bootstrapMapper.selectForUpdate(tenantId);
             if (checkpoint == null || "COMPLETED".equals(checkpoint.getStatus())) continue;
-            List<UmsMember> members = memberMapper.selectActiveMembersForCloudBootstrap(tenantId, checkpoint.getCursorMemberId(), limit);
+            boolean repairing = "REPAIRING".equals(checkpoint.getStatus());
+            List<UmsMember> members = repairing
+                    ? memberMapper.selectMembersForCloudRepair(tenantId, checkpoint.getCursorMemberId(), limit)
+                    : memberMapper.selectActiveMembersForCloudBootstrap(tenantId, checkpoint.getCursorMemberId(), limit);
             if (members.isEmpty()) {
                 bootstrapMapper.advance(tenantId, checkpoint.getCursorMemberId(), 0, "COMPLETED");
                 continue;
             }
-            members.forEach(member -> outboxService.markUpsert(tenantId, member.getId()));
+            members.forEach(member -> {
+                if (repairing && Boolean.TRUE.equals(member.getDeleted())) outboxService.markTombstone(tenantId, member.getId());
+                else outboxService.markUpsert(tenantId, member.getId());
+            });
             Long cursor = members.get(members.size() - 1).getId();
-            bootstrapMapper.advance(tenantId, cursor, members.size(), members.size() < limit ? "COMPLETED" : "PENDING");
+            bootstrapMapper.advance(tenantId, cursor, members.size(), members.size() < limit ? "COMPLETED" : (repairing ? "REPAIRING" : "PENDING"));
             total += members.size();
         }
         return total;
+    }
+
+    @Transactional
+    public void beginRepair() {
+        for (Long tenantId : memberMapper.selectTenantIdsForCloudRepair()) {
+            bootstrapMapper.insertIfAbsent(tenantId);
+            bootstrapMapper.beginRepair(tenantId);
+        }
     }
 }

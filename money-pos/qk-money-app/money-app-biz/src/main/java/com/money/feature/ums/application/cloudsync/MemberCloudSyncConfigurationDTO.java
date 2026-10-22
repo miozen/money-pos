@@ -7,13 +7,9 @@ import lombok.Data;
 public class MemberCloudSyncConfigurationDTO {
     private String endpoint;
     private String storeId;
-    private Long tenantId;
-    private String keyId;
     private String signingSecretBase64;
     private String searchHmacSecretBase64;
     private boolean signingSecretConfigured;
     private boolean searchHmacSecretConfigured;
     private boolean enabled;
-    private boolean initialBackfillEnabled;
-    private Integer initialBackfillBatchSize;
 }

@@ -18,6 +18,7 @@ public class CloudMemberSyncOutbox {
     private String status;
     private Integer retryCount;
     private LocalDateTime nextRetryAt;
+    private LocalDateTime processingAt;
     private String lastError;
     private LocalDateTime sentAt;
     private LocalDateTime createTime;

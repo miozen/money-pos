@@ -6,6 +6,7 @@ import com.money.feature.ums.infrastructure.persistence.entity.CloudMemberSyncOu
 import com.money.feature.ums.infrastructure.persistence.entity.UmsMember;
 import com.money.feature.ums.infrastructure.persistence.mapper.CloudMemberSyncBootstrapMapper;
 import com.money.feature.ums.infrastructure.persistence.mapper.CloudMemberSyncOutboxMapper;
+import com.money.mapper.UmsMemberMapper;
 import com.money.support.TradeFixture;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,13 @@ class MemberCloudInitialBackfillIntegrationTest {
     @Autowired private CloudMemberSyncBootstrapMapper bootstrapMapper;
     @Autowired private MemberCloudInitialBackfillService backfillService;
     @Autowired private MemberCloudSyncProperties properties;
+    @Autowired private UmsMemberMapper memberMapper;
+    @Autowired private MemberCloudSyncOutboxService outboxService;
 
     @Test
     void enqueuesEveryActiveMemberOnceAndCompletesCheckpoint() {
-        boolean previous = properties.isInitialBackfillEnabled();
         int previousSize = properties.getInitialBackfillBatchSize();
-        properties.setInitialBackfillEnabled(true); properties.setInitialBackfillBatchSize(1000);
+        properties.setInitialBackfillBatchSize(1000);
         String suffix = Long.toString(System.nanoTime(), 36);
         UmsMember first = tradeFixture.createMember("ba" + suffix, BigDecimal.ZERO);
         UmsMember second = tradeFixture.createMember("bb" + suffix, BigDecimal.ZERO);
@@ -48,7 +50,40 @@ class MemberCloudInitialBackfillIntegrationTest {
             assertThat(outboxMapper.selectList(new LambdaQueryWrapper<CloudMemberSyncOutbox>().in(CloudMemberSyncOutbox::getMemberId, first.getId(), second.getId())))
                     .extracting(CloudMemberSyncOutbox::getSnapshotVersion).containsExactlyInAnyOrderElementsOf(versions);
         } finally {
-            properties.setInitialBackfillEnabled(previous); properties.setInitialBackfillBatchSize(previousSize);
+            properties.setInitialBackfillBatchSize(previousSize);
         }
+    }
+
+    @Test
+    void explicitRepairAlsoCreatesTombstoneForDeletedMember() {
+        int previousSize = properties.getInitialBackfillBatchSize();
+        properties.setInitialBackfillBatchSize(1000);
+        String suffix = Long.toString(System.nanoTime(), 36);
+        UmsMember deleted = tradeFixture.createMember("deleted" + suffix, BigDecimal.ZERO);
+        deleted.setDeleted(true);
+        memberMapper.updateById(deleted);
+        try {
+            backfillService.beginRepair();
+            backfillService.enqueueNextChunk();
+            CloudMemberSyncOutbox row = outboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                    .eq(CloudMemberSyncOutbox::getMemberId, deleted.getId()));
+            assertThat(row).isNotNull();
+            assertThat(row.getOperation()).isEqualTo("TOMBSTONE");
+        } finally {
+            properties.setInitialBackfillBatchSize(previousSize);
+        }
+    }
+
+    @Test
+    void recoversLegacyProcessingRecordWithoutProcessingTimestamp() {
+        UmsMember member = tradeFixture.createMember("recover" + Long.toString(System.nanoTime(), 36), BigDecimal.ZERO);
+        outboxService.markUpsert(member.getId());
+        CloudMemberSyncOutbox row = outboxMapper.selectOne(new LambdaQueryWrapper<CloudMemberSyncOutbox>()
+                .eq(CloudMemberSyncOutbox::getMemberId, member.getId()));
+        row.setStatus("PROCESSING");
+        row.setProcessingAt(null);
+        outboxMapper.updateById(row);
+        assertThat(outboxService.recoverExpiredProcessing()).isGreaterThanOrEqualTo(1);
+        assertThat(outboxMapper.selectById(row.getId()).getStatus()).isEqualTo("FAILED");
     }
 }

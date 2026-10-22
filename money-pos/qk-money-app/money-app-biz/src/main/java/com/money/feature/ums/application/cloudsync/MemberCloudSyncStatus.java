@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 public class MemberCloudSyncStatus {
     boolean enabled;
     boolean configurationComplete;
-    boolean initialBackfillEnabled;
     String storeId;
     Long tenantId;
     long pending;

@@ -31,18 +31,20 @@ public class MemberCloudSyncRequestFactory {
         body.put("snapshots", snapshots);
         try {
             String json = objectMapper.writeValueAsString(body);
-            String hash = sha256Hex(json);
-            String nonce = UUID.randomUUID().toString();
-            String canonical = "POST\n/internal/v1/member-snapshots:batch\n" + nowEpochMillis + "\n" + nonce + "\n" + hash;
-            Map<String, String> headers = new LinkedHashMap<>();
-            headers.put("X-Omnia-Key-Id", properties.getKeyId());
-            headers.put("X-Omnia-Timestamp", Long.toString(nowEpochMillis));
-            headers.put("X-Omnia-Nonce", nonce);
-            headers.put("X-Omnia-Body-SHA256", hash);
-            headers.put("X-Omnia-Signature", hmacHex(properties.getSigningSecretBase64(), canonical));
-            return new CloudBatchRequest(json, headers);
+            return signedRequest(properties, "/internal/v1/member-snapshots:batch", json, nowEpochMillis);
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("无法序列化Omnia Cloud会员快照", ex);
+        }
+    }
+
+    /** Signed, no-data connection probe for the Worker and its D1 binding. */
+    public CloudBatchRequest buildConnectionTest(MemberCloudSyncProperties properties, long nowEpochMillis) {
+        requireConfigured(properties);
+        try {
+            return signedRequest(properties, "/internal/v1/member-snapshots:test",
+                    objectMapper.writeValueAsString(Collections.singletonMap("storeId", properties.getStoreId())), nowEpochMillis);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("无法序列化Omnia Cloud连通性测试", ex);
         }
     }
 
@@ -83,12 +85,24 @@ public class MemberCloudSyncRequestFactory {
         return result;
     }
 
+    private CloudBatchRequest signedRequest(MemberCloudSyncProperties properties, String path, String json, long nowEpochMillis) {
+        String hash = sha256Hex(json);
+        String nonce = UUID.randomUUID().toString();
+        String canonical = "POST\n" + path + "\n" + nowEpochMillis + "\n" + nonce + "\n" + hash;
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("X-Omnia-Timestamp", Long.toString(nowEpochMillis));
+        headers.put("X-Omnia-Nonce", nonce);
+        headers.put("X-Omnia-Body-SHA256", hash);
+        headers.put("X-Omnia-Signature", hmacHex(properties.getSigningSecretBase64(), canonical));
+        return new CloudBatchRequest(json, headers);
+    }
+
     private long toEpochMillis(CloudMemberSyncOutbox item) {
         return (item.getUpdateTime() == null ? item.getCreateTime() : item.getUpdateTime()).toInstant(ZoneOffset.UTC).toEpochMilli();
     }
     private void requireConfigured(MemberCloudSyncProperties properties) {
         if (blank(properties.getEndpoint()) || !isReceiverEndpoint(properties.getEndpoint()) || blank(properties.getStoreId()) ||
-                blank(properties.getKeyId()) || blank(properties.getSigningSecretBase64()) || blank(properties.getSearchHmacSecretBase64())) {
+                blank(properties.getSigningSecretBase64()) || blank(properties.getSearchHmacSecretBase64())) {
             throw new IllegalStateException("Omnia Cloud发布器需要显式配置HTTPS端点、门店、签名密钥和检索HMAC密钥");
         }
     }

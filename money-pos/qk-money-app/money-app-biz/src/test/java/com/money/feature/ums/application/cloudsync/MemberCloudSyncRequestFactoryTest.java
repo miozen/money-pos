@@ -50,7 +50,7 @@ class MemberCloudSyncRequestFactoryTest {
 
     private MemberCloudSyncProperties configured() {
         MemberCloudSyncProperties properties = new MemberCloudSyncProperties();
-        properties.setEndpoint("https://cloud.example/internal/v1/member-snapshots:batch"); properties.setStoreId("store-a"); properties.setKeyId("key-a");
+        properties.setEndpoint("https://cloud.example/internal/v1/member-snapshots:batch"); properties.setStoreId("store-a");
         properties.setSigningSecretBase64("MDEyMzQ1Njc4OWFiY2RlZg=="); properties.setSearchHmacSecretBase64("ZmVkY2JhOTg3NjU0MzIxMA=="); return properties;
     }
     private CloudMemberSyncOutbox outbox(String operation) {

@@ -18,4 +18,7 @@ public interface CloudMemberSyncBootstrapMapper extends BaseMapper<CloudMemberSy
 
     @Update("UPDATE cloud_member_sync_bootstrap SET cursor_member_id = #{cursorMemberId}, total_enqueued = total_enqueued + #{enqueued}, status = #{status}, completed_at = CASE WHEN #{status} = 'COMPLETED' THEN NOW() ELSE NULL END, update_time = NOW() WHERE tenant_id = #{tenantId}")
     int advance(@Param("tenantId") Long tenantId, @Param("cursorMemberId") Long cursorMemberId, @Param("enqueued") long enqueued, @Param("status") String status);
+
+    @Update("UPDATE cloud_member_sync_bootstrap SET status = 'REPAIRING', cursor_member_id = 0, total_enqueued = 0, started_at = NOW(), completed_at = NULL, update_time = NOW() WHERE tenant_id = #{tenantId}")
+    int beginRepair(@Param("tenantId") Long tenantId);
 }

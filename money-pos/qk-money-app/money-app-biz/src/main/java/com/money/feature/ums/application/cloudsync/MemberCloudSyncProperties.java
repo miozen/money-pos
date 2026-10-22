@@ -15,11 +15,8 @@ public class MemberCloudSyncProperties {
     private String endpoint;
     private String storeId;
     private Long tenantId;
-    private String keyId;
     private String signingSecretBase64;
     private String searchHmacSecretBase64;
-    /** Explicitly opt-in one-time bootstrap; the checkpoint prevents restart replays after completion. */
-    private boolean initialBackfillEnabled = false;
     private int initialBackfillBatchSize = 500;
 
     public void apply(CloudMemberSyncConfig config) {
@@ -28,16 +25,14 @@ public class MemberCloudSyncProperties {
         endpoint = config.getEndpoint();
         storeId = config.getStoreId();
         tenantId = config.getTenantId();
-        keyId = config.getKeyId();
         signingSecretBase64 = config.getSigningSecretBase64();
         searchHmacSecretBase64 = config.getSearchHmacSecretBase64();
-        initialBackfillEnabled = Boolean.TRUE.equals(config.getInitialBackfillEnabled());
         if (config.getInitialBackfillBatchSize() != null) initialBackfillBatchSize = config.getInitialBackfillBatchSize();
     }
 
     /** Safe readiness predicate for the administrator status screen; it never exposes credential values. */
     public boolean hasCompletePublishingConfiguration() {
-        return present(endpoint) && isReceiverEndpoint(endpoint) && present(storeId) && present(keyId)
+        return present(endpoint) && isReceiverEndpoint(endpoint) && present(storeId)
                 && present(signingSecretBase64) && present(searchHmacSecretBase64);
     }
 

@@ -38,4 +38,25 @@ public class HttpsMemberCloudSyncPublisher {
             throw new IllegalStateException("Omnia Cloud会员快照发布失败: " + ex.getMessage(), ex);
         }
     }
+
+    /** Verifies signed Worker authentication and D1 availability without writing a member snapshot. */
+    public void testConnection() {
+        MemberCloudSyncRequestFactory.CloudBatchRequest request = requestFactory.buildConnectionTest(properties, System.currentTimeMillis());
+        URI endpoint = URI.create(properties.getEndpoint().replace("/internal/v1/member-snapshots:batch", "/internal/v1/member-snapshots:test"));
+        HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint)
+                .timeout(Duration.ofSeconds(20)).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .POST(HttpRequest.BodyPublishers.ofString(request.getBody()));
+        request.getHeaders().forEach(builder::header);
+        try {
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300 || !response.body().contains("\"ok\":true")) {
+                throw new IllegalStateException("Omnia Cloud连接测试失败，HTTP " + response.statusCode());
+            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Omnia Cloud连接测试被中断", ex);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Omnia Cloud连接测试失败: " + ex.getMessage(), ex);
+        }
+    }
 }

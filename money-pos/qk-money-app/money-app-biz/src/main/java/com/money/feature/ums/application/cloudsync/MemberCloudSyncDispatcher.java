@@ -24,7 +24,14 @@ public class MemberCloudSyncDispatcher {
 
     @Scheduled(fixedDelayString = "${omnia.cloud.sync.fixed-delay-ms:60000}")
     public void dispatchWhenPublisherIsInstalled() {
+        dispatchNow();
+    }
+
+    /** Allows the local administrator page to run the same bounded, safe dispatch loop on demand. */
+    public void dispatchNow() {
         if (!properties.isEnabled()) return;
+        int recovered = outboxService.recoverExpiredProcessing();
+        if (recovered > 0) log.warn("Omnia Cloud恢复了中断的待发送任务，count={}", recovered);
         int backfilled = initialBackfillService.enqueueNextChunk();
         if (backfilled > 0) log.info("Omnia Cloud首次会员回填已入待发箱，count={}", backfilled);
         List<CloudMemberSyncOutbox> claimed = outboxService.claimDue(50);
@@ -33,9 +40,6 @@ public class MemberCloudSyncDispatcher {
             List<MemberCloudSyncRequestFactory.CloudSyncItem> items = claimed.stream().map(item ->
                     new MemberCloudSyncRequestFactory.CloudSyncItem(item, "UPSERT".equals(item.getOperation()) ? snapshotAssembler.assemble(item.getMemberId()) : null))
                     .collect(java.util.stream.Collectors.toList());
-            if (properties.getTenantId() != null && items.stream().anyMatch(item -> !properties.getTenantId().equals(item.getOutbox().getTenantId()))) {
-                throw new IllegalStateException("Outbox租户与Omnia Cloud发布器配置不一致");
-            }
             publisher.publish(items);
             claimed.forEach(outboxService::acknowledge);
         } catch (Exception ex) {

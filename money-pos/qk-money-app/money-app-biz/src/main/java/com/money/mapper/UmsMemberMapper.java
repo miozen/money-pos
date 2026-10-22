@@ -104,4 +104,12 @@ public interface UmsMemberMapper extends BaseMapper<UmsMember> {
     @InterceptorIgnore(tenantLine = "true")
     @Select("SELECT id, tenant_id FROM ums_member WHERE deleted = 0 AND tenant_id = #{tenantId} AND id > #{afterId} ORDER BY id ASC LIMIT #{limit}")
     List<UmsMember> selectActiveMembersForCloudBootstrap(@Param("tenantId") Long tenantId, @Param("afterId") Long afterId, @Param("limit") int limit);
+
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT DISTINCT tenant_id FROM ums_member ORDER BY tenant_id")
+    List<Long> selectTenantIdsForCloudRepair();
+
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT id, tenant_id, deleted FROM ums_member WHERE tenant_id = #{tenantId} AND id > #{afterId} ORDER BY id ASC LIMIT #{limit}")
+    List<UmsMember> selectMembersForCloudRepair(@Param("tenantId") Long tenantId, @Param("afterId") Long afterId, @Param("limit") int limit);
 }

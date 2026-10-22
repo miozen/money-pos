@@ -21,6 +21,7 @@ public class MemberCloudSyncOutboxService {
     public void markUpsert(Long memberId) { mark(memberId, "UPSERT"); }
     public void markUpsert(Long tenantId, Long memberId) { mark(tenantId, memberId, "UPSERT"); }
     public void markTombstone(Long memberId) { mark(memberId, "TOMBSTONE"); }
+    public void markTombstone(Long tenantId, Long memberId) { mark(tenantId, memberId, "TOMBSTONE"); }
 
     /** Claims a bounded batch using compare-and-set state changes; safe for future multi-task deployments. */
     public List<CloudMemberSyncOutbox> claimDue(int requestedLimit) {
@@ -33,7 +34,7 @@ public class MemberCloudSyncOutboxService {
         List<CloudMemberSyncOutbox> claimed = new ArrayList<>();
         for (CloudMemberSyncOutbox candidate : candidates) {
             int changed = mapper.update(null, new LambdaUpdateWrapper<CloudMemberSyncOutbox>()
-                    .set(CloudMemberSyncOutbox::getStatus, "PROCESSING")
+                    .set(CloudMemberSyncOutbox::getStatus, "PROCESSING").set(CloudMemberSyncOutbox::getProcessingAt, now)
                     .eq(CloudMemberSyncOutbox::getId, candidate.getId())
                     .eq(CloudMemberSyncOutbox::getSnapshotVersion, candidate.getSnapshotVersion())
                     .in(CloudMemberSyncOutbox::getStatus, "PENDING", "FAILED"));
@@ -46,7 +47,7 @@ public class MemberCloudSyncOutboxService {
         if (item == null) return;
         mapper.update(null, new LambdaUpdateWrapper<CloudMemberSyncOutbox>()
                 .set(CloudMemberSyncOutbox::getStatus, "SENT").set(CloudMemberSyncOutbox::getSentAt, LocalDateTime.now())
-                .set(CloudMemberSyncOutbox::getLastError, null).eq(CloudMemberSyncOutbox::getId, item.getId())
+                .set(CloudMemberSyncOutbox::getLastError, null).set(CloudMemberSyncOutbox::getProcessingAt, null).eq(CloudMemberSyncOutbox::getId, item.getId())
                 .eq(CloudMemberSyncOutbox::getSnapshotVersion, item.getSnapshotVersion()).eq(CloudMemberSyncOutbox::getStatus, "PROCESSING"));
     }
 
@@ -56,7 +57,7 @@ public class MemberCloudSyncOutboxService {
         long delaySeconds = Math.min(3600L, 30L * (1L << Math.min(retries - 1, 6)));
         mapper.update(null, new LambdaUpdateWrapper<CloudMemberSyncOutbox>()
                 .set(CloudMemberSyncOutbox::getStatus, "FAILED").set(CloudMemberSyncOutbox::getRetryCount, retries)
-                .set(CloudMemberSyncOutbox::getNextRetryAt, LocalDateTime.now().plusSeconds(delaySeconds))
+                .set(CloudMemberSyncOutbox::getNextRetryAt, LocalDateTime.now().plusSeconds(delaySeconds)).set(CloudMemberSyncOutbox::getProcessingAt, null)
                 .set(CloudMemberSyncOutbox::getLastError, trim(error)).eq(CloudMemberSyncOutbox::getId, item.getId())
                 .eq(CloudMemberSyncOutbox::getSnapshotVersion, item.getSnapshotVersion()).eq(CloudMemberSyncOutbox::getStatus, "PROCESSING"));
     }
@@ -66,5 +67,6 @@ public class MemberCloudSyncOutboxService {
         mark(tenantId, memberId, operation);
     }
     private void mark(Long tenantId, Long memberId, String operation) { if (memberId != null) mapper.markLatest(tenantId == null ? 0L : tenantId, memberId, operation); }
+    public int recoverExpiredProcessing() { return mapper.recoverExpiredProcessing(LocalDateTime.now().minusMinutes(5)); }
     private String trim(String value) { return value == null ? null : value.substring(0, Math.min(500, value.length())); }
 }

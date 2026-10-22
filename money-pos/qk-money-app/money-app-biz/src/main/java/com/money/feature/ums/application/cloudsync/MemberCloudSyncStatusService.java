@@ -20,7 +20,7 @@ public class MemberCloudSyncStatusService {
         Long tenantId = properties.getTenantId();
         CloudMemberSyncBootstrap bootstrap = tenantId == null ? null : bootstrapMapper.selectById(tenantId);
         return new MemberCloudSyncStatus(
-                properties.isEnabled(), properties.hasCompletePublishingConfiguration(), properties.isInitialBackfillEnabled(),
+                properties.isEnabled(), properties.hasCompletePublishingConfiguration(),
                 properties.getStoreId(), tenantId,
                 count(tenantId, "PENDING"), count(tenantId, "FAILED"), count(tenantId, "PROCESSING"), count(tenantId, "SENT"),
                 bootstrap == null ? "NOT_STARTED" : bootstrap.getStatus(),

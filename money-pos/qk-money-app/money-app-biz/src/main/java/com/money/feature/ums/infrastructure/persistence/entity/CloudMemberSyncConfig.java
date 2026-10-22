@@ -13,9 +13,7 @@ public class CloudMemberSyncConfig {
     private String endpoint;
     private String storeId;
     private Long tenantId;
-    private String keyId;
     private String signingSecretBase64;
     private String searchHmacSecretBase64;
-    private Boolean initialBackfillEnabled;
     private Integer initialBackfillBatchSize;
 }

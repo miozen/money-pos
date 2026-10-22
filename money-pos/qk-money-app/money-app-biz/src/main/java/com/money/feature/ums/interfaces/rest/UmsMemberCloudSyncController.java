@@ -46,6 +46,30 @@ public class UmsMemberCloudSyncController {
         return configurationService.save(request);
     }
 
+    @Operation(summary = "重新投递当前会员云端快照，仅限本机管理员")
+    @PostMapping("/repair")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')")
+    public void beginRepair(HttpServletRequest httpRequest) {
+        requireLoopback(httpRequest);
+        configurationService.beginRepair();
+    }
+
+    @Operation(summary = "立即执行一轮Omnia Cloud待发箱发送，仅限本机管理员")
+    @PostMapping("/dispatch")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')")
+    public void dispatchNow(HttpServletRequest httpRequest) {
+        requireLoopback(httpRequest);
+        configurationService.dispatchNow();
+    }
+
+    @Operation(summary = "测试Omnia Cloud签名连接和D1可用性，仅限本机管理员")
+    @PostMapping("/test-connection")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')")
+    public void testConnection(HttpServletRequest httpRequest) {
+        requireLoopback(httpRequest);
+        configurationService.testConnection();
+    }
+
     private void requireLoopback(HttpServletRequest request) {
         try {
             if (request == null || !InetAddress.getByName(request.getRemoteAddr()).isLoopbackAddress()) throw new BaseException("Omnia Cloud配置只允许在本机修改");
