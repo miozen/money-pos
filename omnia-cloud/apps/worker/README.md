@@ -19,3 +19,25 @@ transaction histories are rejected/not modelled. Tombstones retain only identity
 version and deletion status. Higher (or equal) versions win, so retries are safe.
 The Worker claims a nonce, then writes every snapshot and the audit row in one D1
 batch; a write failure returns an error rather than a successful acknowledgement.
+
+## Read-only personal query
+
+`GET /` serves the mobile member-query page. `POST /api/v1/members/search` accepts
+`{ "query": "..." }`, and `GET /api/v1/members/{memberId}` returns one active
+member projection. Both APIs require HTTP Basic Authorization and use only a fixed
+Worker-side store partition; they never accept `storeId` from a browser.
+
+Before deploying this capability, configure these **Worker secrets/variables** outside
+Git:
+
+- `OMNIA_QUERY_PASSWORD` (secret): personal webpage password.
+- `OMNIA_SEARCH_HMAC_SECRET_BASE64` (secret): the same Base64 search-HMAC value used
+  by the local POS publisher. It derives full-phone and last-four lookup hashes inside
+  the Worker and is never returned to the browser.
+- `OMNIA_QUERY_STORE_ID` (plain Worker variable): fixed query partition. Use
+  `store-01-test` only during acceptance and `store-01` for normal production use.
+
+The search API recognizes an 11-digit full phone, a four-digit suffix, or a name
+prefix. It returns at most 20 ACTIVE snapshots and emits `Cache-Control: no-store`.
+It returns only the display projection, never HMAC values, normalized names or raw
+phones.

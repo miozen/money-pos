@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after large Snowflake member-ID compatibility commit `43d3022`; immediately after fetch, `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-7 deployed and large-ID compatible; Windows package prerequisites are absent` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md` |
+| Working tree | OMNIA-CLOUD-8 query implementation is committed as `e4a9f4b`; push and branch-sync verification remain. |
+| Current phase | `OMNIA-CLOUD-8 read-only member query committed; deployment/secrets/mobile acceptance remain` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -44,7 +44,10 @@ continuing.
 - The implementation commit is `d0c84ca` (`feat(cloud): simplify single-store member sync`) and is pushed to `origin/dev`; immediately after fetch, `dev...origin/dev = 0/0`.
 - Windows package build is currently blocked only by absent workspace release inputs: `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`. Do not fabricate or download substitute runtime payloads.
 - The compatibility correction is committed as `43d3022` (`fix(cloud): preserve Snowflake member IDs`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
-- Exact next action: build the Windows package from the approved release environment (this workspace still lacks `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`), install/restart it, and use “立即同步” on the existing `store-01-test` configuration. Existing FAILED Outbox rows should then be retried; `SENT` must increase and `失败待重试` fall to zero before treating real synchronization as successful.
+- Real-device acceptance subsequently completed on `store-01-test`: local Outbox showed `SENT=3`, `FAILED=0`, and D1 read-only verification found 3 ACTIVE snapshots plus 2 audit batches accepting 3 items. The full Snowflake ID `2102313829312065536` was returned exactly by `CAST(member_id AS TEXT)`.
+- OMNIA-CLOUD-8 is committed as `e4a9f4b` (`feat(cloud): add read-only member query`) under `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md`; push and branch-sync verification remain. It adds only Worker-side, password-protected read APIs and a dependency-free mobile page. `OMNIA_QUERY_STORE_ID` fixes the partition; `OMNIA_QUERY_PASSWORD` and `OMNIA_SEARCH_HMAC_SECRET_BASE64` remain Worker-side secrets. No D1 schema, POS, Telegram or product code changed, and no query endpoint has been deployed yet.
+- Validation actually passed: isolated credential-injected `money_pos_test` full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, Worker Node tests, both architecture gates and `git diff --check`.
+- Exact next action: push and verify OMNIA-CLOUD-8; then obtain a personal query password and explicit Cloudflare authorization to deploy the new Worker version, set `OMNIA_QUERY_PASSWORD` and `OMNIA_SEARCH_HMAC_SECRET_BASE64`, set `OMNIA_QUERY_STORE_ID=store-01-test` for acceptance, and complete phone-browser verification before switching the query partition to `store-01`.
 
 ## UMS-MERGE-0 contract state
 

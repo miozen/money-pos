@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handleConnectionTest, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
+import { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
 
 const secret = 'MDEyMzQ1Njc4OWFiY2RlZg==';
 const body = JSON.stringify({ storeId: 'store-a', snapshots: [] });
@@ -71,6 +71,70 @@ test('snapshot and audit persistence are sent to one D1 batch', async () => {
   assert.equal(statements[0].args[1], '2102313829312065536');
   assert.match(statements[1].sql, /INSERT INTO sync_audit/);
 });
+
+test('member query uses the fixed store, search HMAC, and never returns search fields', async () => {
+  const searchSecret = 'MDEyMzQ1Njc4OWFiY2RlZg==';
+  let queryStatement;
+  const db = {
+    prepare: (sql) => ({
+      bind: (...args) => ({
+        all: async () => { queryStatement = { sql, args }; return { results: [memberRow()] }; }
+      })
+    })
+  };
+  const request = queryRequest('/api/v1/members/search', { query: '13800138000' });
+  const response = await handleMemberSearch(request, {
+    DB: db, OMNIA_QUERY_PASSWORD: 'only-me', OMNIA_QUERY_STORE_ID: 'store-01-test', OMNIA_SEARCH_HMAC_SECRET_BASE64: searchSecret
+  });
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(queryStatement.args[0], 'store-01-test');
+  assert.equal(queryStatement.args[1], await hmacHex(searchSecret, '13800138000'));
+  assert.equal(body.members[0].phoneMasked, '138****8000');
+  assert.doesNotMatch(JSON.stringify(body), /phoneHmac|phoneLast4Hmac|nameNormalized/);
+});
+
+test('member query rejects bad password and hides deleted snapshots', async () => {
+  const unauthorized = await handleMemberSearch(new Request('https://cloud.example/api/v1/members/search', {
+    method: 'POST', body: JSON.stringify({ query: '张三' }), headers: { authorization: 'Basic ' + btoa('omnia:wrong') }
+  }), { OMNIA_QUERY_PASSWORD: 'only-me', OMNIA_QUERY_STORE_ID: 'store-01', OMNIA_SEARCH_HMAC_SECRET_BASE64: secret });
+  assert.equal(unauthorized.status, 401);
+  let sql;
+  const response = await handleMemberSearch(queryRequest('/api/v1/members/search', { query: '张三' }), {
+    OMNIA_QUERY_PASSWORD: 'only-me', OMNIA_QUERY_STORE_ID: 'store-01', OMNIA_SEARCH_HMAC_SECRET_BASE64: secret,
+    DB: { prepare: (value) => ({ bind: (...args) => ({ all: async () => { sql = value; assert.equal(args[0], 'store-01'); return { results: [] }; } }) }) }
+  });
+  assert.equal(response.status, 200);
+  assert.match(sql, /status = 'ACTIVE'/);
+});
+
+test('member detail preserves a large member ID and fixes the query partition', async () => {
+  let args;
+  const request = new Request('https://cloud.example/api/v1/members/2102313829312065536', {
+    headers: { authorization: 'Basic ' + btoa('omnia:only-me') }
+  });
+  const response = await handleMemberDetail(request, {
+    OMNIA_QUERY_PASSWORD: 'only-me', OMNIA_QUERY_STORE_ID: 'store-01-test', OMNIA_SEARCH_HMAC_SECRET_BASE64: secret,
+    DB: { prepare: () => ({ bind: (...values) => ({ first: async () => { args = values; return memberRow(); } }) }) }
+  }, '2102313829312065536');
+  assert.equal(response.status, 200);
+  assert.deepEqual(args, ['store-01-test', '2102313829312065536']);
+  assert.equal((await response.json()).member.memberId, '2102313829312065536');
+});
+
+function queryRequest(path, body) {
+  return new Request(`https://cloud.example${path}`, {
+    method: 'POST', body: JSON.stringify(body),
+    headers: { 'content-type': 'application/json', authorization: 'Basic ' + btoa('omnia:only-me') }
+  });
+}
+
+function memberRow() {
+  return {
+    member_id: '2102313829312065536', name: '张三', phone_masked: '138****8000', source_updated_at: 1_790_000_000_000, synced_at: 1_790_000_000_001,
+    snapshot_json: JSON.stringify({ memberCode: 'M001', memberType: 'VIP', balance: '12.34', couponBalance: '0', nameNormalized: '张三', phoneHmac: 'hidden', phoneLast4Hmac: 'hidden', brandLevels: { A: 'GOLD' }, unusedCoupons: [], quantityRights: [], amountRights: [], targetPlans: [] })
+  };
+}
 
 async function signedHeaders(path, payload) {
   const bodyHash = await sha256Hex(payload);
