@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after large Snowflake member-ID compatibility commit `1d05866`; push and branch-sync verification remain. |
-| Current phase | `OMNIA-CLOUD-7 deployed; large-ID compatibility committed; Windows package prerequisites are absent` |
+| Working tree | Clean after large Snowflake member-ID compatibility commit `43d3022`; immediately after fetch, `dev...origin/dev = 0/0`. |
+| Current phase | `OMNIA-CLOUD-7 deployed and large-ID compatible; Windows package prerequisites are absent` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -43,8 +43,8 @@ continuing.
 - Validation actually passed: focused cloud regression including the Snowflake-ID case, isolated credential-injected full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, Node 20 Worker `npm test`, both architecture gates and `git diff --check`. The prior frontend build remains applicable because this correction does not touch frontend files.
 - The implementation commit is `d0c84ca` (`feat(cloud): simplify single-store member sync`) and is pushed to `origin/dev`; immediately after fetch, `dev...origin/dev = 0/0`.
 - Windows package build is currently blocked only by absent workspace release inputs: `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`. Do not fabricate or download substitute runtime payloads.
-- The compatibility correction is committed as `1d05866` (`fix(cloud): preserve Snowflake member IDs`); push and branch-sync verification remain.
-- Exact next action: push and verify the commit; then build the Windows package from the approved release environment (this workspace still lacks `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`), install/restart it, and use “立即同步” on the existing `store-01-test` configuration. Existing FAILED Outbox rows should then be retried; `SENT` must increase and `失败待重试` fall to zero before treating real synchronization as successful.
+- The compatibility correction is committed as `43d3022` (`fix(cloud): preserve Snowflake member IDs`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
+- Exact next action: build the Windows package from the approved release environment (this workspace still lacks `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`), install/restart it, and use “立即同步” on the existing `store-01-test` configuration. Existing FAILED Outbox rows should then be retried; `SENT` must increase and `失败待重试` fall to zero before treating real synchronization as successful.
 
 ## UMS-MERGE-0 contract state
 
