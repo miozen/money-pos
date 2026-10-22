@@ -37,4 +37,4 @@
 - Worker 已实现固定分区的查询/详情 API 与同源手机页面；不新增 D1 迁移、POS 改动或任何云端写接口。
 - Node Worker 测试覆盖错误密码、固定查询分区、完整手机号 HMAC、ACTIVE 过滤、检索字段不泄露和大 Snowflake ID 详情读取。
 - 已通过隔离 `money_pos_test` 完整 Maven 回归（188 tests，0 failure/error）、`mvn -q package -DskipTests`、两项架构门禁、Worker `npm test` 及 `git diff --check`。本切片尚未部署，未设置查询密码/检索 HMAC/查询分区，也未进行手机查询验收。
-- 实现提交为 `e4a9f4b`（`feat(cloud): add read-only member query`）；推送与分支同步核验待完成。
+- 实现提交为 `2680f8c`（`feat(cloud): add read-only member query`）并已推送；立即 fetch 后 `dev...origin/dev = 0/0`。
