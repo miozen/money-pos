@@ -60,8 +60,9 @@ public class MemberCloudSyncRequestFactory {
     private Map<String, Object> toWireSnapshot(CloudSyncItem item, String searchSecret) {
         CloudMemberSyncOutbox outbox = item.getOutbox();
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("memberId", outbox.getMemberId());
-        result.put("version", outbox.getSnapshotVersion());
+        // Snowflake member IDs exceed JavaScript's safe integer range; the Worker receives exact decimal text.
+        result.put("memberId", Long.toString(outbox.getMemberId()));
+        result.put("version", Long.toString(outbox.getSnapshotVersion()));
         result.put("operation", outbox.getOperation());
         result.put("sourceUpdatedAt", toEpochMillis(outbox));
         if (!"UPSERT".equals(outbox.getOperation())) return result;

@@ -36,9 +36,11 @@ test('rejects changed body content and expired timestamps', async () => {
 });
 
 test('requires transformed snapshot material and rejects raw phone data', () => {
-  assert.equal(validateSnapshot({ memberId: 1, version: 1, operation: 'UPSERT', sourceUpdatedAt: now, snapshot: {}, phone: '13800138000' }), 'raw phone must not be uploaded');
-  assert.equal(validateSnapshot({ memberId: 1, version: 1, operation: 'UPSERT', sourceUpdatedAt: now, snapshot: { phone: '13800138000' } }), 'raw phone must not be uploaded');
-  assert.equal(validateSnapshot({ memberId: 1, version: 1, operation: 'TOMBSTONE', sourceUpdatedAt: now }), null);
+  assert.equal(validateSnapshot({ memberId: '1', version: '1', operation: 'UPSERT', sourceUpdatedAt: now, snapshot: {}, phone: '13800138000' }), 'raw phone must not be uploaded');
+  assert.equal(validateSnapshot({ memberId: '1', version: '1', operation: 'UPSERT', sourceUpdatedAt: now, snapshot: { phone: '13800138000' } }), 'raw phone must not be uploaded');
+  assert.equal(validateSnapshot({ memberId: '1', version: '1', operation: 'TOMBSTONE', sourceUpdatedAt: now }), null);
+  assert.equal(validateSnapshot({ memberId: '2102313829312065536', version: '1', operation: 'TOMBSTONE', sourceUpdatedAt: now }), null);
+  assert.equal(validateSnapshot({ memberId: '9223372036854775808', version: '1', operation: 'TOMBSTONE', sourceUpdatedAt: now }), 'snapshot fields are invalid');
 });
 
 test('connection probe verifies the same signature without writing a snapshot', async () => {
@@ -60,12 +62,13 @@ test('snapshot and audit persistence are sent to one D1 batch', async () => {
     batch: async (items) => { statements.push(...items); return items.map(() => ({ success: true })); }
   };
   const payload = JSON.stringify({
-    storeId: 'store-a', snapshots: [{ memberId: 7, version: 3, operation: 'UPSERT', sourceUpdatedAt: now, snapshot: { name: '张三' } }]
+    storeId: 'store-a', snapshots: [{ memberId: '2102313829312065536', version: '3', operation: 'UPSERT', sourceUpdatedAt: now, snapshot: { name: '张三' } }]
   });
   const response = await handleSync(await signedRequest({ body: payload }), { DB: db, OMNIA_SYNC_STORE_SECRETS_JSON: JSON.stringify({ 'store-a': secret }) }, now);
   assert.deepEqual(await response.json(), { accepted: 1 });
   assert.equal(statements.length, 2);
   assert.match(statements[0].sql, /INSERT INTO member_snapshots/);
+  assert.equal(statements[0].args[1], '2102313829312065536');
   assert.match(statements[1].sql, /INSERT INTO sync_audit/);
 });
 

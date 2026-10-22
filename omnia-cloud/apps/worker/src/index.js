@@ -1,5 +1,6 @@
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 const MAX_BATCH_SIZE = 100;
+const MAX_SQLITE_INTEGER = 9223372036854775807n;
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { 'content-type': 'application/json; charset=utf-8' }
@@ -31,14 +32,20 @@ function constantTimeEqual(left, right) {
 }
 
 export function validateSnapshot(snapshot) {
-  if (!snapshot || !Number.isSafeInteger(snapshot.memberId) || snapshot.memberId <= 0 ||
-      !Number.isSafeInteger(snapshot.version) || snapshot.version <= 0 ||
+  if (!snapshot || !isPositiveSqliteInteger(snapshot.memberId) || !isPositiveSqliteInteger(snapshot.version) ||
       !['UPSERT', 'TOMBSTONE'].includes(snapshot.operation) ||
       !Number.isSafeInteger(snapshot.sourceUpdatedAt)) return 'snapshot fields are invalid';
   if (containsRawPhone(snapshot)) return 'raw phone must not be uploaded';
   if (snapshot.operation === 'UPSERT' && (!snapshot.snapshot || typeof snapshot.snapshot !== 'object')) return 'upsert snapshot is required';
   return null;
 }
+
+function isPositiveSqliteInteger(value) {
+  const text = typeof value === 'string' ? value : Number.isSafeInteger(value) ? String(value) : null;
+  return text !== null && /^[1-9][0-9]*$/.test(text) && BigInt(text) <= MAX_SQLITE_INTEGER;
+}
+
+function sqliteIntegerText(value) { return typeof value === 'string' ? value : String(value); }
 
 function containsRawPhone(value) {
   if (!value || typeof value !== 'object') return false;
@@ -89,7 +96,7 @@ function persistSnapshotStatement(db, storeId, snapshot, now) {
       phone_last4_hmac = excluded.phone_last4_hmac, phone_masked = excluded.phone_masked,
       snapshot_json = excluded.snapshot_json, source_updated_at = excluded.source_updated_at, synced_at = excluded.synced_at
     WHERE excluded.snapshot_version >= member_snapshots.snapshot_version`)
-    .bind(storeId, snapshot.memberId, snapshot.version, isUpsert ? 'ACTIVE' : 'DELETED',
+    .bind(storeId, sqliteIntegerText(snapshot.memberId), sqliteIntegerText(snapshot.version), isUpsert ? 'ACTIVE' : 'DELETED',
       data.name ?? null, data.nameNormalized ?? null, data.phoneHmac ?? null, data.phoneLast4Hmac ?? null,
       data.phoneMasked ?? null, isUpsert ? JSON.stringify(data) : null, snapshot.sourceUpdatedAt, now);
 }

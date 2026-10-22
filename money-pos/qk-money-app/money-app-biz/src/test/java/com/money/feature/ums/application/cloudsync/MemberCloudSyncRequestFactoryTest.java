@@ -23,7 +23,8 @@ class MemberCloudSyncRequestFactoryTest {
         MemberCloudSyncRequestFactory.CloudBatchRequest request = factory.build(properties,
                 Collections.singletonList(new MemberCloudSyncRequestFactory.CloudSyncItem(outbox, snapshot)), 1700000000000L);
 
-        assertThat(request.getBody()).doesNotContain("13800138000").contains("138****8000").contains("nameNormalized");
+        assertThat(request.getBody()).doesNotContain("13800138000").contains("138****8000").contains("nameNormalized")
+                .contains("\"memberId\":\"7\"").contains("\"version\":\"3\"");
         assertThat(request.getHeaders()).containsKeys("X-Omnia-Signature", "X-Omnia-Body-SHA256", "X-Omnia-Nonce");
         assertThat(request.getHeaders().get("X-Omnia-Signature")).hasSize(64);
     }
@@ -46,6 +47,17 @@ class MemberCloudSyncRequestFactoryTest {
         MemberCloudSyncProperties properties = configured();
         properties.setEndpoint("http://cloud.example/internal/v1/member-snapshots:batch");
         assertThatThrownBy(() -> factory.build(properties, Collections.emptyList(), 1700000000000L)).hasMessageContaining("HTTPS端点");
+    }
+
+    @Test
+    void serializesSnowflakeMemberIdAsExactDecimalText() {
+        CloudMemberSyncOutbox outbox = outbox("UPSERT");
+        outbox.setMemberId(2102313829312065536L);
+        MemberCloudSnapshot snapshot = new MemberCloudSnapshot();
+        snapshot.setPhone("13800138000");
+        MemberCloudSyncRequestFactory.CloudBatchRequest request = factory.build(configured(),
+                Collections.singletonList(new MemberCloudSyncRequestFactory.CloudSyncItem(outbox, snapshot)), 1700000000000L);
+        assertThat(request.getBody()).contains("\"memberId\":\"2102313829312065536\"");
     }
 
     private MemberCloudSyncProperties configured() {

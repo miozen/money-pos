@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after OMNIA-CLOUD-7 environment acceptance record commit `7df5977`; `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-7 deployed; Windows package prerequisites are absent` |
+| Working tree | Clean after large Snowflake member-ID compatibility commit `1d05866`; push and branch-sync verification remain. |
+| Current phase | `OMNIA-CLOUD-7 deployed; large-ID compatibility committed; Windows package prerequisites are absent` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -38,10 +38,13 @@ continuing.
 - Validation actually passed: route contract, isolated credential-injected `money_pos_test` full Maven suite (88 Surefire reports, zero failure/error), `mvn -q package -DskipTests`, Node 20 `npm run build`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new`, and `git diff --check`.
 - OMNIA-CLOUD-7 is complete locally under `MoneyPOS-OMNIA-CLOUD-7-Single-Store-Partition-Implementation-Contract.md`. It keeps the visible/configurable `storeId` (default `store-01`) as the D1 partition, removes local Key ID configuration and Worker runtime `sync_clients` dependence, adds signed no-data connection testing, one-shot dispatch and explicit repair controls, recovers stale Outbox `PROCESSING` work, and makes Worker snapshot/audit writes a single D1 batch. Local repair includes deleted/merged TOMBSTONE records; it does not alter local member data.
 - `V1.0.27`–`V1.0.29` applied successfully to isolated `money_pos_test`. On 2026-10-22, remote D1 `omnia-cloud-prod` applied `0002`–`0003`; Worker version `26a29631-2f59-43ce-9ba3-434caa028a9c` is deployed at `https://omnia-cloud.miozen.workers.dev` with the new store-secret mapping. A `store-01-test` synthetic acceptance returned connection `200`, batch `200` and replay `409`; all synthetic snapshot/audit/nonce rows were deleted afterwards (each count is `0`). No real-member synchronization occurred.
-- Validation actually passed: focused cloud regression (10 tests, zero failure/error), isolated credential-injected full Maven suite (187 tests, zero failure/error), `mvn -q package -DskipTests`, Node 20 Worker `npm test`, Node 20 frontend `npm run build`, both architecture gates and `git diff --check`. The frontend build has only pre-existing Browserslist/CSS/dynamic-import/chunk warnings.
+- A device observation exposed that real Snowflake member IDs (for example `2102313829312065536`) exceed JavaScript's safe JSON-number range. The pending correction serializes local member IDs and versions as exact decimal strings; the Worker validates positive SQLite 64-bit integer text and binds it to D1 without JavaScript numeric conversion. It preserves all existing endpoints, signing, partitioning, Outbox and D1 schema semantics.
+- Worker version `029a8600-f35d-41af-b836-932ef8e308b8` is deployed with that compatibility correction. A synthetic signed `store-01-test` upload with member ID `2102313829312065536` returned `200`; D1 `CAST(member_id AS TEXT)` read the identical digits. The synthetic snapshot/audit/nonce rows were then deleted. This proves the receiver, but not the presently installed POS binary: that binary must be rebuilt/restarted with the correction before it can upload large real member IDs.
+- Validation actually passed: focused cloud regression including the Snowflake-ID case, isolated credential-injected full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, Node 20 Worker `npm test`, both architecture gates and `git diff --check`. The prior frontend build remains applicable because this correction does not touch frontend files.
 - The implementation commit is `d0c84ca` (`feat(cloud): simplify single-store member sync`) and is pushed to `origin/dev`; immediately after fetch, `dev...origin/dev = 0/0`.
 - Windows package build is currently blocked only by absent workspace release inputs: `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`. Do not fabricate or download substitute runtime payloads.
-- Exact next action: provide the packaged Windows release inputs or build from the approved release environment, then install the EXE and configure the local POS as `store-01-test` for real-device acceptance. Keep synchronization disabled until that configuration and acceptance begin.
+- The compatibility correction is committed as `1d05866` (`fix(cloud): preserve Snowflake member IDs`); push and branch-sync verification remain.
+- Exact next action: push and verify the commit; then build the Windows package from the approved release environment (this workspace still lacks `money-pos-web/mariadb/`, `money-pos-web/jre/`, and `money-pos-web/backend/`), install/restart it, and use “立即同步” on the existing `store-01-test` configuration. Existing FAILED Outbox rows should then be retried; `SENT` must increase and `失败待重试` fall to zero before treating real synchronization as successful.
 
 ## UMS-MERGE-0 contract state
 
