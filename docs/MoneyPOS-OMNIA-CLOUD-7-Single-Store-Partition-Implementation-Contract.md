@@ -30,6 +30,6 @@
 
 - POS 配置页面仅保留 Worker 地址、可见的 `storeId`、两把密钥和启用开关；新增无会员写入的测试连接、立即同步和显式数据修复。Key ID、手动首次回填开关和批量大小不再向管理员暴露。
 - MariaDB `V1.0.27` 回收过期 `PROCESSING` 任务；`V1.0.28` 补齐旧记录的 `store-01` 默认值；`V1.0.29` 移除本机配置表中已废弃的 Key ID 与首次回填开关列。自动回填保持可恢复；显式修复会覆盖活跃会员及删除/合并会员 TOMBSTONE。
-- Worker 改用 `OMNIA_SYNC_STORE_SECRETS_JSON` 的 `storeId -> 密钥（或轮换密钥数组）` 映射，接收快照及审计写入同一 D1 批次。D1 `0002` 移除 `member_snapshots` 对历史 `sync_clients` 的外键，`0003` 移除 nonce/audit 中的旧 Key ID 列；这些 D1 迁移未在本切片执行。
+- Worker 改用 `OMNIA_SYNC_STORE_SECRETS_JSON` 的 `storeId -> 密钥（或轮换密钥数组）` 映射，接收快照及审计写入同一 D1 批次。D1 `0002` 移除 `member_snapshots` 对历史 `sync_clients` 的外键，`0003` 移除 nonce/audit 中的旧 Key ID 列。
 - 已通过：隔离 `money_pos_test` 的聚焦回归（10 tests，0 failure/error）与完整 Maven 回归（187 tests，0 failure/error）、`mvn -q package -DskipTests`、Node 20 Worker `npm test`、Node 20 前端 `npm run build`、两项架构门禁及 `git diff --check`。前端构建仅产生既有 Browserslist、CSS、动态导入与 chunk-size 警告。
-- 未执行：D1 `0002/0003`、Worker 部署、Worker Secret 改写、真实会员同步或 Windows 真机验收。
+- 环境验收：2026-10-22 已对 `omnia-cloud-prod` 应用 D1 `0002/0003`，部署 Worker 版本 `26a29631-2f59-43ce-9ba3-434caa028a9c` 至 `https://omnia-cloud.miozen.workers.dev`，并设置 `OMNIA_SYNC_STORE_SECRETS_JSON`。`store-01-test` 合成快照验收返回连接 `200`、批量 `200`、重放 `409`，随后已清理；D1 的 snapshots/audits/nonces 计数均为 `0`。未启用真实会员同步或完成 Windows 真机验收。
