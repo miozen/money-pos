@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | OMNIA-CLOUD-8 query display correction is committed as `8a10845`; push and branch-sync verification remain. |
-| Current phase | `OMNIA-CLOUD-8 query display correction awaiting push/deploy and new-POS snapshot repair` |
+| Working tree | OMNIA-CLOUD-8 display-correction environment-acceptance record is uncommitted locally. |
+| Current phase | `OMNIA-CLOUD-8 display correction deployed; new-POS snapshot repair and mobile acceptance remain` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -49,9 +49,10 @@ continuing.
 - Validation actually passed: isolated credential-injected `money_pos_test` full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, Worker Node tests, both architecture gates and `git diff --check`.
 - The 2026-10-23 first deployment attempt made no remote change because Wrangler's refresh request to `dash.cloudflare.com/oauth2/token` failed with TLS `ECONNRESET` before the first Secret write. After connectivity recovered, the user-authorized retry successfully set the query-password and search-HMAC Worker Secrets, fixed `OMNIA_QUERY_STORE_ID=store-01-test`, and deployed Worker version `00ed8ce4-2987-427d-9fd3-5d62e6503ae3` to `https://omnia-cloud.miozen.workers.dev`.
 - Online acceptance passed without D1 writes: page `GET /` returned `200`; unauthenticated search returned `401`; a known large-ID detail response was correct and omitted HMAC/normalized search fields; name and masked-phone-last-four searches each found the same existing `store-01-test` snapshot. No raw phone or member payload was printed in the validation output.
-- The display correction is committed as `8a10845` (`fix(cloud): improve member query display`); push and branch-sync verification remain. It removes member-code upload/return/display, has the UMS snapshot assembler resolve brand/level Chinese names through existing Entity-free `BrandNameQuery` plus the existing member-level dictionary, and changes the static page to validate the password before revealing search. It changes no D1 schema, transaction, query partition or cloud write rule. Existing D1 snapshots lack the new display field, so they will show “等待同步更新” until a new POS backend republishes them through the existing explicit data-repair flow.
+- The display correction is committed as `cfce4d9` (`fix(cloud): improve member query display`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It removes member-code upload/return/display, has the UMS snapshot assembler resolve brand/level Chinese names through existing Entity-free `BrandNameQuery` plus the existing member-level dictionary, and changes the static page to validate the password before revealing search. It changes no D1 schema, transaction, query partition or cloud write rule. Existing D1 snapshots lack the new display field, so they will show “等待同步更新” until a new POS backend republishes them through the existing explicit data-repair flow.
 - Validation actually passed for that correction: Worker Node tests, focused `MemberCloudSyncRequestFactoryTest` (5 tests, zero failure/error), isolated credential-injected `money_pos_test` full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, both architecture gates and `git diff --check`.
-- Exact next action: push and deploy the Worker display correction; build/restart the updated POS backend in the approved Windows release environment, then use its existing “数据修复” control to republish `store-01-test` snapshots before mobile acceptance. Keep `store-01-test` until acceptance is confirmed.
+- Worker `f21293d2-ebfe-455f-9ae1-8a26c5640fe6` is deployed with the display correction. Online checks confirmed the two-step login page, authenticated session `200`, absence of `memberCode` in detail, and expected absence of `brandLevelDescriptions` on the old snapshot. No D1 write happened during this check.
+- Exact next action: build/restart the updated POS backend in the approved Windows release environment, then use its existing “数据修复” control to republish `store-01-test` snapshots. Confirm Chinese brand/level display through the mobile page before closing acceptance. Keep `store-01-test` until acceptance is confirmed.
 
 ## UMS-MERGE-0 contract state
 
