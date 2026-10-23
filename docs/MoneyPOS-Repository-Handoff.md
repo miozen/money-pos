@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | OMNIA-CLOUD-8 Cloudflare deployment-blocker record is uncommitted locally. |
+| Working tree | Clean after OMNIA-CLOUD-8 deployment-blocker record `64824d0`; immediately after fetch, `dev...origin/dev = 0/0`. |
 | Current phase | `OMNIA-CLOUD-8 read-only member query blocked only by local Cloudflare TLS/login refresh failure` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
