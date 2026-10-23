@@ -73,11 +73,11 @@ public class MemberCloudSyncRequestFactory {
         projection.put("phoneHmac", hmacHex(searchSecret, normalizePhone(snapshot.getPhone())));
         projection.put("phoneLast4Hmac", hmacHex(searchSecret, last4(snapshot.getPhone())));
         projection.put("phoneMasked", maskPhone(snapshot.getPhone()));
-        projection.put("memberCode", snapshot.getCode());
         projection.put("memberType", snapshot.getType());
         projection.put("balance", zero(snapshot.getBalance()));
         projection.put("couponBalance", zero(snapshot.getCouponBalance()));
         projection.put("brandLevels", snapshot.getBrandLevels());
+        projection.put("brandLevelDescriptions", snapshot.getBrandLevelDescriptions());
         projection.put("unusedCoupons", snapshot.getUnusedCoupons());
         projection.put("quantityRights", snapshot.getQuantityRights());
         projection.put("amountRights", snapshot.getAmountRights());

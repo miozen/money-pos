@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,11 +21,13 @@ class MemberCloudSyncRequestFactoryTest {
         CloudMemberSyncOutbox outbox = outbox("UPSERT");
         MemberCloudSnapshot snapshot = new MemberCloudSnapshot();
         snapshot.setName(" 张三 "); snapshot.setPhone("13800138000"); snapshot.setBalance(java.math.BigDecimal.TEN);
+        snapshot.setBrandLevelDescriptions(Map.of("蓝月", "皇冠"));
         MemberCloudSyncRequestFactory.CloudBatchRequest request = factory.build(properties,
                 Collections.singletonList(new MemberCloudSyncRequestFactory.CloudSyncItem(outbox, snapshot)), 1700000000000L);
 
         assertThat(request.getBody()).doesNotContain("13800138000").contains("138****8000").contains("nameNormalized")
-                .contains("\"memberId\":\"7\"").contains("\"version\":\"3\"");
+                .contains("\"memberId\":\"7\"").contains("\"version\":\"3\"").contains("brandLevelDescriptions").contains("蓝月").contains("皇冠");
+        assertThat(request.getBody()).doesNotContain("memberCode");
         assertThat(request.getHeaders()).containsKeys("X-Omnia-Signature", "X-Omnia-Body-SHA256", "X-Omnia-Nonce");
         assertThat(request.getHeaders().get("X-Omnia-Signature")).hasSize(64);
     }

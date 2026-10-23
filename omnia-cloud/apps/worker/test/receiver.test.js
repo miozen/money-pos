@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
+import { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleQuerySession, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
 
 const secret = 'MDEyMzQ1Njc4OWFiY2RlZg==';
 const body = JSON.stringify({ storeId: 'store-a', snapshots: [] });
@@ -91,7 +91,19 @@ test('member query uses the fixed store, search HMAC, and never returns search f
   assert.equal(queryStatement.args[0], 'store-01-test');
   assert.equal(queryStatement.args[1], await hmacHex(searchSecret, '13800138000'));
   assert.equal(body.members[0].phoneMasked, '138****8000');
+  assert.deepEqual(body.members[0].brandLevelDescriptions, { 蓝月: '皇冠' });
+  assert.equal(body.members[0].memberCode, undefined);
   assert.doesNotMatch(JSON.stringify(body), /phoneHmac|phoneLast4Hmac|nameNormalized/);
+});
+
+test('query session validates the password before showing the search screen', async () => {
+  const env = { OMNIA_QUERY_PASSWORD: 'only-me', OMNIA_QUERY_STORE_ID: 'store-01', OMNIA_SEARCH_HMAC_SECRET_BASE64: secret };
+  const authorized = await handleQuerySession(new Request('https://cloud.example/api/v1/query-session', {
+    headers: { authorization: 'Basic ' + btoa('omnia:only-me') }
+  }), env);
+  assert.deepEqual(await authorized.json(), { ok: true });
+  const unauthorized = await handleQuerySession(new Request('https://cloud.example/api/v1/query-session'), env);
+  assert.equal(unauthorized.status, 401);
 });
 
 test('member query rejects bad password and hides deleted snapshots', async () => {
@@ -132,7 +144,7 @@ function queryRequest(path, body) {
 function memberRow() {
   return {
     member_id: '2102313829312065536', name: '张三', phone_masked: '138****8000', source_updated_at: 1_790_000_000_000, synced_at: 1_790_000_000_001,
-    snapshot_json: JSON.stringify({ memberCode: 'M001', memberType: 'VIP', balance: '12.34', couponBalance: '0', nameNormalized: '张三', phoneHmac: 'hidden', phoneLast4Hmac: 'hidden', brandLevels: { A: 'GOLD' }, unusedCoupons: [], quantityRights: [], amountRights: [], targetPlans: [] })
+    snapshot_json: JSON.stringify({ memberCode: 'M001', memberType: 'VIP', balance: '12.34', couponBalance: '0', nameNormalized: '张三', phoneHmac: 'hidden', phoneLast4Hmac: 'hidden', brandLevels: { A: 'GOLD' }, brandLevelDescriptions: { 蓝月: '皇冠' }, unusedCoupons: [], quantityRights: [], amountRights: [], targetPlans: [] })
   };
 }
 

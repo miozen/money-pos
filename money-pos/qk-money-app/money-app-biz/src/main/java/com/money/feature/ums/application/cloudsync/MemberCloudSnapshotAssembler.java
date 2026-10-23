@@ -1,6 +1,7 @@
 package com.money.feature.ums.application.cloudsync;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.money.contract.goods.BrandNameQuery;
 import com.money.contract.goods.GoodsNameQuery;
 import com.money.dto.cloud.MemberCloudSnapshot;
 import com.money.feature.ums.infrastructure.persistence.entity.*;
@@ -10,6 +11,7 @@ import com.money.feature.ums.infrastructure.persistence.mapper.UmsMemberTargetPl
 import com.money.mapper.PosMemberCouponMapper;
 import com.money.mapper.UmsMemberBrandLevelMapper;
 import com.money.mapper.UmsMemberMapper;
+import com.money.service.SysDictDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ public class MemberCloudSnapshotAssembler {
     private final UmsMemberAmountRightMapper amountRightMapper;
     private final UmsMemberTargetPlanMapper targetPlanMapper;
     private final GoodsNameQuery goodsNameQuery;
+    private final BrandNameQuery brandNameQuery;
+    private final SysDictDetailService sysDictDetailService;
 
     @Transactional(readOnly = true)
     public MemberCloudSnapshot assemble(Long memberId) {
@@ -42,7 +46,9 @@ public class MemberCloudSnapshotAssembler {
         snapshot.setName(member.getName()); snapshot.setPhone(member.getPhone()); snapshot.setType(member.getType());
         snapshot.setBalance(zero(member.getBalance())); snapshot.setCouponBalance(zero(member.getCoupon()));
         snapshot.setSourceUpdatedAt(member.getUpdateTime());
-        snapshot.setBrandLevels(brandLevels(memberId));
+        BrandLevelProjection brandLevels = brandLevels(memberId);
+        snapshot.setBrandLevels(brandLevels.codes);
+        snapshot.setBrandLevelDescriptions(brandLevels.descriptions);
         snapshot.setUnusedCoupons(coupons(memberId));
         snapshot.setQuantityRights(quantityRights(memberId));
         snapshot.setAmountRights(amountRights(memberId));
@@ -50,9 +56,20 @@ public class MemberCloudSnapshotAssembler {
         return snapshot;
     }
 
-    private Map<String, String> brandLevels(Long memberId) {
-        return brandLevelMapper.selectList(new LambdaQueryWrapper<UmsMemberBrandLevel>().eq(UmsMemberBrandLevel::getMemberId, memberId))
-                .stream().collect(Collectors.toMap(UmsMemberBrandLevel::getBrand, UmsMemberBrandLevel::getLevelCode, (a, b) -> b, LinkedHashMap::new));
+    private BrandLevelProjection brandLevels(Long memberId) {
+        List<UmsMemberBrandLevel> levels = brandLevelMapper.selectList(new LambdaQueryWrapper<UmsMemberBrandLevel>().eq(UmsMemberBrandLevel::getMemberId, memberId));
+        Map<String, String> codes = levels.stream().collect(Collectors.toMap(UmsMemberBrandLevel::getBrand, UmsMemberBrandLevel::getLevelCode, (a, b) -> b, LinkedHashMap::new));
+        Map<String, String> names = brandNameQuery.findNamesByIds(codes.keySet());
+        Map<String, String> levelNames = sysDictDetailService.getValueToCnDescMap("memberType");
+        Map<String, String> descriptions = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : codes.entrySet()) {
+            String brandName = names.getOrDefault(entry.getKey(), "未知品牌");
+            String levelCode = entry.getValue();
+            String levelName = levelNames == null || levelCode == null ? levelCode
+                    : levelNames.getOrDefault(levelCode.trim().toUpperCase(Locale.ROOT), levelCode);
+            descriptions.put(brandName, levelName);
+        }
+        return new BrandLevelProjection(codes, descriptions);
     }
     private List<MemberCloudSnapshot.CouponWallet> coupons(Long memberId) {
         Map<Long, Long> counts = couponMapper.selectList(new LambdaQueryWrapper<PosMemberCoupon>()
@@ -76,4 +93,9 @@ public class MemberCloudSnapshotAssembler {
                 .map(row -> { MemberCloudSnapshot.TargetPlan r = new MemberCloudSnapshot.TargetPlan(); r.setPlanId(row.getId()); r.setBrandId(row.getBrandId()); r.setCurrentLevelCode(row.getCurrentLevelCodeSnapshot()); r.setTargetTierCode(row.getTargetTierCodeSnapshot()); r.setTargetTierName(row.getTargetTierNameSnapshot()); r.setTargetPricingLevelCode(row.getTargetPricingLevelCodeSnapshot()); r.setTargetAmount(zero(row.getTargetAmount())); r.setProgressAmount(zero(row.getProgressAmount())); r.setRemainingAmount(zero(row.getTargetAmount()).subtract(zero(row.getProgressAmount())).max(BigDecimal.ZERO)); r.setStatus(row.getStatus()); return r; }).collect(Collectors.toList());
     }
     private BigDecimal zero(BigDecimal value) { return value == null ? BigDecimal.ZERO : value; }
+    private static class BrandLevelProjection {
+        private final Map<String, String> codes;
+        private final Map<String, String> descriptions;
+        private BrandLevelProjection(Map<String, String> codes, Map<String, String> descriptions) { this.codes = codes; this.descriptions = descriptions; }
+    }
 }

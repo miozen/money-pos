@@ -22,6 +22,8 @@ public class MemberCloudSnapshot {
     private BigDecimal couponBalance;
     private LocalDateTime sourceUpdatedAt;
     private Map<String, String> brandLevels;
+    /** Brand/level display names resolved locally; never used for pricing or settlement. */
+    private Map<String, String> brandLevelDescriptions;
     private List<CouponWallet> unusedCoupons;
     private List<QuantityRight> quantityRights;
     private List<AmountRight> amountRights;
