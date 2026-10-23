@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | OMNIA-CLOUD-8 successful environment-acceptance record is uncommitted locally. |
+| Working tree | Clean after OMNIA-CLOUD-8 environment-acceptance record `40a5790`; immediately after fetch, `dev...origin/dev = 0/0`. |
 | Current phase | `OMNIA-CLOUD-8 read-only member query deployed to store-01-test and awaiting user mobile acceptance` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
