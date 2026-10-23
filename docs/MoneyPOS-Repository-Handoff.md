@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after OMNIA-CLOUD-8 implementation commit `2680f8c`; immediately after fetch, `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-8 read-only member query awaiting deployment/secrets/mobile acceptance` |
+| Working tree | OMNIA-CLOUD-8 Cloudflare deployment-blocker record is uncommitted locally. |
+| Current phase | `OMNIA-CLOUD-8 read-only member query blocked only by local Cloudflare TLS/login refresh failure` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -47,7 +47,8 @@ continuing.
 - Real-device acceptance subsequently completed on `store-01-test`: local Outbox showed `SENT=3`, `FAILED=0`, and D1 read-only verification found 3 ACTIVE snapshots plus 2 audit batches accepting 3 items. The full Snowflake ID `2102313829312065536` was returned exactly by `CAST(member_id AS TEXT)`.
 - OMNIA-CLOUD-8 is committed as `2680f8c` (`feat(cloud): add read-only member query`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It adds only Worker-side, password-protected read APIs and a dependency-free mobile page. `OMNIA_QUERY_STORE_ID` fixes the partition; `OMNIA_QUERY_PASSWORD` and `OMNIA_SEARCH_HMAC_SECRET_BASE64` remain Worker-side secrets. No D1 schema, POS, Telegram or product code changed, and no query endpoint has been deployed yet.
 - Validation actually passed: isolated credential-injected `money_pos_test` full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, Worker Node tests, both architecture gates and `git diff --check`.
-- Exact next action: obtain a personal query password and explicit Cloudflare authorization to deploy the new Worker version, set `OMNIA_QUERY_PASSWORD` and `OMNIA_SEARCH_HMAC_SECRET_BASE64`, set `OMNIA_QUERY_STORE_ID=store-01-test` for acceptance, and complete phone-browser verification before switching the query partition to `store-01`.
+- User supplied the query password and authorized deployment on 2026-10-23. The CLI attempt made no remote change: Wrangler's refresh request to `dash.cloudflare.com/oauth2/token` failed with TLS `ECONNRESET` before the first Secret write, and a direct workers.dev read also received a connection reset. The authenticated browser path cannot be automated safely here because it would require controlling a user authentication dialog. Do not claim that the query Worker is deployed or configured.
+- Exact next action: restore Cloudflare dashboard/API connectivity or have the user set the three configuration values in the dashboard, then deploy `2680f8c` and perform the fixed `store-01-test` mobile-browser acceptance before switching the query partition to `store-01`.
 
 ## UMS-MERGE-0 contract state
 

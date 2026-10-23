@@ -38,3 +38,4 @@
 - Node Worker 测试覆盖错误密码、固定查询分区、完整手机号 HMAC、ACTIVE 过滤、检索字段不泄露和大 Snowflake ID 详情读取。
 - 已通过隔离 `money_pos_test` 完整 Maven 回归（188 tests，0 failure/error）、`mvn -q package -DskipTests`、两项架构门禁、Worker `npm test` 及 `git diff --check`。本切片尚未部署，未设置查询密码/检索 HMAC/查询分区，也未进行手机查询验收。
 - 实现提交为 `2680f8c`（`feat(cloud): add read-only member query`）并已推送；立即 fetch 后 `dev...origin/dev = 0/0`。
+- 2026-10-23 的受权环境操作未改变 Cloudflare：本机 Wrangler 刷新登录令牌访问 `https://dash.cloudflare.com/oauth2/token` 时发生 TLS `ECONNRESET`，在首次 Secret 写入前终止。因而 `OMNIA_QUERY_PASSWORD`、`OMNIA_SEARCH_HMAC_SECRET_BASE64`、`OMNIA_QUERY_STORE_ID` 和新版 Worker 均未写入/部署；公网 Worker 保持旧版接收端状态。
