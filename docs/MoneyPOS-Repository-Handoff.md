@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local OMNIA-CLOUD-9 acceptance closure record pending commit/push. |
-| Current phase | `OMNIA-CLOUD-9 Telegram personal-query acceptance complete` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-9-Telegram-Query-Implementation-Contract.md` |
+| Working tree | Local OMNIA-CLOUD-10 display-layout implementation is validated but not yet committed or deployed. |
+| Current phase | `OMNIA-CLOUD-10 member-query display layout; local validation complete` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -59,7 +59,9 @@ continuing.
 - 2026-10-26 deployment Worker `b9776adc-0037-45ab-b47b-15b731771169` carried the code but did not preserve the Dashboard-created Telegram text variables, despite an attempted keep-variables option. Wrangler warned before deployment that it would override Dashboard configuration; it also removed an existing custom-domain route. The Bot Token was set as a text variable and consequently appeared in deployment diagnostics. Treat it as compromised: rotate it through BotFather, do not use it again, and configure the replacement as a Worker Secret. No Webhook was registered and no Telegram or D1 member query occurred.
 - User subsequently confirmed that custom domain `omnia-cloud.miozen.uk` remains available and the Telegram configuration was restored. Read-only checks observed `GET https://omnia-cloud.miozen.uk/ = 200` and unsigned `POST https://omnia-cloud.miozen.workers.dev/telegram/webhook = 401`; no credentials, membership read or D1 write occurred. Do not redeploy with a partial local Wrangler configuration.
 - User registered `https://omnia-cloud.miozen.uk/telegram/webhook` through Telegram `setWebhook`; `getWebhookInfo` returned that URL with `pending_update_count = 0`, and the allowed private Telegram user successfully queried a member. The direct browser `GET /telegram/webhook` 404 is expected because the endpoint only accepts Telegram `POST` updates. OMNIA-CLOUD-9 acceptance is complete.
-- Exact next action: await a separately approved cloud scope (for example product snapshot/query) or perform routine operational verification only. Preserve the current fixed single-store, read-only query boundary; do not redeploy with a partial local Wrangler configuration.
+- OMNIA-CLOUD-10 is locally implemented under `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md`. It only reformats the existing web and Telegram member-detail projection into basic information, brand level, assets, benefits and sync time. It renames displayed QUANTITY rights from “次数权益” to “寄存商品” and removes its unit; it does not change asset or rights values, D1, POS, sync, APIs, webhook or authorization.
+- Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. It is not yet committed, deployed or visually accepted.
+- Exact next action: commit/push OMNIA-CLOUD-10. Deploy only with a full configuration that declares the existing custom domain, D1 binding, query partition and Telegram allowed-user variable while retaining Cloudflare Secrets; do not use a partial local Wrangler configuration. Then verify the web and allowed Telegram detail layouts without changing any member data.
 
 ## UMS-MERGE-0 contract state
 

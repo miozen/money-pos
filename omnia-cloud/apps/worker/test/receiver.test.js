@@ -113,9 +113,11 @@ test('query page uses the POS asset labels and totals remaining reduction coupon
   assert.match(page, /会员余额/);
   assert.match(page, /会员券/);
   assert.match(page, /剩余满减券/);
+  assert.match(page, /寄存商品/);
   assert.match(page, /couponCount\(member\.unusedCoupons\)/);
   assert.doesNotMatch(page, /优惠余额/);
   assert.doesNotMatch(page, /可用优惠券/);
+  assert.doesNotMatch(page, /次数权益/);
 });
 
 test('Telegram webhook only queries for its configured private user and formats the existing projection', async () => {
@@ -127,8 +129,8 @@ test('Telegram webhook only queries for its configured private user and formats 
   assert.equal(response.status, 200);
   assert.equal(calls.length, 1);
   assert.match(calls[0].url, /botbot-token\/sendMessage$/);
-  assert.match(calls[0].body.text, /会员余额：￥12\.34/);
-  assert.match(calls[0].body.text, /会员券：￥0\.00/);
+  assert.match(calls[0].body.text, /会员余额：¥12\.34/);
+  assert.match(calls[0].body.text, /会员券：¥0\.00/);
   assert.match(calls[0].body.text, /剩余满减券：0 张/);
 
   const unauthorized = await handleTelegramWebhook(telegramRequest({
@@ -172,10 +174,20 @@ test('Telegram webhook rejects unsigned and group updates, and offers callback m
 });
 
 test('Telegram formatter uses the same asset wording as the webpage', () => {
-  const member = { ...JSON.parse(memberRow().snapshot_json), name: '张三', phoneMasked: '138****8000', syncedAt: 1_790_000_000_001 };
-  assert.match(telegramMemberText(member), /会员余额：￥12\.34/);
-  assert.match(telegramMemberText(member), /会员券：￥0\.00/);
+  const member = { ...JSON.parse(memberRow().snapshot_json), name: '张三', phoneMasked: '138****8000', syncedAt: 1_790_000_000_001,
+    quantityRights: [{ goodsName: '寄存商品', remainingQuantity: 90 }], amountRights: [{ tierName: '金额权益', remainingAmount: 1080 }],
+    targetPlans: [{ targetTierName: '目标权益', progressAmount: 240, targetAmount: 1080, remainingAmount: 840 }] };
+  const text = telegramMemberText(member);
+  assert.match(text, /👤 张三/);
+  assert.match(text, /🏷️ 品牌等级/);
+  assert.match(text, /💰 会员资产/);
+  assert.match(text, /会员余额：¥12\.34/);
+  assert.match(text, /会员券：¥0\.00/);
   assert.match(telegramMemberText(member), /剩余满减券：0 张/);
+  assert.match(text, /寄存商品\n• 寄存商品：剩余 90/);
+  assert.doesNotMatch(text, /次数权益|剩余 90 次/);
+  assert.match(text, /金额权益\n• 金额权益：剩余 ¥1,080\.00/);
+  assert.match(text, /目标权益\n• 目标权益\n  进度：¥240\.00 \/ ¥1,080\.00\n  剩余：¥840\.00/);
 });
 
 test('member query rejects bad password and hides deleted snapshots', async () => {

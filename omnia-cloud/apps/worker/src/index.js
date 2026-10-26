@@ -268,8 +268,11 @@ function telegramPrivateCallback(update) {
 
 function telegramAllowed(actor, configuration) { return String(actor?.id ?? '') === configuration.allowedUserId; }
 function telegramHelpText() { return '发送会员姓名、完整手机号或手机号后四位即可查询。\n例如：张三、13800138000、8000'; }
-function telegramMoney(value) { const amount = Number(value); return `￥${(Number.isFinite(amount) ? amount : 0).toFixed(2)}`; }
-function telegramValues(items, mapper) { return items?.length ? items.map(mapper).join('；') : '无'; }
+function cloudMoney(value) {
+  const amount = Number(value);
+  return `¥${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(amount) ? amount : 0)}`;
+}
+function telegramValues(items, mapper) { return items?.length ? items.map(item => `• ${mapper(item)}`).join('\n') : '无'; }
 function telegramLevels(value) {
   const rows = Object.entries(value || {}).map(([brand, level]) => `${brand}：${level}`);
   return rows.length ? rows.join('；') : '等待同步更新';
@@ -278,16 +281,29 @@ function telegramCouponCount(items) { return (items || []).reduce((sum, item) =>
 
 export function telegramMemberText(member) {
   const text = [
-    member.name || '未命名会员',
-    `手机号：${member.phoneMasked ?? '—'}`,
-    `会员余额：${telegramMoney(member.balance)}`,
-    `会员券：${telegramMoney(member.couponBalance)}`,
-    `品牌等级：${telegramLevels(member.brandLevelDescriptions)}`,
+    `👤 ${member.name || '未命名会员'}`,
+    `📱 手机号：${member.phoneMasked ?? '—'}`,
+    '',
+    '🏷️ 品牌等级',
+    telegramLevels(member.brandLevelDescriptions),
+    '',
+    '💰 会员资产',
+    `会员余额：${cloudMoney(member.balance)}`,
+    `会员券：${cloudMoney(member.couponBalance)}`,
     `剩余满减券：${telegramCouponCount(member.unusedCoupons)} 张`,
-    `次数权益：${telegramValues(member.quantityRights, item => `${item.goodsName || item.goodsId || '权益'}，剩余 ${item.remainingQuantity ?? 0} 次`)}`,
-    `金额权益：${telegramValues(member.amountRights, item => `${item.tierName || item.tierCode || '权益'}，剩余 ${item.remainingAmount ?? 0}`)}`,
-    `目标权益：${telegramValues(member.targetPlans, item => `${item.targetTierName || item.targetTierCode || '目标'}，进度 ${item.progressAmount ?? 0} / ${item.targetAmount ?? 0}，剩余 ${item.remainingAmount ?? 0}`)}`,
-    `最后同步：${new Date(member.syncedAt).toLocaleString('zh-CN')}`
+    '',
+    '🎫 会员权益',
+    '',
+    '寄存商品',
+    telegramValues(member.quantityRights, item => `${item.goodsName || item.goodsId || '商品'}：剩余 ${item.remainingQuantity ?? 0}`),
+    '',
+    '金额权益',
+    telegramValues(member.amountRights, item => `${item.tierName || item.tierCode || '权益'}：剩余 ${cloudMoney(item.remainingAmount)}`),
+    '',
+    '目标权益',
+    telegramValues(member.targetPlans, item => `${item.targetTierName || item.targetTierCode || '目标'}\n  进度：${cloudMoney(item.progressAmount)} / ${cloudMoney(item.targetAmount)}\n  剩余：${cloudMoney(item.remainingAmount)}`),
+    '',
+    `🕒 最后同步：${new Date(member.syncedAt).toLocaleString('zh-CN')}`
   ].join('\n');
   return text.length <= 4000 ? text : `${text.slice(0, 3996)}…`;
 }
@@ -356,8 +372,8 @@ const queryPage = `<!doctype html><html lang="zh-CN"><meta name="viewport" conte
 const password=document.querySelector('#password'),login=document.querySelector('#login'),loginPanel=document.querySelector('#loginPanel'),loginStatus=document.querySelector('#loginStatus'),queryPanel=document.querySelector('#queryPanel'),query=document.querySelector('#query'),button=document.querySelector('#search'),status=document.querySelector('#status'),results=document.querySelector('#results');let queryPassword='';
 function auth(){return 'Basic '+btoa('omnia:'+queryPassword)} function line(label,value){const p=document.createElement('p');p.textContent=label+'：'+(value??'—');return p}
 async function api(path,options={}){const response=await fetch(path,{...options,headers:{...options.headers,Authorization:auth()}});const body=await response.json();if(!response.ok)throw new Error(body.error||'查询失败');return body}
-function values(items,mapper){return items&&items.length?items.map(mapper).join('；'):'无'} function levels(value){const rows=Object.entries(value||{}).map(([brand,level])=>brand+'：'+level);return rows.length?rows.join('；'):'等待同步更新'} function couponCount(items){return (items||[]).reduce((sum,item)=>sum+(Number(item.count)||0),0)} function money(value){const amount=Number(value);return '￥'+(Number.isFinite(amount)?amount:0).toFixed(2)}
-function showMember(member,detail){const card=document.createElement('article');card.className='member';card.append(document.createElement('strong'));card.firstChild.textContent=member.name||'未命名会员';card.append(line('手机号',member.phoneMasked));if(detail){const d=document.createElement('div');d.className='details';d.textContent='会员余额：'+money(member.balance)+'\\n会员券：'+money(member.couponBalance)+'\\n品牌等级：'+levels(member.brandLevelDescriptions)+'\\n剩余满减券：'+couponCount(member.unusedCoupons)+' 张'+'\\n次数权益：'+values(member.quantityRights,x=>(x.goodsName||x.goodsId||'权益')+'，剩余 '+(x.remainingQuantity??0)+' 次')+'\\n金额权益：'+values(member.amountRights,x=>(x.tierName||x.tierCode||'权益')+'，剩余 '+(x.remainingAmount??0))+'\\n目标权益：'+values(member.targetPlans,x=>(x.targetTierName||x.targetTierCode||'目标')+'，进度 '+(x.progressAmount??0)+' / '+(x.targetAmount??0)+'，剩余 '+(x.remainingAmount??0))+'\\n最后同步：'+new Date(member.syncedAt).toLocaleString();card.append(d)}else{card.onclick=async()=>{try{status.textContent='正在读取详情…';const data=await api('/api/v1/members/'+member.memberId);results.replaceChildren();showMember(data.member,true);status.textContent=''}catch(e){status.className='status error';status.textContent=e.message}}}results.append(card)}
+function values(items,mapper){return items&&items.length?items.map(x=>'• '+mapper(x)).join('\\n'):'无'} function levels(value){const rows=Object.entries(value||{}).map(([brand,level])=>brand+'：'+level);return rows.length?rows.join('；'):'等待同步更新'} function couponCount(items){return (items||[]).reduce((sum,item)=>sum+(Number(item.count)||0),0)} function money(value){const amount=Number(value);return '¥'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(amount)?amount:0)}
+function showMember(member,detail){const card=document.createElement('article');card.className='member';if(detail){const d=document.createElement('div');d.className='details';d.textContent='👤 '+(member.name||'未命名会员')+'\\n📱 手机号：'+(member.phoneMasked??'—')+'\\n\\n🏷️ 品牌等级\\n'+levels(member.brandLevelDescriptions)+'\\n\\n💰 会员资产\\n会员余额：'+money(member.balance)+'\\n会员券：'+money(member.couponBalance)+'\\n剩余满减券：'+couponCount(member.unusedCoupons)+' 张'+'\\n\\n🎫 会员权益\\n\\n寄存商品\\n'+values(member.quantityRights,x=>(x.goodsName||x.goodsId||'商品')+'：剩余 '+(x.remainingQuantity??0))+'\\n\\n金额权益\\n'+values(member.amountRights,x=>(x.tierName||x.tierCode||'权益')+'：剩余 '+money(x.remainingAmount))+'\\n\\n目标权益\\n'+values(member.targetPlans,x=>(x.targetTierName||x.targetTierCode||'目标')+'\\n  进度：'+money(x.progressAmount)+' / '+money(x.targetAmount)+'\\n  剩余：'+money(x.remainingAmount))+'\\n\\n🕒 最后同步：'+new Date(member.syncedAt).toLocaleString();card.append(d)}else{card.append(document.createElement('strong'));card.firstChild.textContent=member.name||'未命名会员';card.append(line('手机号',member.phoneMasked));card.onclick=async()=>{try{status.textContent='正在读取详情…';const data=await api('/api/v1/members/'+member.memberId);results.replaceChildren();showMember(data.member,true);status.textContent=''}catch(e){status.className='status error';status.textContent=e.message}}}results.append(card)}
 login.onclick=async()=>{loginStatus.className='status';if(!password.value){loginStatus.className='status error';loginStatus.textContent='请输入查询密码';return}login.disabled=true;queryPassword=password.value;try{await api('/api/v1/query-session');password.value='';loginPanel.classList.add('hidden');queryPanel.classList.remove('hidden');query.focus()}catch(e){queryPassword='';loginStatus.className='status error';loginStatus.textContent=e.message}finally{login.disabled=false}};
 button.onclick=async()=>{results.replaceChildren();status.className='status';if(!query.value.trim()){status.className='status error';status.textContent='请输入查询内容';return}button.disabled=true;try{const data=await api('/api/v1/members/search',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({query:query.value})});if(!data.members.length)status.textContent='没有匹配的有效会员';else{status.textContent='找到 '+data.members.length+' 位会员，点击查看详情';data.members.forEach(m=>showMember(m,false))}}catch(e){status.className='status error';status.textContent=e.message}finally{button.disabled=false}};
 </script></html>`;
