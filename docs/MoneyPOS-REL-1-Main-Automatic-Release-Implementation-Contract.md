@@ -1,6 +1,6 @@
 # MoneyPOS REL-1 main 自动正式发布实施契约
 
-> 状态：本地实施与验证完成，等待首次已验收的 `main` 合并进行远程验收；确认日期：2026-10-26；适用分支：`dev`。
+> 状态：已完成；首次远程验收完成日期：2026-10-26；适用分支：`main` 与 `dev`。
 
 ## 目标
 
@@ -33,4 +33,10 @@
 - `money-pos-web`：NVM Node `v22.23.4` 下 `npm run release:check` 通过，确认当前 `package.json` 与 lockfile 根版本均为 `1.0.12`；`npm run build` 通过。
 - `money-pos`：`mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、`scripts/architecture-scan.sh --check-new` 通过。
 - `git diff --check` 通过。前端构建仍出现既有的 Browserslist、CSS 解析、动态导入和大 chunk 告警，但没有阻断构建。
-- 未在本地模拟 Windows Runner，也未实际调用 GitHub Release API；未来首次合并 `main` 时，应确认 Actions 对 `main` 的版本提交权限与 `contents: write` 权限可用。
+- 本地验证阶段未模拟 Windows Runner 或调用 GitHub Release API；该远程验收已在下方首次 `main` 发布中完成，并确认 Actions 对 `main` 的版本提交权限与 `contents: write` 权限可用。
+
+## 首次远程验收结果
+
+- `main` 于 2026-10-26 快进至 `329cf5a`，触发 [Publish WanXiangPOS Release #51](https://github.com/miozen/money-pos/actions/runs/40294354524)；全部步骤成功，包括后端、前端、JRE/MariaDB 资源、Electron EXE、版本提交、标签、Release 与 Actions Artifact 上传。
+- 工作流在构建成功后提交 `3fa58e3`（`chore(release): v1.0.13`）并创建 `v1.0.13`；该提交已快进同步回 `dev`，两分支目前均指向同一版本提交。
+- 正式 Release 为 [v1.0.13](https://github.com/miozen/money-pos/releases/tag/v1.0.13)，附件 `WanXiangPOS-Setup-v1.0.13.exe` 已上传，大小 379,869,626 字节，SHA-256 为 `e5181459fac737e722ee7e8ff34ab0e36d326e731808ec211a676fa65bae0229`。

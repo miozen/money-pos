@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after REL-1 commit `8efa854`; `dev...origin/dev` is `0/0` after fetch. |
-| Current phase | `REL-1 main automatic GitHub Release` |
-| Current plan | `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md` |
+| Working tree | REL-1 is complete; its closure documentation records the remote release evidence. |
+| Current phase | No active implementation phase; `REL-1` is complete. |
+| Current plan | Completed: `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -68,7 +68,7 @@ continuing.
 - Validation actually passed: NVM Node `v22.23.4` `npm run build`; focused `MemberCloudSyncConfigurationServiceTest` and `UmsMemberCloudSyncRouteContractTest`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The first focused Maven invocation failed before reaching the biz module because older Surefire treats public modules with no selected test as an error; its rerun with `-DfailIfNoTests=false` passed.
 - POS-14 is committed as `31db4d5` (`feat(display): show cart item count`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It changes only the guest-display left header from the cart-row count to the sum of its already synchronized item quantities: “购物清单 · 共 X 件”. It adds no WebSocket field and changes no POS, backend or persistence behavior. Validation actually passed: `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`.
 - UX-1 is committed under `MoneyPOS-UX-1-Product-Language-Implementation-Contract.md`. It changes only visible wording and the frontend mapping of existing cloud-bootstrap status codes. It does not change routes, API shapes, transaction ownership, Cloudflare configuration, POS behavior or data rules. Validation actually passed: NVM Node `v22.23.4` `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains pre-existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
-- REL-1 is locally validated under `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md`. It changes only the Windows release workflow and package/lock version consistency verification. On each qualifying `main` push, it calculates the next patch version, fully builds the EXE before committing its version files to `main`, then pushes a `vX.Y.Z` tag and creates a Release with `WanXiangPOS-Setup-vX.Y.Z.exe`; the self-generated version commit is skipped. The local baseline is `1.0.12`. It will not merge `main`, run a remote release, create a tag or change product behavior during implementation.
+- REL-1 is complete under `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md`. It changes only the Windows release workflow and package/lock version consistency verification. On each qualifying `main` push, it calculates the next patch version, fully builds the EXE before committing its version files to `main`, then pushes a `vX.Y.Z` tag and creates a Release with `WanXiangPOS-Setup-vX.Y.Z.exe`; the self-generated version commit is skipped.
 - POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
 - Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
 - POS-11 is committed as `b2d0d27` (`fix(pos): align coupon insufficiency warning`) and pushed. Device observation then found a pre-existing display flicker when toggling the coupon waiver: an old waived trial result temporarily produced a zero theoretical coupon amount before the new trial returned. No payment or asset rule was bypassed because confirmation remains disabled while trialing.
@@ -79,8 +79,8 @@ continuing.
 - The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
 - The user reported no new issue after the latest POS testing; keep the current POS-13 responsive layout unless later device testing finds a regression.
 - REL-1 local validation passed: NVM Node `v22.23.4` `npm run release:check` and `npm run build`; `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`. The frontend build retains existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
-- REL-1 is committed as `8efa854` (`ci: publish releases from main`) and pushed; after fetch, `dev...origin/dev = 0/0`.
-- Exact next action: when a future change set is accepted for release, merge it to `main` and inspect that first GitHub Actions run. Before doing so, ensure the workflow token / `github-actions[bot]` is permitted to push the post-build version commit to protected `main`.
+- First remote acceptance completed successfully in [workflow run #51](https://github.com/miozen/money-pos/actions/runs/40294354524): all 29 job steps passed. It produced and published [Release v1.0.13](https://github.com/miozen/money-pos/releases/tag/v1.0.13) with `WanXiangPOS-Setup-v1.0.13.exe` (379,869,626 bytes; SHA-256 `e5181459fac737e722ee7e8ff34ab0e36d326e731808ec211a676fa65bae0229`). Actions successfully wrote `3fa58e3` (`chore(release): v1.0.13`), tagged `v1.0.13`, and `main`/`dev` were fast-forwarded to that same commit.
+- Exact next action: await a user-approved next task. For each future accepted release, merge `dev` to `main` and monitor the same automated release workflow.
 
 ## UMS-MERGE-0 contract state
 
