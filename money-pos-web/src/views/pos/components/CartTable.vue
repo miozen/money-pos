@@ -8,15 +8,17 @@
         :row-class-name="tableRowClassName"
         @row-click="handleRowClick"
     >
-        <el-table-column type="index" label="序号" width="70" align="center" />
-        <el-table-column prop="barcode" label="条码" width="160" />
+        <el-table-column type="index" label="序号" width="48" align="center" />
+        <el-table-column prop="barcode" label="条码" width="130" />
 
-        <el-table-column label="商品名称" min-width="250">
+        <el-table-column label="商品名称" width="220">
             <template #default="{ row }">
-                <div>
-                    <span class="font-bold mr-2">{{ row.name }}</span>
-                    <el-tag v-if="row.isCombo === 1" type="warning" size="small" effect="dark" class="mr-1">套餐</el-tag>
-                    <el-tag v-if="row.isDiscountParticipable === 1" type="danger" size="small" effect="plain">满减</el-tag>
+                <div class="min-w-0">
+                    <div class="flex min-w-0 items-center gap-1">
+                        <span class="min-w-0 flex-1 truncate font-bold" :title="row.name">{{ row.name }}</span>
+                        <el-tag v-if="row.isCombo === 1" type="warning" size="small" effect="dark" class="shrink-0">套餐</el-tag>
+                        <el-tag v-if="row.isDiscountParticipable === 1" type="danger" size="small" effect="plain" class="shrink-0">满减</el-tag>
+                    </div>
                     <div v-if="isStockInsufficient(row)" class="stock-warning mt-1 flex items-center gap-1 text-xs font-bold">
                         <el-icon><WarningFilled /></el-icon>
                         {{ stockWarningText(row) }}
@@ -25,11 +27,11 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="单价" width="120" align="right">
+        <el-table-column label="单价" width="100" align="right">
             <template #default="{ row }">￥{{ row.salePrice?.toFixed(2) }}</template>
         </el-table-column>
 
-        <el-table-column label="会员价" width="120" align="right">
+        <el-table-column label="会员价" width="100" align="right">
             <template #default="{ row }">
                 <span v-if="getLevelCode(row.brandId)" class="text-blue-600 font-bold">
                     ￥{{ row.displayPrice?.toFixed(2) }}
@@ -38,7 +40,7 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="会员券" width="120" align="right">
+        <el-table-column label="会员券" width="100" align="right">
             <template #default="{ row }">
                 <span v-if="getLevelCode(row.brandId) && row.displayCouponDeduct > 0" class="text-green-600 font-bold">
                     ￥{{ (row.displayCouponDeduct / row.qty).toFixed(2) }}
@@ -47,7 +49,7 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="数量" width="160" align="center">
+        <el-table-column label="数量" width="140" align="center">
             <template #default="{ row, $index }">
                 <el-input-number
                     :model-value="row.qty"
@@ -62,7 +64,7 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="小计" width="160" align="right">
+        <el-table-column label="小计" width="130" align="right" fixed="right">
             <template #default="{ row }">
                 <span
                     class="text-red-600 font-bold text-lg transition-opacity duration-300"
@@ -73,7 +75,7 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="库存" width="100" align="center">
+        <el-table-column label="库存" width="80" align="center" fixed="right">
             <template #default="{ row }">
                 <span :class="{'text-red-600 font-bold': row.qty > (row.stock || 0), 'text-gray-600': row.qty <= (row.stock || 0)}">
                     {{ row.stock !== undefined ? row.stock : '-' }}
@@ -81,7 +83,7 @@
             </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="150" align="center" fixed="right">
+        <el-table-column label="操作" width="110" align="center" fixed="right">
             <template #default="{ row, $index }">
                 <div class="flex items-center justify-center gap-1">
                     <el-button v-if="isStockInsufficient(row)" type="warning" link class="!text-sm !font-bold" @click.stop="emit('restock', row)">补货</el-button>
