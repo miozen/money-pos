@@ -19,11 +19,15 @@
         <el-form :model="config" label-width="132px" class="max-w-3xl" @submit.prevent>
           <el-form-item label="Worker 地址"><el-input v-model="config.endpoint" placeholder="https://…/internal/v1/member-snapshots:batch" /></el-form-item>
           <el-form-item label="门店编号"><el-input v-model="config.storeId" placeholder="例如 store-001" /></el-form-item>
-          <el-form-item label="签名密钥（密码）"><el-input v-model="config.signingSecretBase64" type="password" show-password :placeholder="config.signingSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'" /></el-form-item>
-          <el-form-item label="检索 HMAC 密钥"><el-input v-model="config.searchHmacSecretBase64" type="password" show-password :placeholder="config.searchHmacSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'" /></el-form-item>
-          <el-form-item label="已保存密钥">
-            <el-button :icon="View" :loading="revealingSecrets" @click="toggleSecrets">{{ secretsVisible ? '隐藏已保存密钥' : '显示已保存密钥' }}</el-button>
-            <span class="ml-3 text-sm text-gray-500">仅本机超级管理员可查看；显示后可使用输入框右侧眼睛查看或复制。</span>
+          <el-form-item label="签名密钥（密码）">
+            <el-input v-model="config.signingSecretBase64" :type="signingSecretVisible ? 'text' : 'password'" :placeholder="config.signingSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'">
+              <template #suffix><el-icon class="cursor-pointer" :class="{ 'is-loading': revealingSecret === 'signing' }" @click.stop="toggleSecret('signing')"><component :is="revealingSecret === 'signing' ? Loading : (signingSecretVisible ? Hide : View)" /></el-icon></template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="检索 HMAC 密钥">
+            <el-input v-model="config.searchHmacSecretBase64" :type="searchHmacSecretVisible ? 'text' : 'password'" :placeholder="config.searchHmacSecretConfigured ? '已设置；留空则保持不变' : 'Base64 密钥'">
+              <template #suffix><el-icon class="cursor-pointer" :class="{ 'is-loading': revealingSecret === 'searchHmac' }" @click.stop="toggleSecret('searchHmac')"><component :is="revealingSecret === 'searchHmac' ? Loading : (searchHmacSecretVisible ? Hide : View)" /></el-icon></template>
+            </el-input>
           </el-form-item>
           <el-form-item label="同步开关"><el-switch v-model="config.enabled" active-text="启用" inactive-text="关闭" /></el-form-item>
           <el-form-item>
@@ -72,7 +76,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { View } from '@element-plus/icons-vue'
+import { Hide, Loading, View } from '@element-plus/icons-vue'
 import memberCloudSyncApi from '@/api/ums/memberCloudSync.js'
 
 const loading = ref(false)
@@ -80,8 +84,9 @@ const saving = ref(false)
 const testing = ref(false)
 const dispatching = ref(false)
 const repairing = ref(false)
-const revealingSecrets = ref(false)
-const secretsVisible = ref(false)
+const revealingSecret = ref('')
+const signingSecretVisible = ref(false)
+const searchHmacSecretVisible = ref(false)
 const status = ref(null)
 const config = ref({ endpoint: '', storeId: 'store-01', signingSecretBase64: '', searchHmacSecretBase64: '', signingSecretConfigured: false, searchHmacSecretConfigured: false, enabled: false })
 const alertType = computed(() => status.value?.enabled && !status.value?.configurationComplete ? 'error' : status.value?.enabled ? 'success' : 'warning')
@@ -101,6 +106,8 @@ async function loadStatus() {
 async function loadConfig() {
   const response = await memberCloudSyncApi.config()
   config.value = { ...config.value, ...response.data, signingSecretBase64: '', searchHmacSecretBase64: '' }
+  signingSecretVisible.value = false
+  searchHmacSecretVisible.value = false
 }
 
 async function saveConfig() {
@@ -108,7 +115,8 @@ async function saveConfig() {
   try {
     const response = await memberCloudSyncApi.saveConfig(config.value)
     config.value = { ...config.value, ...response.data, signingSecretBase64: '', searchHmacSecretBase64: '' }
-    secretsVisible.value = false
+    signingSecretVisible.value = false
+    searchHmacSecretVisible.value = false
     ElMessage.success('Omnia Cloud 本机配置已保存')
     await loadStatus()
   } catch (error) {
@@ -118,21 +126,23 @@ async function saveConfig() {
   }
 }
 
-async function toggleSecrets() {
-  if (secretsVisible.value) {
-    config.value = { ...config.value, signingSecretBase64: '', searchHmacSecretBase64: '' }
-    secretsVisible.value = false
+async function toggleSecret(kind) {
+  const visible = kind === 'signing' ? signingSecretVisible : searchHmacSecretVisible
+  const field = kind === 'signing' ? 'signingSecretBase64' : 'searchHmacSecretBase64'
+  if (visible.value) {
+    config.value = { ...config.value, [field]: '' }
+    visible.value = false
     return
   }
-  revealingSecrets.value = true
+  revealingSecret.value = kind
   try {
     const response = await memberCloudSyncApi.revealSecrets()
-    config.value = { ...config.value, ...response.data }
-    secretsVisible.value = true
+    config.value = { ...config.value, [field]: response.data[field] }
+    visible.value = true
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || '读取已保存密钥失败')
   } finally {
-    revealingSecrets.value = false
+    revealingSecret.value = ''
   }
 }
 
