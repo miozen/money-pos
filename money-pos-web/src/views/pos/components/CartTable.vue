@@ -9,9 +9,9 @@
         @row-click="handleRowClick"
     >
         <el-table-column type="index" label="序号" width="70" align="center" class-name="cart-index-column" label-class-name="cart-index-column" />
-        <el-table-column prop="barcode" label="条码" width="130" />
+        <el-table-column prop="barcode" label="条码" width="150" class-name="cart-barcode-column" />
 
-        <el-table-column label="商品名称" min-width="220">
+        <el-table-column label="商品名称" min-width="200">
             <template #default="{ row }">
                 <div class="min-w-0">
                     <div class="flex min-w-0 items-center gap-1">
@@ -173,5 +173,12 @@ const tableRowClassName = ({ row, rowIndex }) => {
 /* 序号列保持紧凑且不换行；其余可用宽度由商品名称列自然吸收。 */
 :deep(.cart-index-column .cell) {
     white-space: nowrap;
+}
+
+/* 条码是连续数字，必须完整显示，避免在窄单元格内按字符断行。 */
+:deep(.cart-barcode-column .cell) {
+    white-space: nowrap;
+    word-break: keep-all;
+    font-variant-numeric: tabular-nums;
 }
 </style>
