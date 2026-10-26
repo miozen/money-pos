@@ -30,3 +30,4 @@
 - Worker Node 测试覆盖有效私聊查询、展示术语、错误 Webhook Secret、非允许用户、群聊忽略、多结果内联选择及回调详情读取。
 - 已通过 Worker `npm test`、`mvn -q package -DskipTests`、两项架构门禁及 `git diff --check`。实现提交为 `83c1e35`（`feat(cloud): add personal Telegram member query`）并已推送。
 - 2026-10-26 的首次部署为 Worker `b9776adc-0037-45ab-b47b-15b731771169`，但 Wrangler 明确提示本地配置会覆盖 Dashboard 配置；部署结果未保留 Telegram 三项文本变量，也移除了当时存在的一个自定义域名路由。因 Bot Token 被错误配置为普通文本变量，部署诊断输出暴露了该值；该 Token 必须在 BotFather 轮换，且不得再作为普通变量配置。此 Worker 当前没有 Telegram 有效配置，未注册 Webhook，未产生 Telegram 或 D1 会员数据读写。
+- 用户随后确认自定义域名 `omnia-cloud.miozen.uk` 仍存在且已重新配置 Telegram 值。只读 HTTP 检查确认该域名根路径为 `200`，而未带 Webhook Secret 的 `POST /telegram/webhook` 为 `401`；未认证、未读取会员数据、未写入 D1。Telegram `setWebhook` 和私聊验收仍待使用已轮换的 Bot Token 完成。

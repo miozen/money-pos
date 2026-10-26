@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local documentation records the OMNIA-CLOUD-9 failed-configuration deployment; commit/push pending. |
-| Current phase | `OMNIA-CLOUD-9 implementation committed; Telegram credential rotation and dashboard configuration recovery required before acceptance` |
+| Working tree | Local documentation records post-recovery route verification; commit/push pending. |
+| Current phase | `OMNIA-CLOUD-9 Worker and Dashboard configuration recovered; Telegram webhook registration and acceptance pending` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-9-Telegram-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -57,7 +57,8 @@ continuing.
 - OMNIA-CLOUD-9 is committed as `83c1e35` (`feat(cloud): add personal Telegram member query`) and pushed. It adds only `POST /telegram/webhook`, with Telegram header-secret verification, one fixed private-chat User ID allowlist, `/start`/`/help`, direct name/full-phone/last-four searches, multi-result inline selection and callback detail reads. It reuses the existing fixed D1 partition and ACTIVE display projection; it adds no D1 schema, POS, sync or webpage-authentication change.
 - Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`.
 - 2026-10-26 deployment Worker `b9776adc-0037-45ab-b47b-15b731771169` carried the code but did not preserve the Dashboard-created Telegram text variables, despite an attempted keep-variables option. Wrangler warned before deployment that it would override Dashboard configuration; it also removed an existing custom-domain route. The Bot Token was set as a text variable and consequently appeared in deployment diagnostics. Treat it as compromised: rotate it through BotFather, do not use it again, and configure the replacement as a Worker Secret. No Webhook was registered and no Telegram or D1 member query occurred.
-- Exact next action: user rotates the Bot Token and restores/reviews the affected Dashboard route only if still desired. Then configure `OMNIA_TELEGRAM_BOT_TOKEN` and `OMNIA_TELEGRAM_WEBHOOK_SECRET` as Secrets (not text), configure the allowed User ID as text, and explicitly confirm before a configuration-preserving Worker deploy and `setWebhook` registration. Do not attempt another deployment with a partial local Wrangler configuration.
+- User subsequently confirmed that custom domain `omnia-cloud.miozen.uk` remains available and the Telegram configuration was restored. Read-only checks observed `GET https://omnia-cloud.miozen.uk/ = 200` and unsigned `POST https://omnia-cloud.miozen.workers.dev/telegram/webhook = 401`; no credentials, membership read or D1 write occurred. Do not redeploy with a partial local Wrangler configuration.
+- Exact next action: register `https://omnia-cloud.miozen.uk/telegram/webhook` using Telegram `setWebhook`, the rotated Bot Token and the matching Webhook Secret; verify `getWebhookInfo`, then have the allowed private user send `/start` before any real-member lookup acceptance.
 
 ## UMS-MERGE-0 contract state
 
