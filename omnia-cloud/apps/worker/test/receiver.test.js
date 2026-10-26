@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleQuerySession, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
+import worker, { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleQuerySession, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
 
 const secret = 'MDEyMzQ1Njc4OWFiY2RlZg==';
 const body = JSON.stringify({ storeId: 'store-a', snapshots: [] });
@@ -104,6 +104,18 @@ test('query session validates the password before showing the search screen', as
   assert.deepEqual(await authorized.json(), { ok: true });
   const unauthorized = await handleQuerySession(new Request('https://cloud.example/api/v1/query-session'), env);
   assert.equal(unauthorized.status, 401);
+});
+
+test('query page uses the POS asset labels and totals remaining reduction coupons', async () => {
+  const response = await worker.fetch(new Request('https://cloud.example/'));
+  const page = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(page, /会员余额/);
+  assert.match(page, /会员券/);
+  assert.match(page, /剩余满减券/);
+  assert.match(page, /couponCount\(member\.unusedCoupons\)/);
+  assert.doesNotMatch(page, /优惠余额/);
+  assert.doesNotMatch(page, /可用优惠券/);
 });
 
 test('member query rejects bad password and hides deleted snapshots', async () => {

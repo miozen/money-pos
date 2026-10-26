@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after OMNIA-CLOUD-8 display-correction deployment record `5897398`; immediately after fetch, `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-8 display correction deployed; new-POS snapshot repair and mobile acceptance remain` |
+| Working tree | Local OMNIA-CLOUD-8 terminology-alignment change is validated but not yet committed/deployed. |
+| Current phase | `OMNIA-CLOUD-8 terminology alignment validated locally; deployment and online display verification next` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -52,7 +52,8 @@ continuing.
 - The display correction is committed as `cfce4d9` (`fix(cloud): improve member query display`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It removes member-code upload/return/display, has the UMS snapshot assembler resolve brand/level Chinese names through existing Entity-free `BrandNameQuery` plus the existing member-level dictionary, and changes the static page to validate the password before revealing search. It changes no D1 schema, transaction, query partition or cloud write rule. Existing D1 snapshots lack the new display field, so they will show “等待同步更新” until a new POS backend republishes them through the existing explicit data-repair flow.
 - Validation actually passed for that correction: Worker Node tests, focused `MemberCloudSyncRequestFactoryTest` (5 tests, zero failure/error), isolated credential-injected `money_pos_test` full Maven suite (188 tests, zero failure/error), `mvn -q package -DskipTests`, both architecture gates and `git diff --check`.
 - Worker `f21293d2-ebfe-455f-9ae1-8a26c5640fe6` is deployed with the display correction. Online checks confirmed the two-step login page, authenticated session `200`, absence of `memberCode` in detail, and expected absence of `brandLevelDescriptions` on the old snapshot. No D1 write happened during this check.
-- Exact next action: build/restart the updated POS backend in the approved Windows release environment, then use its existing “数据修复” control to republish `store-01-test` snapshots. Confirm Chinese brand/level display through the mobile page before closing acceptance. Keep `store-01-test` until acceptance is confirmed.
+- Local terminology-alignment change updates only the query page: `balance` is “会员余额”, `couponBalance` is “会员券”, both are two-decimal amounts, and existing `unusedCoupons[].count` values are aggregated as “剩余满减券：N 张”. It passed Worker Node tests, `mvn -q package -DskipTests`, both architecture gates and `git diff --check`; it is not committed or deployed yet.
+- Exact next action: commit and deploy the terminology-only Worker change, then verify the public page source contains the new labels. No POS rebuild, snapshot repair, D1 write or migration is needed for this display-only change.
 
 ## UMS-MERGE-0 contract state
 

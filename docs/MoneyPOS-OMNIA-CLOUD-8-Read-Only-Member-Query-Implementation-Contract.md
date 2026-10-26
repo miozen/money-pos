@@ -14,7 +14,7 @@
 - 网页和 API 以 Worker secret `OMNIA_QUERY_PASSWORD` 的单一密码保护；浏览器仅经 HTTPS 将其用于同源 Basic Authorization，不在源代码、D1、POS 或响应中保存。页面本身不含会员数据；所有查询/详情 API 均强制鉴权。
 - 手机号码检索 HMAC 继续使用 Worker secret `OMNIA_SEARCH_HMAC_SECRET_BASE64`，其值必须与 POS 的“检索 HMAC 密钥”一致，且绝不返回给浏览器。完整手机号以全文 HMAC 精确匹配；四位数字以末四位 HMAC 精确匹配。
 - 姓名按同步端相同的 `trim + lower-case` 规则作前缀匹配；所有结果仅返回 ACTIVE 快照，最多 20 条。查询 API 不接受通用 SQL、任意分区或已删除会员。
-- Worker 只对外返回展示投影：姓名、掩码手机号、会员编号、余额、优惠余额、品牌等级、可用券、QUANTITY/AMOUNT/TARGET 权益及最后同步时间。不得返回检索 HMAC、标准化姓名、原始手机号、交易/账本/操作员字段或内部 D1 列。
+- Worker 只对外返回展示投影：姓名、掩码手机号、会员余额、会员券、剩余满减券总张数、品牌等级、QUANTITY/AMOUNT/TARGET 权益及最后同步时间。网页金额统一显示为两位小数；满减券按既有快照的券规则计数总和显示。不得返回检索 HMAC、标准化姓名、原始手机号、交易/账本/操作员字段或内部 D1 列。
 - 页面使用无依赖的同源静态 HTML/CSS/JS，以避免为一个单人查询页引入单独构建、发布与依赖维护；它和未来 Telegram 均复用 Worker 内的查询/展示投影函数。
 - 查询页先单独验证密码，成功后才显示会员检索界面；密码仅保留在当前页面内存。会员编号不属于查询展示投影，不上传新快照，也不返回网页。
 - 本地快照额外投影 `brandLevelDescriptions`（品牌中文名 → 档位中文名），复用既有 `BrandNameQuery` 和 `memberType` 字典；它只用于云端展示，不能参与任何定价、交易或权益计算。旧快照没有该字段时必须显示“等待同步更新”，不得显示内部品牌 ID 或等级代码。
@@ -43,3 +43,4 @@
 - 2026-10-23 首次受权环境操作因本机到 `dash.cloudflare.com/oauth2/token` 的 TLS `ECONNRESET` 在首次 Secret 写入前终止；当时未产生 Cloudflare 变更。网络恢复后重试成功：Worker 已设置查询密码与检索 HMAC Secret，并以 `OMNIA_QUERY_STORE_ID=store-01-test` 部署版本 `00ed8ce4-2987-427d-9fd3-5d62e6503ae3` 至 `https://omnia-cloud.miozen.workers.dev`。
 - 线上验收实际通过：页面 `GET /` 为 `200`、无凭据查询 API 为 `401`；认证后的既有大 Snowflake ID 会员详情可读且不含 HMAC/规范化姓名；从同一快照取得的姓名和掩码手机号后四位均能定位该会员。验收仅读取现有 `store-01-test` 的 3 条快照，未写入或迁移 D1，也未变更 POS。
 - 2026-10-23 的展示修正已提交为 `cfce4d9`：删除会员编号投影，新增本地解析的中文品牌档位投影，并将网页改为“密码验证 → 会员查询”两步。隔离 `money_pos_test` 完整 Maven 回归为 188 tests、0 failure/error；Worker Node 测试、打包、两项架构门禁和差异检查均通过。该修正已部署为 Worker `f21293d2-ebfe-455f-9ae1-8a26c5640fe6`；线上验证了新登录页、认证 session `200`、会员编号不再返回及旧快照没有新字段。现有云端旧快照需由新版 POS 的“数据修复”重新发布后才会出现中文品牌档位。
+- 2026-10-26 的术语对齐修正仅改网页展示：`balance` 显示为“会员余额”且格式化为两位小数，`couponBalance` 显示为“会员券”且格式化为两位小数，既有 `unusedCoupons[].count` 汇总显示为“剩余满减券：N 张”。不变更快照字段、D1、同步或任何本地资产规则。Worker Node 测试、`mvn -q package -DskipTests`、两项架构门禁和差异检查已通过；部署事实另行记录。
