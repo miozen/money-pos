@@ -24,5 +24,5 @@
 
 - 已只修改 `money-pos-web/src/views/pos/components/CartTable.vue`：保留紧凑关键列，将小计、库存和操作设为连续右固定列；商品名称使用弹性最小宽度并加入尾部截断和原生完整名称悬停提示。序号列保持不换行。
 - 未修改购物车状态、价格计算、库存校验、扫码、补货、删除、试算、结算接口或后端代码。
-- 初版已通过：`money-pos-web` 的 `npm run build`（仍有既有的 Browserslist、CSS 解析及包体积提示，但命令成功）、`mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、`scripts/architecture-scan.sh --check-new` 与 `git diff --check`。本次响应式宽度修复重新通过后端打包、两项架构门禁和差异检查；当前 shell 未提供 Node/npm，因此尚未在本环境重跑前端构建。
+- 初版与本次响应式宽度修复均通过：显式加载本机 NVM 的 Node `v22.23.4` 后执行的 `money-pos-web` `npm run build`、`mvn -q package -DskipTests`、`scripts/test-architecture-scan.sh`、`scripts/architecture-scan.sh --check-new` 与 `git diff --check`。前端构建仍有既有的 Browserslist、CSS 解析及包体积提示，但命令成功。
 - 待在实际 POS 运行时进行 1366px/14 寸人工视觉验收；完成前本契约仍为“实施中”。

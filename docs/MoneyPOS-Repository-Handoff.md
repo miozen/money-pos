@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local POS-13 responsive-width correction is validated except for the unavailable Node frontend build, and is not yet committed. |
-| Current phase | `POS-13 cart-table responsive-width correction; local backend/architecture validation complete` |
+| Working tree | Clean after the POS-13 responsive-width correction and its validation-record closure. |
+| Current phase | `POS-13 cart-table responsive-width correction; ready for POS visual acceptance` |
 | Current plan | `MoneyPOS-POS-13-Cart-Table-Compact-Layout-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -69,8 +69,9 @@ continuing.
 - POS-12 is committed as `cf8d8a8` (`fix(pos): stabilize coupon trial display`) and pushed. It adds `!isTrialing` to the sole stale-zero display override, so a trial in flight uses the current cart's theoretical coupon display until the authoritative new result returns. It does not alter trial requests/results, submit data, payment, inventory, assets or POS-11 layout. The user confirmed the flicker correction on a running POS.
 - POS-13 initial implementation is committed as `c5d496e` (`fix(pos): compact cart table columns`) and pushed. It reduces only cart-table presentation widths, tail-truncates a long product name with a native full-name hover tooltip while retaining tags and stock warning, and fixes the contiguous subtotal/stock/action group at the right. It does not alter cart, pricing, inventory, scan, trial, checkout, restock or delete logic.
 - User review found the initial all-fixed-width choice regressed the layout: the 48px sequence column could wrap, and wide screens left unused space after the right action column. The local POS-13 correction restores the sequence column to a non-wrapping 70px and changes only the product-name column to a 220px minimum width, so it absorbs available wide-screen space while the fixed right subtotal/stock/action group remains protected.
-- Validation actually passed for the correction: `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The current shell environment has no Node/npm in `PATH`, so its frontend build has not been rerun here; do not report it as rerun. The earlier POS-13 frontend build passed with pre-existing CSS/large-chunk warnings.
-- Exact next action: commit/push the POS-13 responsive-width correction, then build/restart the approved POS runtime in its Node-capable environment and verify the 1366px/14-inch and wide-screen layouts, long-name truncation/tooltip, tags/stock warning, and all quantity/restock/delete interactions.
+- Validation actually passed for the correction: after explicitly loading the locally installed NVM Node `v22.23.4`, `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains the pre-existing Browserslist, CSS parsing and large-chunk warnings, but completed successfully.
+- The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
+- Exact next action: build/restart the approved POS runtime and verify the 1366px/14-inch and wide-screen layouts, long-name truncation/tooltip, tags/stock warning, and all quantity/restock/delete interactions. Close POS-13 only after user visual acceptance.
 
 ## UMS-MERGE-0 contract state
 
