@@ -96,7 +96,7 @@ public class SysBackupService {
             String exeSuffix = System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : "";
             File mysqldumpExe = new File(mariadbBin + File.separator + "mysqldump" + exeSuffix); // 这里用 appHome
 
-            if (publishLogs) sendLog("INFO", "正在导出数据库快照...");
+            if (publishLogs) sendLog("INFO", "正在备份业务数据...");
 
             ProcessBuilder pb = new ProcessBuilder(
                     mysqldumpExe.getAbsolutePath(), "--host=127.0.0.1", "--port=" + EmbeddedMariaDbGuardian.DB_PORT,
@@ -115,15 +115,15 @@ public class SysBackupService {
                 String errorMsg = errorLogFile.exists() ? FileUtil.readUtf8String(errorLogFile) : "未知进程错误";
                 throw new RuntimeException("数据库底层导出失败: " + errorMsg);
             }
-            if (publishLogs) sendLog("SUCCESS", "数据库快照导出完成。");
+            if (publishLogs) sendLog("SUCCESS", "业务数据备份完成。");
 
             // 2. 备份静态资源
             File assetsDir = RuntimeFileStorage.assetsDirectory(); // 🌟 核心修复：找数据区的 assets
-            if (publishLogs) sendLog("INFO", "正在归档静态资源...");
+            if (publishLogs) sendLog("INFO", "正在备份商品图片和资料...");
             if (assetsDir.exists()) FileUtil.copy(assetsDir, new File(tempBatchDir), true);
 
             // 3. 打包 ZIP
-            if (publishLogs) sendLog("INFO", "正在生成 ZIP 归档包...");
+            if (publishLogs) sendLog("INFO", "正在生成备份文件...");
             String zipFileName = prefix + "VanaPOS_" + DateUtil.format(DateUtil.date(), "yyyyMMdd_HHmmss") + ".zip";
             File zipFile = new File(backupDir, zipFileName);
             cn.hutool.core.util.ZipUtil.zip(tempBatchDir, zipFile.getAbsolutePath(), true);
@@ -144,7 +144,7 @@ public class SysBackupService {
         File zipFile = new File(tempRestoreDir + ".zip");
 
         try {
-            sendLog("WARN", "=== 实用级高可用还原序列启动 ===");
+            sendLog("INFO", "开始准备恢复数据...");
 
             backupFile.transferTo(zipFile);
             FileUtil.mkdir(tempRestoreDir);
@@ -160,28 +160,28 @@ public class SysBackupService {
             // 🌟 核心防线 2：严格强制校验 Manifest
             checkManifestStrictly(tempRestoreDir);
 
-            sendLog("INFO", "创建前置保护快照...");
+            sendLog("INFO", "正在创建恢复前备份...");
             createBackupZip("PreRestore_");
 
-            sendLog("INFO", "第一阶段：影子库预导入...");
+            sendLog("INFO", "正在核验备份文件...");
             prepareShadowDatabase();
             importSqlToDb(sqlFile, SHADOW_DB);
 
-            sendLog("INFO", "第二阶段：影子库业务级深度校验...");
+            sendLog("INFO", "正在检查备份数据...");
             verifyShadowDatabase();
-            sendLog("SUCCESS", "影子库导入成功，核心数据验证通过。");
+            sendLog("SUCCESS", "备份文件检查通过。");
 
-            sendLog("WARN", "第三阶段：执行生产库表集绝对一致性切换...");
+            sendLog("INFO", "正在应用恢复内容...");
             atomicSwitchDatabase();
-            sendLog("SUCCESS", "数据库切换完美达成，无残留旧表！");
+            sendLog("SUCCESS", "业务数据恢复完成。");
 
             // 🌟 核心修复 3：将静态资源还原到数据安全区
             restoreAssetsAtomically(tempRestoreDir, RuntimeFileStorage.assetsDirectory());
 
-            sendLog("SUCCESS", "=== 还原全流程安全收官 ===");
+            sendLog("SUCCESS", "恢复已完成。");
 
         } catch (Exception e) {
-            sendLog("ERROR", "❌ 还原失败：已触发安全保护机制。底层错误：" + e.getMessage());
+            sendLog("ERROR", "恢复未完成，已停止本次操作；请检查恢复进度后再试。");
             log.error("还原失败", e);
             // 失败时清理影子库，保留原生产库毫发无损
             try { dropDatabase(SHADOW_DB); } catch (Exception ignore) {}
@@ -195,7 +195,7 @@ public class SysBackupService {
     private void checkManifestStrictly(String restoreDir) {
         File manifest = new File(restoreDir + File.separator + MANIFEST_FILE);
         if (!manifest.exists()) {
-            sendLog("WARN", "⚠️ 检测到旧版备份包：缺失 manifest 清单文件，将跳过安全校验强制执行恢复...");
+            sendLog("WARN", "检测到旧版备份文件，缺少完整性信息；将按兼容方式继续恢复。");
             return;
         }
 
@@ -211,7 +211,7 @@ public class SysBackupService {
         String version = json.getStr("appVersion");
         String currentVersion = releaseVersionService.currentVersion();
         if (!currentVersion.equals(version)) {
-            sendLog("WARN", "⚠️ 备份版本(" + version + ")与当前系统(" + currentVersion + ")不一致，将尝试跨版本兼容导入...");
+            sendLog("WARN", "备份文件与当前软件版本不同，正在按兼容方式恢复。");
         }
     }
 
@@ -306,9 +306,9 @@ public class SysBackupService {
             stmt.execute("DROP DATABASE IF EXISTS `" + SHADOW_DB + "`");
 
             if (!prodTables.isEmpty()) {
-                sendLog("INFO", "旧版生产数据(" + prodTables.size() + "张表)已被安全隔离至: " + bakDbName);
+                sendLog("INFO", "正在完成恢复后的本机资料整理...");
             } else {
-                sendLog("INFO", "全新环境初始化部署完成！");
+                sendLog("INFO", "正在完成首次资料恢复...");
             }
         }
     }
@@ -328,7 +328,7 @@ public class SysBackupService {
                 try { Thread.sleep(5000); FileUtil.del(bakAssets); } catch (Exception ignore) {}
             }).start();
         } catch (Exception e) {
-            sendLog("ERROR", "静态资源替换失败，已触发自动回滚...");
+            sendLog("ERROR", "商品图片和资料恢复失败，已自动撤销本次更改。");
             if (bakAssets.exists()) {
                 FileUtil.del(targetAssets);
                 FileUtil.move(bakAssets, targetAssets, true);

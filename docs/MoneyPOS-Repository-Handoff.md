@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local POS-14 guest-display cart-item-count implementation is validated but not yet committed. |
-| Current phase | `POS-14 guest-display cart-item-count; ready for secondary-display visual acceptance` |
-| Current plan | `MoneyPOS-POS-14-Guest-Display-Cart-Item-Count-Implementation-Contract.md` |
+| Working tree | Clean after the committed UX-1 product-language refinement. |
+| Current phase | `UX-1 product-language refinement; ready for management-screen visual acceptance` |
+| Current plan | `MoneyPOS-UX-1-Product-Language-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -66,7 +66,8 @@ continuing.
 - `MoneyPOS-Omnia-Cloud-Configuration-Guide.md` records the current single-store POS/Worker/D1/query/Telegram configuration, key-reset and repair procedure. It contains placeholders only; it changes no Worker variable, POS configuration, D1 data or runtime behavior.
 - OMNIA-CLOUD-11 is locally implemented under `MoneyPOS-OMNIA-CLOUD-11-Local-Secret-Reveal-Implementation-Contract.md`. It keeps normal configuration/status reads redacted but adds an explicit local SUPER_ADMIN + `omniaCloud:manage` + loopback secret-reveal action. Each existing password input has a default-hidden right-side eye that reveals or clears only that field. It does not change persistence, sync, Worker, D1 or remote configuration rules.
 - Validation actually passed: NVM Node `v22.23.4` `npm run build`; focused `MemberCloudSyncConfigurationServiceTest` and `UmsMemberCloudSyncRouteContractTest`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The first focused Maven invocation failed before reaching the biz module because older Surefire treats public modules with no selected test as an error; its rerun with `-DfailIfNoTests=false` passed.
-- POS-14 is locally implemented under `MoneyPOS-POS-14-Guest-Display-Cart-Item-Count-Implementation-Contract.md`. It changes only the guest-display left header from the cart-row count to the sum of its already synchronized item quantities: “购物清单 · 共 X 件”. It adds no WebSocket field and changes no POS, backend or persistence behavior. Validation actually passed: `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`.
+- POS-14 is committed as `31db4d5` (`feat(display): show cart item count`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It changes only the guest-display left header from the cart-row count to the sum of its already synchronized item quantities: “购物清单 · 共 X 件”. It adds no WebSocket field and changes no POS, backend or persistence behavior. Validation actually passed: `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`.
+- UX-1 is committed under `MoneyPOS-UX-1-Product-Language-Implementation-Contract.md`. It changes only visible wording and the frontend mapping of existing cloud-bootstrap status codes. It does not change routes, API shapes, transaction ownership, Cloudflare configuration, POS behavior or data rules. Validation actually passed: NVM Node `v22.23.4` `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains pre-existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
 - POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
 - Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
 - POS-11 is committed as `b2d0d27` (`fix(pos): align coupon insufficiency warning`) and pushed. Device observation then found a pre-existing display flicker when toggling the coupon waiver: an old waived trial result temporarily produced a zero theoretical coupon amount before the new trial returned. No payment or asset rule was bypassed because confirmation remains disabled while trialing.
@@ -76,7 +77,7 @@ continuing.
 - Validation actually passed for the correction: after explicitly loading the locally installed NVM Node `v22.23.4`, `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains the pre-existing Browserslist, CSS parsing and large-chunk warnings, but completed successfully.
 - The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
 - The user reported no new issue after the latest POS testing; keep the current POS-13 responsive layout unless later device testing finds a regression.
-- Exact next action: build/restart the approved POS runtime with the POS-14 change and verify the secondary-display total for multiple products and quantities, then verify its update after quantity change, deletion, clear, suspended-order restore and checkout.
+- Exact next action: validate the changed cloud-sync, backup/recovery, customer-display, order-detail, audit, brand-setting and reprint wording on the approved POS runtime. Do not perform a real restore or cloud re-sync solely for wording acceptance.
 
 ## UMS-MERGE-0 contract state
 

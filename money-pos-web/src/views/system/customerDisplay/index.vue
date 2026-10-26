@@ -5,14 +5,14 @@
                 <el-card shadow="never" class="border-none shadow-sm rounded-xl h-full">
                     <template #header>
                         <div class="flex items-center gap-2 font-bold text-gray-800 text-lg">
-                            <el-icon class="text-blue-500"><Monitor /></el-icon> 客显播控与终端状态机配置
+                            <el-icon class="text-blue-500"><Monitor /></el-icon> 顾客副屏设置
                         </div>
                     </template>
                     <el-form :model="settings" label-position="top" class="mt-2" v-loading="loading">
                         <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100 mb-6 flex justify-between items-center">
                             <div>
-                                <h4 class="font-bold text-blue-800 text-base">启用客显系统驱动</h4>
-                                <p class="text-xs text-gray-500 mt-1">总控开关。关闭后，客显屏将强制进入休眠状态。</p>
+                                <h4 class="font-bold text-blue-800 text-base">启用顾客副屏</h4>
+                                <p class="text-xs text-gray-500 mt-1">关闭后，顾客副屏将停止显示收银信息。</p>
                             </div>
                             <el-switch v-model="settings.enabled" active-text="启动" inactive-text="停用" inline-prompt style="--el-switch-on-color: #3b82f6;" />
                         </div>
@@ -23,12 +23,12 @@
                                     <el-input-number v-model="settings.interval" :min="3" :max="60" class="!w-full" controls-position="right" />
                                 </el-form-item>
                                 <el-form-item>
-                                    <template #label><span class="font-bold text-gray-700 flex items-center gap-1"><el-icon><ChatDotRound /></el-icon> 底部滚动公告标语</span></template>
-                                    <el-input v-model="settings.welcomeText" placeholder="请输入客显底部显示的滚动文字..." clearable />
+                                    <template #label><span class="font-bold text-gray-700 flex items-center gap-1"><el-icon><ChatDotRound /></el-icon> 底部滚动公告</span></template>
+                                    <el-input v-model="settings.welcomeText" placeholder="请输入副屏底部显示的滚动文字..." clearable />
                                 </el-form-item>
                             </div>
                             <div class="mt-4 mb-6">
-                                <div class="font-bold text-gray-700 flex items-center gap-1 mb-3"><el-icon class="text-green-500"><VideoPlay /></el-icon> 待机轮播列表 (排期)</div>
+                                <div class="font-bold text-gray-700 flex items-center gap-1 mb-3"><el-icon class="text-green-500"><VideoPlay /></el-icon> 待机海报轮播</div>
                                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[120px] flex flex-wrap gap-4 items-center">
                                     <div v-if="settings.playlist.length === 0" class="text-gray-400 text-sm w-full text-center py-4">暂无播放内容 👇</div>
                                     <div v-for="(url, index) in settings.playlist" :key="'play_'+index" class="relative group cursor-pointer">
@@ -54,8 +54,8 @@
                             </div>
                             <div class="mt-8 pt-6 border-t border-gray-100">
                                 <div class="flex justify-between items-end mb-4">
-                                    <div class="font-bold text-gray-700 flex items-center gap-1"><el-icon class="text-blue-600"><CreditCard /></el-icon> 收款码资产映射与默认展示</div>
-                                    <div class="text-[10px] text-gray-400">勾选"默认显示"的收款码，在结算初期将自动并排展示</div>
+                                    <div class="font-bold text-gray-700 flex items-center gap-1"><el-icon class="text-blue-600"><CreditCard /></el-icon> 收款码展示</div>
+                                    <div class="text-[10px] text-gray-400">勾选“设为默认”的收款码，结算时将优先显示</div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div v-for="(item, idx) in settings.paymentCodes" :key="idx" class="border border-gray-200 rounded-lg p-3 bg-gray-50 relative group">
@@ -75,7 +75,7 @@
                                 </div>
                             </div>
                             <div class="mt-10 pt-6 border-t border-gray-100 flex items-center gap-4">
-                                <el-button type="primary" size="large" class="w-full md:w-64 font-bold tracking-widest shadow-lg" @click="saveSettings" :loading="saving"><el-icon class="mr-1"><Select /></el-icon> 保存播控与结算规则</el-button>
+                                <el-button type="primary" size="large" class="w-full md:w-64 font-bold tracking-widest shadow-lg" @click="saveSettings" :loading="saving"><el-icon class="mr-1"><Select /></el-icon> 保存副屏设置</el-button>
                             </div>
                         </div>
                     </el-form>
@@ -148,7 +148,7 @@ const handleQrUploadSuccess = (response, index) => {
         settings.paymentCodes[index].url = url;
         ElMessage.success('收款码已上传');
     } else {
-         ElMessage.error('上传失败: 无法解析返回地址');
+         ElMessage.error('上传失败，请重试');
     }
 }
 
@@ -159,7 +159,7 @@ const handleUploadSuccess = (response, uploadFile) => {
         settings.library.unshift(url);
         ElMessage.success('素材上传成功！');
     } else {
-        ElMessage.error('上传失败: 无法解析返回地址');
+        ElMessage.error('上传失败，请重试');
     }
 }
 
@@ -183,7 +183,7 @@ const saveSettings = async () => {
     saving.value = true;
     try {
         await axios.put(`${apiBaseUrl}/common/display-settings`, settings, { headers: headers.value });
-        ElMessage.success('客显与结算规则已永久保存！');
+        ElMessage.success('副屏设置已保存');
         displayChannel.postMessage('RELOAD_SETTINGS');
     } catch (e) {
         ElMessage.error('保存失败');

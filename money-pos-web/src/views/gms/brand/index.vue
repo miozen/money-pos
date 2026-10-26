@@ -170,7 +170,7 @@ async function saveConfig() {
             levelCodes: configForm.value.levelCodesArray.join(',')
         }
         await req({ url: '/gms/brand/config', method: 'POST', data: payload })
-        ElMessage.success('🎉 品牌策略部署成功！')
+        ElMessage.success('品牌会员策略已保存')
         configVisible.value = false
     } catch (e) {
         ElMessage.error('保存失败')

@@ -2,7 +2,7 @@
     <PageWrapper>
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <el-input v-model="queryParams.orderNo" placeholder="精准溯源单号" class="!w-64" clearable @keyup.enter.native="fetchData" />
+                <el-input v-model="queryParams.orderNo" placeholder="订单号" class="!w-64" clearable @keyup.enter.native="fetchData" />
                 <el-checkbox v-model="isAnomalyOnly" @change="handleAnomalyChange" border size="default" class="!text-red-500 font-bold">
                     <el-icon class="mr-1"><WarningFilled /></el-icon> 仅看异常数据 (缺失成本/负毛利)
                 </el-checkbox>
@@ -32,13 +32,13 @@
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="goodsName" label="审计标的物 (商品)" min-width="180" show-overflow-tooltip>
+                <el-table-column prop="goodsName" label="商品" min-width="180" show-overflow-tooltip>
                     <template #default="{row}">
                         <span class="text-gray-800 font-bold">{{ row.goodsName }}</span>
                     </template>
                 </el-table-column>
 
-                <el-table-column label="--- 价格快照隔离区 ---" align="center">
+                <el-table-column label="交易价格" align="center">
                     <el-table-column prop="salePrice" label="吊牌价" width="90" align="right">
                         <template #default="{row}"><span class="text-gray-400 line-through">￥{{ row.salePrice }}</span></template>
                     </el-table-column>
@@ -57,7 +57,7 @@
                     </el-table-column>
                 </el-table-column>
 
-                <el-table-column label="--- 利润核算区 ---" align="center">
+                <el-table-column label="利润情况" align="center">
                     <el-table-column prop="unitProfit" label="单件净利" width="110" align="right">
                         <template #default="{row}">
                             <span :class="row.unitProfit < 0 ? 'text-red-600 font-black' : 'text-green-600 font-bold'">

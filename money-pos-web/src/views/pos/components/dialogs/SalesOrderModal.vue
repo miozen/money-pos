@@ -364,7 +364,7 @@ const handleFullReturn = async () => {
 }
 
 const reprintOrder = async () => {
-    try { await req({ url: '/oms-order/hardware/print', method: 'GET', params: { orderNo: currentOrderDetail.value.orderNo } }); ElMessage.success(`指令已发送`); } catch (e) {}
+    try { await req({ url: '/oms-order/hardware/print', method: 'GET', params: { orderNo: currentOrderDetail.value.orderNo } }); ElMessage.success('打印请求已发送'); } catch (e) {}
 }
 
 const getOrderStatusName = (s) => {

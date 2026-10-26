@@ -272,7 +272,7 @@ watch(visible, async (newVal) => {
                 payList: data.payments || []
             }
         } catch (e) {
-            ElMessage.error('获取底层快照失败: ' + (e.msg || e.message))
+            ElMessage.error('获取订单详情失败，请稍后重试')
         } finally {
             detailLoading.value = false
         }
