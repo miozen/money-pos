@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local POS-11 coupon-insufficiency layout implementation is validated but not yet committed. |
-| Current phase | `POS-11 mixed-checkout coupon-insufficiency layout; local validation complete` |
-| Current plan | `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md` |
+| Working tree | Local POS-12 coupon-trial display-stability implementation is validated but not yet committed. |
+| Current phase | `POS-12 mixed-checkout coupon-trial display stability; local validation complete` |
+| Current plan | `MoneyPOS-POS-12-Coupon-Trial-Display-Stability-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -65,7 +65,10 @@ continuing.
 - User confirmed the new member-detail layout works as expected through both the webpage and Telegram private chat. OMNIA-CLOUD-10 is complete.
 - POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
 - Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
-- Exact next action: commit/push POS-11, then build/restart the approved POS runtime and manually verify insufficient/adequate/waived member-coupon states in the mixed checkout window.
+- POS-11 is committed as `b2d0d27` (`fix(pos): align coupon insufficiency warning`) and pushed. Device observation then found a pre-existing display flicker when toggling the coupon waiver: an old waived trial result temporarily produced a zero theoretical coupon amount before the new trial returned. No payment or asset rule was bypassed because confirmation remains disabled while trialing.
+- POS-12 is locally implemented under `MoneyPOS-POS-12-Coupon-Trial-Display-Stability-Implementation-Contract.md`. It adds `!isTrialing` to the sole stale-zero display override, so a trial in flight uses the current cart's theoretical coupon display until the authoritative new result returns. It does not alter trial requests/results, submit data, payment, inventory, assets or POS-11 layout.
+- Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
+- Exact next action: commit/push POS-12, then build/restart the approved POS runtime and toggle the coupon waiver both directions on a coupon-eligible member order. Confirm neither the top coupon text nor the POS-11 switch row disappears during the trial; confirm the final returned amount remains authoritative.
 
 ## UMS-MERGE-0 contract state
 

@@ -158,7 +158,7 @@ export function usePosStore() {
                 }
             }
 
-            if (trialResult.value && !isWaiveCoupon.value && trialResult.value.actualCouponDeduct === 0) {
+            if (trialResult.value && !isTrialing.value && !isWaiveCoupon.value && trialResult.value.actualCouponDeduct === 0) {
                 displayCouponDeduct = new Big(0);
             }
 
