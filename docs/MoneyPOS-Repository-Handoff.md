@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local OMNIA-CLOUD-10 deployment record pending commit/push. |
-| Current phase | `OMNIA-CLOUD-10 display layout deployed; webpage and Telegram visual acceptance pending` |
+| Working tree | Local OMNIA-CLOUD-10 acceptance closure record pending commit/push. |
+| Current phase | `OMNIA-CLOUD-10 member-query display layout acceptance complete` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -62,7 +62,8 @@ continuing.
 - OMNIA-CLOUD-10 is locally implemented under `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md`. It only reformats the existing web and Telegram member-detail projection into basic information, brand level, assets, benefits and sync time. It renames displayed QUANTITY rights from “次数权益” to “寄存商品” and removes its unit; it does not change asset or rights values, D1, POS, sync, APIs, webhook or authorization.
 - OMNIA-CLOUD-10 is committed as `06d7d9f` (`feat(cloud): group member query details`) and pushed. Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`.
 - Final Worker `3122d8fc-1adc-4e63-85fd-aac754bfb3a7` is deployed. The initial deployment omitted an explicit `workers_dev` setting and therefore temporarily disabled that POS sync endpoint; it was immediately redeployed with the same source and explicit `workers_dev = true`. Final read-only checks: custom-domain page `200`, `workers.dev` page `200`, unsigned custom-domain Webhook `401`, and page source has “寄存商品”/new asset layout but no “次数权益”. No membership data was read or written.
-- Exact next action: allowed user verifies the new detailed layout once through the custom-domain webpage and once through the Telegram private chat. If accepted, record the result and close OMNIA-CLOUD-10. Do not redeploy with a partial local Wrangler configuration.
+- User confirmed the new member-detail layout works as expected through both the webpage and Telegram private chat. OMNIA-CLOUD-10 is complete.
+- Exact next action: await a separately approved cloud scope (for example product snapshot/query) or perform routine operational verification only. Preserve the current fixed single-store, read-only query boundary; do not redeploy with a partial local Wrangler configuration.
 
 ## UMS-MERGE-0 contract state
 

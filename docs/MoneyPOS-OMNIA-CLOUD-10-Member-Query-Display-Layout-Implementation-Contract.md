@@ -27,3 +27,4 @@
 - Node 测试覆盖 Telegram 格式化、金额千分位、目标权益多行、寄存商品无单位及网页不再包含“次数权益”。
 - 已通过 Worker `npm test`、`mvn -q package -DskipTests`、两项架构门禁和 `git diff --check`；实现提交为 `06d7d9f`（`feat(cloud): group member query details`）并已推送。
 - 最终 Worker `3122d8fc-1adc-4e63-85fd-aac754bfb3a7` 已部署。部署配置同时显式保留 D1、固定查询分区、Telegram 白名单、自定义域名和 `workers.dev`；过程中曾出现一次未声明 `workers_dev` 的中间部署，随后立即以同一代码恢复，最终两个入口均为 `200`。只读验证确认网页源码含“寄存商品”、会员资产和 `¥`，不含“次数权益”；无签名 Telegram Webhook 为 `401`。未读取会员、未写 D1；真实网页与 Telegram 视觉验收待用户完成。
+- 用户已确认网页与 Telegram 的新详情布局均符合预期，OMNIA-CLOUD-10 展示验收完成。
