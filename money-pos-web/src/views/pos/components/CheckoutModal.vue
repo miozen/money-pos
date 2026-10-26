@@ -129,13 +129,14 @@
                             <span class="font-bold whitespace-nowrap">🏷️ 整单优惠:</span>
                             <el-input-number v-model="manualDiscount" :min="0" :max="totalAmount" :precision="2" :step="1" class="!w-[130px]" placeholder="直减" @change="handleDiscountChange" @focus="handleFocus" />
                         </div>
-                        <div v-show="currentMember.id && theoreticalCouponUsed > 0" class="flex flex-col gap-1">
-                            <div class="flex justify-between items-center text-teal-600">
+                        <div v-show="currentMember.id && theoreticalCouponUsed > 0">
+                            <div class="flex items-center text-teal-600">
                                 <span class="font-bold whitespace-nowrap flex items-center gap-1"><el-icon><PriceTag /></el-icon> 免收会员券:</span>
-                                <el-switch v-model="isWaiveCoupon" active-text="是" inactive-text="否" inline-prompt @change="handleDiscountChange" />
-                            </div>
-                            <div v-if="!isWaiveCoupon && (currentMember.coupon || 0) < theoreticalCouponUsed" class="text-[10px] text-red-500 text-right font-bold animate-pulse leading-tight">
-                                ⚠️ 余额不足以抵扣 ￥{{ theoreticalCouponUsed.toFixed(2) }}，请充值或开启免收！
+                                <span v-if="!isWaiveCoupon && (currentMember.coupon || 0) < theoreticalCouponUsed" class="mx-2 min-w-0 flex-1 whitespace-nowrap text-[10px] font-bold text-red-500 animate-pulse">
+                                    ⚠️ 余额不足以抵扣 ￥{{ theoreticalCouponUsed.toFixed(2) }}，请充值或开启免收！
+                                </span>
+                                <span v-else class="flex-1"></span>
+                                <el-switch v-model="isWaiveCoupon" class="shrink-0" active-text="是" inactive-text="否" inline-prompt @change="handleDiscountChange" />
                             </div>
                         </div>
                     </div>

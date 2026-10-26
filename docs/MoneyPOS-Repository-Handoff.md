@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local OMNIA-CLOUD-10 acceptance closure record pending commit/push. |
-| Current phase | `OMNIA-CLOUD-10 member-query display layout acceptance complete` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md` |
+| Working tree | Local POS-11 coupon-insufficiency layout implementation is validated but not yet committed. |
+| Current phase | `POS-11 mixed-checkout coupon-insufficiency layout; local validation complete` |
+| Current plan | `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -63,7 +63,9 @@ continuing.
 - OMNIA-CLOUD-10 is committed as `06d7d9f` (`feat(cloud): group member query details`) and pushed. Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`.
 - Final Worker `3122d8fc-1adc-4e63-85fd-aac754bfb3a7` is deployed. The initial deployment omitted an explicit `workers_dev` setting and therefore temporarily disabled that POS sync endpoint; it was immediately redeployed with the same source and explicit `workers_dev = true`. Final read-only checks: custom-domain page `200`, `workers.dev` page `200`, unsigned custom-domain Webhook `401`, and page source has “寄存商品”/new asset layout but no “次数权益”. No membership data was read or written.
 - User confirmed the new member-detail layout works as expected through both the webpage and Telegram private chat. OMNIA-CLOUD-10 is complete.
-- Exact next action: await a separately approved cloud scope (for example product snapshot/query) or perform routine operational verification only. Preserve the current fixed single-store, read-only query boundary; do not redeploy with a partial local Wrangler configuration.
+- POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
+- Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
+- Exact next action: commit/push POS-11, then build/restart the approved POS runtime and manually verify insufficient/adequate/waived member-coupon states in the mixed checkout window.
 
 ## UMS-MERGE-0 contract state
 
