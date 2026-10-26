@@ -49,7 +49,7 @@
                 <div class="cashier-stage">
                     <div class="left-panel">
                         <div class="left-header">
-                            <span>清单 ({{ realCart.length }})</span>
+                            <span>购物清单 · 共 {{ totalItemCount }} 件</span>
                             <span v-if="realMember" class="member-tag">
                                 {{ maskName(realMember.name || realMember.phone) }}
                             </span>
@@ -224,6 +224,8 @@ const showParticipatingAmount = computed(() => {
         realParticipatingAmount.value > 0
     )
 })
+
+const totalItemCount = computed(() => realCart.value.reduce((total, item) => total + getQty(item), 0))
 
 const maskName = (str) => {
     if (!str) return '会员'

@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after the POS-13 responsive-width correction and its validation-record closure. |
-| Current phase | `POS-13 cart-table responsive-width correction; ready for POS visual acceptance` |
-| Current plan | `MoneyPOS-POS-13-Cart-Table-Compact-Layout-Implementation-Contract.md` |
+| Working tree | Local POS-14 guest-display cart-item-count implementation is validated but not yet committed. |
+| Current phase | `POS-14 guest-display cart-item-count; ready for secondary-display visual acceptance` |
+| Current plan | `MoneyPOS-POS-14-Guest-Display-Cart-Item-Count-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -66,6 +66,7 @@ continuing.
 - `MoneyPOS-Omnia-Cloud-Configuration-Guide.md` records the current single-store POS/Worker/D1/query/Telegram configuration, key-reset and repair procedure. It contains placeholders only; it changes no Worker variable, POS configuration, D1 data or runtime behavior.
 - OMNIA-CLOUD-11 is locally implemented under `MoneyPOS-OMNIA-CLOUD-11-Local-Secret-Reveal-Implementation-Contract.md`. It keeps normal configuration/status reads redacted but adds an explicit local SUPER_ADMIN + `omniaCloud:manage` + loopback secret-reveal action. Each existing password input has a default-hidden right-side eye that reveals or clears only that field. It does not change persistence, sync, Worker, D1 or remote configuration rules.
 - Validation actually passed: NVM Node `v22.23.4` `npm run build`; focused `MemberCloudSyncConfigurationServiceTest` and `UmsMemberCloudSyncRouteContractTest`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The first focused Maven invocation failed before reaching the biz module because older Surefire treats public modules with no selected test as an error; its rerun with `-DfailIfNoTests=false` passed.
+- POS-14 is locally implemented under `MoneyPOS-POS-14-Guest-Display-Cart-Item-Count-Implementation-Contract.md`. It changes only the guest-display left header from the cart-row count to the sum of its already synchronized item quantities: “购物清单 · 共 X 件”. It adds no WebSocket field and changes no POS, backend or persistence behavior. Validation actually passed: `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`.
 - POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
 - Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
 - POS-11 is committed as `b2d0d27` (`fix(pos): align coupon insufficiency warning`) and pushed. Device observation then found a pre-existing display flicker when toggling the coupon waiver: an old waived trial result temporarily produced a zero theoretical coupon amount before the new trial returned. No payment or asset rule was bypassed because confirmation remains disabled while trialing.
@@ -74,7 +75,8 @@ continuing.
 - User review found the initial all-fixed-width choice regressed the layout: the 48px sequence column could wrap, and wide screens left unused space after the right action column. The local POS-13 correction restores the sequence column to a non-wrapping 70px and changes only the product-name column to a 220px minimum width, so it absorbs available wide-screen space while the fixed right subtotal/stock/action group remains protected.
 - Validation actually passed for the correction: after explicitly loading the locally installed NVM Node `v22.23.4`, `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains the pre-existing Browserslist, CSS parsing and large-chunk warnings, but completed successfully.
 - The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
-- Exact next action: build/restart the approved POS runtime and verify the 1366px/14-inch and wide-screen layouts, long-name truncation/tooltip, tags/stock warning, and all quantity/restock/delete interactions. Close POS-13 only after user visual acceptance.
+- The user reported no new issue after the latest POS testing; keep the current POS-13 responsive layout unless later device testing finds a regression.
+- Exact next action: build/restart the approved POS runtime with the POS-14 change and verify the secondary-display total for multiple products and quantities, then verify its update after quantity change, deletion, clear, suspended-order restore and checkout.
 
 ## UMS-MERGE-0 contract state
 
