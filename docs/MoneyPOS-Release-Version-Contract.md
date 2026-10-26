@@ -19,7 +19,7 @@ Windows EXE 工作流必须从 `money-pos-web/package.json` 读取并校验 SemV
 3. 由 Vite 在前端构建时注入同一版本，因此 POS 与后台管理界面显示相同版本。
 4. 后端版本查询和备份 Manifest 从 JAR 内 `BuildProperties` 读取，不保留独立硬编码版本。
 
-任何绕过该工作流交付的包都不是受支持发行包。若本地调试需要构建后端，版本必须明确显示为 `0.0.0-DEV`，不得伪装为发行版本。
+任何绕过正式发布工作流交付的包都不是受支持发行包。例外是 `Build WanXiangPOS Test Installer` 手动测试工作流：它可检出 `dev` 或指定 ref 并上传短期 Actions Artifact，用于安装和回归验证；该 Artifact 不递增版本、不提交、不打标签、不创建 Release，即使其界面版本来自该 ref 的 `package.json`，也不得作为正式发行包分发。若本地调试需要构建后端，版本必须明确显示为 `0.0.0-DEV`，不得伪装为发行版本。
 
 ### 本地浏览器联调标准命令
 
