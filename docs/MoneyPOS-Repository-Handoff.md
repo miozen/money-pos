@@ -1,6 +1,6 @@
 # MoneyPOS Repository-driven Handoff
 
-> Last updated: 2026-10-21. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
+> Last updated: 2026-10-26. This is a concise, Git-explainable restart point; it is not an architecture or decision log.
 
 ## Recovery order
 
@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after the committed UX-1 product-language refinement. |
-| Current phase | `UX-1 product-language refinement; ready for management-screen visual acceptance` |
-| Current plan | `MoneyPOS-UX-1-Product-Language-Implementation-Contract.md` |
+| Working tree | REL-1 is committed locally as `74aa864`; it has not yet been pushed in this handoff state. |
+| Current phase | `REL-1 main automatic GitHub Release` |
+| Current plan | `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -68,6 +68,7 @@ continuing.
 - Validation actually passed: NVM Node `v22.23.4` `npm run build`; focused `MemberCloudSyncConfigurationServiceTest` and `UmsMemberCloudSyncRouteContractTest`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The first focused Maven invocation failed before reaching the biz module because older Surefire treats public modules with no selected test as an error; its rerun with `-DfailIfNoTests=false` passed.
 - POS-14 is committed as `31db4d5` (`feat(display): show cart item count`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`. It changes only the guest-display left header from the cart-row count to the sum of its already synchronized item quantities: “购物清单 · 共 X 件”. It adds no WebSocket field and changes no POS, backend or persistence behavior. Validation actually passed: `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`.
 - UX-1 is committed under `MoneyPOS-UX-1-Product-Language-Implementation-Contract.md`. It changes only visible wording and the frontend mapping of existing cloud-bootstrap status codes. It does not change routes, API shapes, transaction ownership, Cloudflare configuration, POS behavior or data rules. Validation actually passed: NVM Node `v22.23.4` `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains pre-existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
+- REL-1 is locally validated under `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md`. It changes only the Windows release workflow and package/lock version consistency verification. On each qualifying `main` push, it calculates the next patch version, fully builds the EXE before committing its version files to `main`, then pushes a `vX.Y.Z` tag and creates a Release with `WanXiangPOS-Setup-vX.Y.Z.exe`; the self-generated version commit is skipped. The local baseline is `1.0.12`. It will not merge `main`, run a remote release, create a tag or change product behavior during implementation.
 - POS-11 is locally implemented under `MoneyPOS-POS-11-Coupon-Insufficiency-Layout-Implementation-Contract.md`. It moves the unchanged member-coupon insufficiency warning into the existing “免收会员券” row between its label and the existing fixed-right “否/是” switch. It changes no dialog size, condition, wording, trial, payment, submit guard, API or backend behavior.
 - Validation actually passed: `money-pos-web` `npm run build`, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. The frontend build completed with pre-existing CSS/large-chunk warnings. It is not yet committed or accepted on a running POS.
 - POS-11 is committed as `b2d0d27` (`fix(pos): align coupon insufficiency warning`) and pushed. Device observation then found a pre-existing display flicker when toggling the coupon waiver: an old waived trial result temporarily produced a zero theoretical coupon amount before the new trial returned. No payment or asset rule was bypassed because confirmation remains disabled while trialing.
@@ -77,7 +78,9 @@ continuing.
 - Validation actually passed for the correction: after explicitly loading the locally installed NVM Node `v22.23.4`, `money-pos-web` `npm run build`; `mvn -q package -DskipTests`; `scripts/test-architecture-scan.sh`; `scripts/architecture-scan.sh --check-new`; and `git diff --check`. The frontend build retains the pre-existing Browserslist, CSS parsing and large-chunk warnings, but completed successfully.
 - The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
 - The user reported no new issue after the latest POS testing; keep the current POS-13 responsive layout unless later device testing finds a regression.
-- Exact next action: validate the changed cloud-sync, backup/recovery, customer-display, order-detail, audit, brand-setting and reprint wording on the approved POS runtime. Do not perform a real restore or cloud re-sync solely for wording acceptance.
+- REL-1 local validation passed: NVM Node `v22.23.4` `npm run release:check` and `npm run build`; `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`. The frontend build retains existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
+- REL-1 is committed locally as `74aa864` (`ci: publish releases from main`).
+- Exact next action: push REL-1 to `origin/dev`, fetch, and verify `dev...origin/dev` has neither ahead nor behind; the first real Release must wait for a future accepted merge to `main`, where GitHub Actions must be allowed to push the post-build version commit to protected `main`.
 
 ## UMS-MERGE-0 contract state
 

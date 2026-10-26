@@ -1,41 +1,29 @@
-name: Build WanXiangPOS EXE Installer
+name: Publish WanXiangPOS Release
 
 on:
   push:
     branches:
-      - main      # 🌟 核心：只要有代码推送到 main 分支，立刻自动打包！
-  workflow_dispatch: # 🌟 保留这个，意味着您依然可以随时在网页上手动点打包
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wanxiangpos-main-release
+  cancel-in-progress: false
 
 jobs:
-  build:
+  release:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore(release):'))
     runs-on: windows-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Resolve release version
-        id: release_version
-        shell: powershell
-        run: |
-          $version = (Get-Content "money-pos-web/package.json" -Raw | ConvertFrom-Json).version
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
-            throw "money-pos-web/package.json version is not SemVer: $version"
-          }
-          "value=$version" >> $env:GITHUB_OUTPUT
-
-      - name: Build Backend (Maven)
-        working-directory: ./money-pos
-        # PowerShell splits an unquoted dotted version (for example 1.0.12) into a separate token.
-        # Keep the Maven revision property as one argument so `.0.12` is never treated as a lifecycle phase.
-        run: mvn clean package -DskipTests "-Drevision=${{ steps.release_version.outputs.value }}"
+          ref: main
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,10 +32,37 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './money-pos-web/package-lock.json'
 
+      - name: Prepare next patch version
+        id: release_version
+        working-directory: ./money-pos-web
+        shell: powershell
+        run: |
+          $current = (Get-Content "package.json" -Raw | ConvertFrom-Json).version
+          if ($current -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Automatic main releases require a stable SemVer version (for example 1.0.12); received: $current"
+          }
+          $parts = $current.Split('.')
+          $next = "{0}.{1}.{2}" -f $parts[0], $parts[1], ([int]$parts[2] + 1)
+          npm version $next --no-git-tag-version --ignore-scripts
+          "value=$next" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Backend (Maven)
+        working-directory: ./money-pos
+        # PowerShell splits an unquoted dotted version (for example 1.0.12) into a separate token.
+        # Keep the Maven revision property as one argument so `.0.12` is never treated as a lifecycle phase.
+        run: mvn clean package -DskipTests "-Drevision=${{ steps.release_version.outputs.value }}"
+
       - name: Build Frontend (Vue)
         working-directory: ./money-pos-web
         run: |
-          npm install
+          npm ci
           npm run release:check
           npm run build
 
@@ -99,8 +114,42 @@ jobs:
         run: |
           npm run electron:build
 
+      - name: Prepare release asset
+        id: release_asset
+        shell: powershell
+        run: |
+          $version = "${{ steps.release_version.outputs.value }}"
+          $installer = Get-ChildItem -Path "money-pos-web/release" -Filter "*.exe" | Select-Object -First 1
+          if ($null -eq $installer) {
+            throw "Electron installer was not produced"
+          }
+          New-Item -ItemType Directory -Force -Path "release-artifact" | Out-Null
+          $assetName = "WanXiangPOS-Setup-v$version.exe"
+          Copy-Item -Path $installer.FullName -Destination "release-artifact/$assetName" -Force
+          "path=release-artifact/$assetName" >> $env:GITHUB_OUTPUT
+
+      - name: Commit version and create release tag
+        shell: powershell
+        run: |
+          $version = "${{ steps.release_version.outputs.value }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add money-pos-web/package.json money-pos-web/package-lock.json
+          git commit -m "chore(release): v$version"
+          git push origin HEAD:main
+          git tag "v$version"
+          git push origin "v$version"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.release_version.outputs.value }}
+          generate_release_notes: true
+          files: ${{ steps.release_asset.outputs.path }}
+          fail_on_unmatched_files: true
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WanXiangPOS-Installer
-          path: money-pos-web/release/*.exe
+          name: WanXiangPOS-Installer-v${{ steps.release_version.outputs.value }}
+          path: ${{ steps.release_asset.outputs.path }}
