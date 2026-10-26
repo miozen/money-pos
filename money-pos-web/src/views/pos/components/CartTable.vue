@@ -8,10 +8,10 @@
         :row-class-name="tableRowClassName"
         @row-click="handleRowClick"
     >
-        <el-table-column type="index" label="序号" width="48" align="center" />
+        <el-table-column type="index" label="序号" width="70" align="center" class-name="cart-index-column" label-class-name="cart-index-column" />
         <el-table-column prop="barcode" label="条码" width="130" />
 
-        <el-table-column label="商品名称" width="220">
+        <el-table-column label="商品名称" min-width="220">
             <template #default="{ row }">
                 <div class="min-w-0">
                     <div class="flex min-w-0 items-center gap-1">
@@ -168,5 +168,10 @@ const tableRowClassName = ({ row, rowIndex }) => {
 /* 🌟 击穿原生斑马纹，保证选中行背景泛蓝 */
 :deep(.el-table__body tr.active-pos-row > td.el-table__cell) {
     background-color: #e0f2fe !important;
+}
+
+/* 序号列保持紧凑且不换行；其余可用宽度由商品名称列自然吸收。 */
+:deep(.cart-index-column .cell) {
+    white-space: nowrap;
 }
 </style>
