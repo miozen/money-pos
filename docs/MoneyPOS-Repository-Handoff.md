@@ -14,7 +14,7 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | REL-1 is committed locally as `74aa864`; it has not yet been pushed in this handoff state. |
+| Working tree | Clean after REL-1 commit `8efa854`; `dev...origin/dev` is `0/0` after fetch. |
 | Current phase | `REL-1 main automatic GitHub Release` |
 | Current plan | `MoneyPOS-REL-1-Main-Automatic-Release-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
@@ -79,8 +79,8 @@ continuing.
 - The responsive-width correction is committed as `d7d098f` (`fix(pos): restore responsive cart width`) and pushed; immediately after fetch, `dev...origin/dev = 0/0`.
 - The user reported no new issue after the latest POS testing; keep the current POS-13 responsive layout unless later device testing finds a regression.
 - REL-1 local validation passed: NVM Node `v22.23.4` `npm run release:check` and `npm run build`; `mvn -q package -DskipTests`; both architecture gates; and `git diff --check`. The frontend build retains existing Browserslist, CSS parsing, dynamic-import and large-chunk warnings, but completed successfully.
-- REL-1 is committed locally as `74aa864` (`ci: publish releases from main`).
-- Exact next action: push REL-1 to `origin/dev`, fetch, and verify `dev...origin/dev` has neither ahead nor behind; the first real Release must wait for a future accepted merge to `main`, where GitHub Actions must be allowed to push the post-build version commit to protected `main`.
+- REL-1 is committed as `8efa854` (`ci: publish releases from main`) and pushed; after fetch, `dev...origin/dev = 0/0`.
+- Exact next action: when a future change set is accepted for release, merge it to `main` and inspect that first GitHub Actions run. Before doing so, ensure the workflow token / `github-actions[bot]` is permitted to push the post-build version commit to protected `main`.
 
 ## UMS-MERGE-0 contract state
 
