@@ -31,3 +31,4 @@
 - 已通过 Worker `npm test`、`mvn -q package -DskipTests`、两项架构门禁及 `git diff --check`。实现提交为 `83c1e35`（`feat(cloud): add personal Telegram member query`）并已推送。
 - 2026-10-26 的首次部署为 Worker `b9776adc-0037-45ab-b47b-15b731771169`，但 Wrangler 明确提示本地配置会覆盖 Dashboard 配置；部署结果未保留 Telegram 三项文本变量，也移除了当时存在的一个自定义域名路由。因 Bot Token 被错误配置为普通文本变量，部署诊断输出暴露了该值；该 Token 必须在 BotFather 轮换，且不得再作为普通变量配置。此 Worker 当前没有 Telegram 有效配置，未注册 Webhook，未产生 Telegram 或 D1 会员数据读写。
 - 用户随后确认自定义域名 `omnia-cloud.miozen.uk` 仍存在且已重新配置 Telegram 值。只读 HTTP 检查确认该域名根路径为 `200`，而未带 Webhook Secret 的 `POST /telegram/webhook` 为 `401`；未认证、未读取会员数据、未写入 D1。Telegram `setWebhook` 和私聊验收仍待使用已轮换的 Bot Token 完成。
+- 用户已通过 Telegram `setWebhook` 成功注册 `https://omnia-cloud.miozen.uk/telegram/webhook`，`getWebhookInfo` 返回该地址、`pending_update_count = 0`，并确认允许的私人聊天可实际查询会员信息。浏览器直接 `GET /telegram/webhook` 的 `{"error":"not found"}` 是预期行为：该端点仅接受 Telegram 的 `POST` 更新，不提供浏览器页面。Telegram 只读会员查询验收完成。
