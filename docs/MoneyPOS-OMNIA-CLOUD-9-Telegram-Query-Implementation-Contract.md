@@ -28,4 +28,4 @@
 
 - Worker 已实现受 Telegram Secret、固定 User ID 和私聊类型三重限制的 Webhook，并复用既有查询条件、固定分区和 ACTIVE 快照投影；未新增 D1 migration、POS 改动或同步写入。
 - Worker Node 测试覆盖有效私聊查询、展示术语、错误 Webhook Secret、非允许用户、群聊忽略、多结果内联选择及回调详情读取。
-- 已通过 Worker `npm test`、`mvn -q package -DskipTests`、两项架构门禁及 `git diff --check`。部署、Secret 设置、`setWebhook` 和真实 Telegram 验收尚未执行。
+- 已通过 Worker `npm test`、`mvn -q package -DskipTests`、两项架构门禁及 `git diff --check`。实现提交为 `83c1e35`（`feat(cloud): add personal Telegram member query`）并已推送；部署、Secret 设置、`setWebhook` 和真实 Telegram 验收尚未执行。
