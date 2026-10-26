@@ -12,8 +12,9 @@
 - 每个符合条件的 `main` 推送自动递增稳定 SemVer 的补丁位，例如 `1.0.12` 到 `1.0.13`。`minor`/`major` 版本仍须在合并前由发布人显式修改版本号。
 - 版本唯一来源为 `money-pos-web/package.json`；`package-lock.json` 根版本必须与之相同。Maven 在发布构建中继续接收同一个 `-Drevision` 值。
 - 仅在 EXE 已构建成功后，工作流才提交 `chore(release): vX.Y.Z`、推送 `vX.Y.Z` 标签并创建 GitHub Release。
-- 版本提交不会再次发布；手动 `workflow_dispatch` 仅允许在 `main` 上运行，并同样递增一个补丁版本。
+- 版本提交不会再次发布；在正式发布工作流上手动 `workflow_dispatch` 仅允许在 `main` 上运行，并同样递增一个补丁版本。
 - 安装包作为 GitHub Release 附件 `WanXiangPOS-Setup-vX.Y.Z.exe`，同时保留同名版本的 Actions Artifact。
+- `Build WanXiangPOS Test Installer` 是独立的手动测试工作流。操作者输入待构建 ref（默认 `dev`），它只检出该 ref、构建 EXE 并上传保留七天的 Actions Artifact；它只具有 `contents: read` 权限，绝不递增版本、提交、推送、打标签或创建 GitHub Release。测试 Artifact 名称必须包含 ref、源码声明的版本与运行编号，不能被当作正式发行包。
 
 ## 工作流边界
 

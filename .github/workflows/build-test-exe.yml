@@ -1,0 +1,111 @@
+name: Build WanXiangPOS Test Installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: '要构建的分支、标签或提交（通常为 dev）'
+        required: true
+        default: 'dev'
+        type: string
+
+# 此工作流只读取源码和上传测试制品；它没有发布、打标签或回写仓库的权限。
+permissions:
+  contents: read
+
+concurrency:
+  group: wanxiangpos-test-build-${{ inputs.source_ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout selected source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Resolve test artifact identity
+        id: build_identity
+        working-directory: ./money-pos-web
+        shell: powershell
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          $version = (Get-Content "package.json" -Raw | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Test installer builds require a stable SemVer version; received: $version"
+          }
+          $safeRef = $env:SOURCE_REF -replace '[^0-9A-Za-z._-]', '-'
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "safe_ref=$safeRef" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './money-pos-web/package-lock.json'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Backend (Maven)
+        working-directory: ./money-pos
+        run: mvn clean package -DskipTests "-Drevision=${{ steps.build_identity.outputs.version }}"
+
+      - name: Build Frontend (Vue)
+        working-directory: ./money-pos-web
+        run: |
+          npm ci
+          npm run release:check
+          npm run build
+
+      - name: Prepare External Environments (JRE & MariaDB)
+        shell: powershell
+        run: |
+          mkdir build-env
+          cd build-env
+
+          $jreUrl = "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.10%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.10_7.zip"
+          Invoke-WebRequest -Uri $jreUrl -OutFile "jre.zip"
+          Expand-Archive -Path "jre.zip" -DestinationPath "."
+          Get-ChildItem -Path "jdk*" | Rename-Item -NewName "jre"
+          Remove-Item "jre.zip"
+          Rename-Item -Path "jre\bin\java.exe" -NewName "vana-java.exe" -Force
+          Rename-Item -Path "jre\bin\javaw.exe" -NewName "vana-javaw.exe" -Force -ErrorAction SilentlyContinue
+
+          $dbUrl = "https://archive.mariadb.org/mariadb-10.11.6/winx64-packages/mariadb-10.11.6-winx64.zip"
+          Invoke-WebRequest -Uri $dbUrl -OutFile "mariadb.zip"
+          Expand-Archive -Path "mariadb.zip" -DestinationPath "."
+          Get-ChildItem -Path "mariadb-10*" | Rename-Item -NewName "mariadb"
+          Remove-Item "mariadb.zip"
+          Remove-Item -Recurse -Force "mariadb/mysql-test" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "mariadb/sql-bench" -ErrorAction SilentlyContinue
+
+      - name: Assemble All Resources
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "money-pos-web/backend"
+          Copy-Item -Path "money-pos/qk-money-app/money-app-biz/target/*.jar" -Destination "money-pos-web/backend/vana-pos.jar" -Force
+          Move-Item -Path "build-env/jre" -Destination "money-pos-web/jre" -Force
+          Move-Item -Path "build-env/mariadb" -Destination "money-pos-web/mariadb" -Force
+
+      - name: Build Electron EXE
+        working-directory: ./money-pos-web
+        run: npm run electron:build
+
+      - name: Upload test installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WanXiangPOS-Test-${{ steps.build_identity.outputs.safe_ref }}-v${{ steps.build_identity.outputs.version }}-${{ github.run_number }}
+          path: money-pos-web/release/*.exe
+          if-no-files-found: error
+          retention-days: 7
