@@ -242,6 +242,115 @@ export async function handleMemberDetail(request, env, memberId) {
   }
 }
 
+function telegramConfiguration(env) {
+  const query = queryConfiguration(env);
+  if (!query || typeof env.OMNIA_TELEGRAM_BOT_TOKEN !== 'string' || !env.OMNIA_TELEGRAM_BOT_TOKEN ||
+      typeof env.OMNIA_TELEGRAM_WEBHOOK_SECRET !== 'string' || !env.OMNIA_TELEGRAM_WEBHOOK_SECRET ||
+      !/^[1-9][0-9]*$/.test(String(env.OMNIA_TELEGRAM_ALLOWED_USER_ID ?? ''))) return null;
+  return { ...query, botToken: env.OMNIA_TELEGRAM_BOT_TOKEN, webhookSecret: env.OMNIA_TELEGRAM_WEBHOOK_SECRET,
+    allowedUserId: String(env.OMNIA_TELEGRAM_ALLOWED_USER_ID) };
+}
+
+function telegramRequestIsVerified(request, configuration) {
+  const secret = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
+  return typeof secret === 'string' && constantTimeEqual(secret, configuration.webhookSecret);
+}
+
+function telegramPrivateMessage(update) {
+  const message = update?.message;
+  return message?.chat?.type === 'private' && message?.from && typeof message.text === 'string' ? message : null;
+}
+
+function telegramPrivateCallback(update) {
+  const callback = update?.callback_query;
+  return callback?.message?.chat?.type === 'private' && callback?.from ? callback : null;
+}
+
+function telegramAllowed(actor, configuration) { return String(actor?.id ?? '') === configuration.allowedUserId; }
+function telegramHelpText() { return '发送会员姓名、完整手机号或手机号后四位即可查询。\n例如：张三、13800138000、8000'; }
+function telegramMoney(value) { const amount = Number(value); return `￥${(Number.isFinite(amount) ? amount : 0).toFixed(2)}`; }
+function telegramValues(items, mapper) { return items?.length ? items.map(mapper).join('；') : '无'; }
+function telegramLevels(value) {
+  const rows = Object.entries(value || {}).map(([brand, level]) => `${brand}：${level}`);
+  return rows.length ? rows.join('；') : '等待同步更新';
+}
+function telegramCouponCount(items) { return (items || []).reduce((sum, item) => sum + (Number(item.count) || 0), 0); }
+
+export function telegramMemberText(member) {
+  const text = [
+    member.name || '未命名会员',
+    `手机号：${member.phoneMasked ?? '—'}`,
+    `会员余额：${telegramMoney(member.balance)}`,
+    `会员券：${telegramMoney(member.couponBalance)}`,
+    `品牌等级：${telegramLevels(member.brandLevelDescriptions)}`,
+    `剩余满减券：${telegramCouponCount(member.unusedCoupons)} 张`,
+    `次数权益：${telegramValues(member.quantityRights, item => `${item.goodsName || item.goodsId || '权益'}，剩余 ${item.remainingQuantity ?? 0} 次`)}`,
+    `金额权益：${telegramValues(member.amountRights, item => `${item.tierName || item.tierCode || '权益'}，剩余 ${item.remainingAmount ?? 0}`)}`,
+    `目标权益：${telegramValues(member.targetPlans, item => `${item.targetTierName || item.targetTierCode || '目标'}，进度 ${item.progressAmount ?? 0} / ${item.targetAmount ?? 0}，剩余 ${item.remainingAmount ?? 0}`)}`,
+    `最后同步：${new Date(member.syncedAt).toLocaleString('zh-CN')}`
+  ].join('\n');
+  return text.length <= 4000 ? text : `${text.slice(0, 3996)}…`;
+}
+
+async function telegramApi(env, configuration, method, payload) {
+  const response = await (env.TELEGRAM_FETCH || fetch)(`https://api.telegram.org/bot${configuration.botToken}/${method}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error('telegram API failed');
+}
+
+async function telegramSend(env, configuration, chatId, text, options = {}) {
+  await telegramApi(env, configuration, 'sendMessage', { chat_id: chatId, text, ...options });
+}
+
+async function telegramAnswerCallback(env, configuration, callbackId) {
+  await telegramApi(env, configuration, 'answerCallbackQuery', { callback_query_id: callbackId });
+}
+
+function telegramQueryText(text) {
+  const normalized = text.trim();
+  if (/^\/(start|help)(?:@[A-Za-z0-9_]+)?(?:\s|$)/i.test(normalized)) return null;
+  return normalized.startsWith('/') ? undefined : normalized;
+}
+
+async function handleTelegramMessage(message, env, configuration) {
+  const query = telegramQueryText(message.text);
+  if (query === null) return telegramSend(env, configuration, message.chat.id, telegramHelpText());
+  if (!query) return telegramSend(env, configuration, message.chat.id, telegramHelpText());
+  const criteria = await queryCriteria(query, configuration.searchSecret);
+  if (criteria.error) return telegramSend(env, configuration, message.chat.id, telegramHelpText());
+  const members = await membersByCriteria(env.DB, configuration.storeId, criteria);
+  if (!members.length) return telegramSend(env, configuration, message.chat.id, '没有匹配的有效会员。');
+  if (members.length === 1) return telegramSend(env, configuration, message.chat.id, telegramMemberText(members[0]));
+  const keyboard = members.map(member => [{ text: `${member.name || '未命名会员'} ${member.phoneMasked || ''}`.trim(), callback_data: `member:${member.memberId}` }]);
+  return telegramSend(env, configuration, message.chat.id, `找到 ${members.length} 位会员，请选择：`, { reply_markup: { inline_keyboard: keyboard } });
+}
+
+async function handleTelegramCallback(callback, env, configuration) {
+  await telegramAnswerCallback(env, configuration, callback.id);
+  const memberId = /^member:([0-9]+)$/.exec(callback.data || '')?.[1];
+  if (!memberId || !isPositiveSqliteInteger(memberId)) return;
+  const row = await env.DB.prepare("SELECT CAST(member_id AS TEXT) AS member_id, name, phone_masked, snapshot_json, source_updated_at, synced_at FROM member_snapshots WHERE store_id = ? AND member_id = ? AND status = 'ACTIVE'")
+    .bind(configuration.storeId, memberId).first();
+  return telegramSend(env, configuration, callback.message.chat.id, row ? telegramMemberText(displayProjection(row)) : '该会员已不存在或尚未同步。');
+}
+
+export async function handleTelegramWebhook(request, env) {
+  const configuration = telegramConfiguration(env);
+  if (!configuration) return json({ error: 'telegram service is not configured' }, 503);
+  if (!telegramRequestIsVerified(request, configuration)) return json({ error: 'telegram webhook authorization required' }, 401);
+  let update;
+  try { update = await request.json(); } catch { return json({ error: 'invalid JSON' }, 400); }
+  const message = telegramPrivateMessage(update);
+  const callback = telegramPrivateCallback(update);
+  if (message && telegramAllowed(message.from, configuration)) {
+    try { await handleTelegramMessage(message, env, configuration); } catch { return json({ error: 'telegram query failed' }, 503); }
+  } else if (callback && telegramAllowed(callback.from, configuration)) {
+    try { await handleTelegramCallback(callback, env, configuration); } catch { return json({ error: 'telegram query failed' }, 503); }
+  }
+  return json({ ok: true });
+}
+
 const queryPage = `<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Omnia Cloud</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#172033;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:680px;margin:auto;padding:24px 16px 48px}h1{font-size:24px;margin:0 0 6px}.hint{color:#667085;font-size:13px;margin:0 0 20px}.panel,.member{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin:10px 0;box-shadow:0 1px 2px #1018280a}label{display:block;font-weight:600;font-size:14px;margin:12px 0 6px}input,button{font:inherit;border-radius:9px;padding:11px;width:100%}input{border:1px solid #cbd5e1;background:#fff}button{margin-top:12px;border:0;background:#2563eb;color:white;font-weight:650}button:disabled{background:#94a3b8}.member{cursor:pointer}.member strong{display:block}.member span,.status{display:block;color:#667085;font-size:13px;margin-top:4px}.error{color:#b42318}.details{white-space:pre-wrap;line-height:1.6;font-size:14px}.hidden{display:none}</style><main class="app"><h1>Omnia Cloud</h1><p class="hint">会员查询快照，仅供本人查询；数据可能存在短暂同步延迟。</p><section id="loginPanel" class="panel"><label for="password">查询密码</label><input id="password" type="password" autocomplete="current-password"><button id="login">进入查询</button><span id="loginStatus" class="status"></span></section><section id="queryPanel" class="panel hidden"><label for="query">姓名、完整手机号或后四位</label><input id="query" autocomplete="off" placeholder="例如：张三、13800138000、8000"><button id="search">查询会员</button><span id="status" class="status"></span></section><section id="results"></section></main><script>
 const password=document.querySelector('#password'),login=document.querySelector('#login'),loginPanel=document.querySelector('#loginPanel'),loginStatus=document.querySelector('#loginStatus'),queryPanel=document.querySelector('#queryPanel'),query=document.querySelector('#query'),button=document.querySelector('#search'),status=document.querySelector('#status'),results=document.querySelector('#results');let queryPassword='';
@@ -263,6 +372,7 @@ export default {
     if (request.method === 'GET' && pathname === '/') return page();
     if (request.method === 'GET' && pathname === '/api/v1/query-session') return handleQuerySession(request, env);
     if (request.method === 'POST' && pathname === '/api/v1/members/search') return handleMemberSearch(request, env);
+    if (request.method === 'POST' && pathname === '/telegram/webhook') return handleTelegramWebhook(request, env);
     const detail = pathname.match(/^\/api\/v1\/members\/([0-9]+)$/);
     if (request.method === 'GET' && detail) return handleMemberDetail(request, env, detail[1]);
     return json({ error: 'not found' }, 404);

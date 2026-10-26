@@ -14,9 +14,9 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Clean after OMNIA-CLOUD-8 terminology-alignment deployment record; immediately after fetch, `dev...origin/dev = 0/0`. |
-| Current phase | `OMNIA-CLOUD-8 query display accepted; Telegram Bot design is the next unstarted scope` |
-| Current plan | `MoneyPOS-OMNIA-CLOUD-8-Read-Only-Member-Query-Implementation-Contract.md` |
+| Working tree | Local OMNIA-CLOUD-9 Telegram-query implementation is validated but not yet committed, deployed or configured. |
+| Current phase | `OMNIA-CLOUD-9 Telegram personal-query implementation; local validation complete` |
+| Current plan | `MoneyPOS-OMNIA-CLOUD-9-Telegram-Query-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
 
@@ -54,7 +54,9 @@ continuing.
 - Worker `f21293d2-ebfe-455f-9ae1-8a26c5640fe6` is deployed with the display correction. Online checks confirmed the two-step login page, authenticated session `200`, absence of `memberCode` in detail, and expected absence of `brandLevelDescriptions` on the old snapshot. No D1 write happened during this check.
 - The terminology alignment is committed as `a39aa77` (`fix(cloud): align member asset labels`) and pushed. It changes only the query-page display: `balance` is “会员余额”, `couponBalance` is “会员券”, both are two-decimal amounts, and existing `unusedCoupons[].count` values are aggregated as “剩余满减券：N 张”. Worker Node tests, `mvn -q package -DskipTests`, both architecture gates and `git diff --check` passed.
 - Worker `c374edd4-6008-405f-a4e2-d25b2bcf1106` is deployed with this terminology-only correction. A public-page-source check found all three new labels and neither old label; it did not authenticate, read member data, write D1 or modify POS.
-- Exact next action: freeze the Telegram Bot query contract. Reuse the existing read-only Worker query projection; add only a Telegram webhook route, bot-token secret, fixed private-chat Telegram user-ID allowlist and the required webhook setup/acceptance checks. Do not change POS, D1 schema, snapshot sync or the webpage authentication rule unless a new decision requires it.
+- OMNIA-CLOUD-9 is locally implemented under `MoneyPOS-OMNIA-CLOUD-9-Telegram-Query-Implementation-Contract.md`. It adds only `POST /telegram/webhook`, with Telegram header-secret verification, one fixed private-chat User ID allowlist, `/start`/`/help`, direct name/full-phone/last-four searches, multi-result inline selection and callback detail reads. It reuses the existing fixed D1 partition and ACTIVE display projection; it adds no D1 schema, POS, sync or webpage-authentication change.
+- Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. It is not yet committed, deployed, configured or accepted through Telegram.
+- Exact next action: commit/push the OMNIA-CLOUD-9 implementation. Then obtain the user's Telegram Bot Token and numeric User ID through a secure local secret-entry flow, generate/configure a distinct Webhook Secret, deploy the Worker, register `https://omnia-cloud.miozen.workers.dev/telegram/webhook` with Telegram `setWebhook`, and perform only synthetic/no-member-data Webhook acceptance before the user performs private-chat lookup acceptance.
 
 ## UMS-MERGE-0 contract state
 

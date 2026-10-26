@@ -41,3 +41,25 @@ The search API recognizes an 11-digit full phone, a four-digit suffix, or a name
 prefix. It returns at most 20 ACTIVE snapshots and emits `Cache-Control: no-store`.
 It returns only the display projection, never HMAC values, normalized names or raw
 phones.
+
+## Personal Telegram query
+
+`POST /telegram/webhook` is a Telegram-only webhook, not a browser API. It accepts
+only a valid Telegram `X-Telegram-Bot-Api-Secret-Token`, one configured Telegram
+user ID, and `private` chats. Unauthorized, group, channel and unsupported updates
+are acknowledged without returning member data. The allowed user can send a name,
+full phone number or last four digits; `/start` and `/help` show usage. Multiple
+matches are returned as Telegram inline buttons, and the selection reads the same
+fixed ACTIVE snapshot projection as the webpage.
+
+Configure these values outside Git before registering the webhook:
+
+- `OMNIA_TELEGRAM_BOT_TOKEN` (secret): BotFather API token.
+- `OMNIA_TELEGRAM_WEBHOOK_SECRET` (secret): an independently generated random
+  webhook secret passed to Telegram when calling `setWebhook`.
+- `OMNIA_TELEGRAM_ALLOWED_USER_ID` (plain Worker variable): your numeric Telegram
+  user ID.
+
+The route also requires the existing `OMNIA_QUERY_STORE_ID` and
+`OMNIA_SEARCH_HMAC_SECRET_BASE64` values. It does not add a database table, store a
+Telegram message, or permit any POS or cloud data write.

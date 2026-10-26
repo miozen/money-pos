@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleQuerySession, handleSync, hmacHex, sha256Hex, validateSnapshot, verifySignedRequest } from '../src/index.js';
+import worker, { handleConnectionTest, handleMemberDetail, handleMemberSearch, handleQuerySession, handleSync, handleTelegramWebhook, hmacHex, sha256Hex, telegramMemberText, validateSnapshot, verifySignedRequest } from '../src/index.js';
 
 const secret = 'MDEyMzQ1Njc4OWFiY2RlZg==';
 const body = JSON.stringify({ storeId: 'store-a', snapshots: [] });
@@ -118,6 +118,66 @@ test('query page uses the POS asset labels and totals remaining reduction coupon
   assert.doesNotMatch(page, /可用优惠券/);
 });
 
+test('Telegram webhook only queries for its configured private user and formats the existing projection', async () => {
+  const calls = [];
+  const env = telegramEnvironment(calls);
+  const response = await handleTelegramWebhook(telegramRequest({
+    message: { message_id: 1, chat: { id: 42, type: 'private' }, from: { id: 7 }, text: '13800138000' }
+  }), env);
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /botbot-token\/sendMessage$/);
+  assert.match(calls[0].body.text, /会员余额：￥12\.34/);
+  assert.match(calls[0].body.text, /会员券：￥0\.00/);
+  assert.match(calls[0].body.text, /剩余满减券：0 张/);
+
+  const unauthorized = await handleTelegramWebhook(telegramRequest({
+    message: { message_id: 2, chat: { id: 99, type: 'private' }, from: { id: 8 }, text: '13800138000' }
+  }), env);
+  assert.equal(unauthorized.status, 200);
+  assert.equal(calls.length, 1);
+});
+
+test('Telegram webhook rejects unsigned and group updates, and offers callback member selection', async () => {
+  const calls = [];
+  const env = telegramEnvironment(calls);
+  const unsigned = await handleTelegramWebhook(new Request('https://cloud.example/telegram/webhook', {
+    method: 'POST', body: '{}', headers: { 'content-type': 'application/json' }
+  }), env);
+  assert.equal(unsigned.status, 401);
+
+  const group = await handleTelegramWebhook(telegramRequest({
+    message: { message_id: 1, chat: { id: -1, type: 'group' }, from: { id: 7 }, text: '张三' }
+  }), env);
+  assert.equal(group.status, 200);
+  assert.equal(calls.length, 0);
+
+  env.DB.prepare = () => ({ bind: () => ({ all: async () => ({ results: [memberRow(), { ...memberRow(), member_id: '2', name: '李四' }] }) }) });
+  const multiple = await handleTelegramWebhook(telegramRequest({
+    message: { message_id: 3, chat: { id: 42, type: 'private' }, from: { id: 7 }, text: '张' }
+  }), env);
+  assert.equal(multiple.status, 200);
+  assert.equal(calls[0].body.reply_markup.inline_keyboard.length, 2);
+  assert.equal(calls[0].body.reply_markup.inline_keyboard[0][0].callback_data, 'member:2102313829312065536');
+
+  calls.length = 0;
+  env.DB.prepare = () => ({ bind: () => ({ first: async () => memberRow() }) });
+  const callback = await handleTelegramWebhook(telegramRequest({
+    callback_query: { id: 'callback-1', data: 'member:2102313829312065536', from: { id: 7 }, message: { chat: { id: 42, type: 'private' } } }
+  }), env);
+  assert.equal(callback.status, 200);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /answerCallbackQuery$/);
+  assert.match(calls[1].body.text, /手机号：138\*\*\*\*8000/);
+});
+
+test('Telegram formatter uses the same asset wording as the webpage', () => {
+  const member = { ...JSON.parse(memberRow().snapshot_json), name: '张三', phoneMasked: '138****8000', syncedAt: 1_790_000_000_001 };
+  assert.match(telegramMemberText(member), /会员余额：￥12\.34/);
+  assert.match(telegramMemberText(member), /会员券：￥0\.00/);
+  assert.match(telegramMemberText(member), /剩余满减券：0 张/);
+});
+
 test('member query rejects bad password and hides deleted snapshots', async () => {
   const unauthorized = await handleMemberSearch(new Request('https://cloud.example/api/v1/members/search', {
     method: 'POST', body: JSON.stringify({ query: '张三' }), headers: { authorization: 'Basic ' + btoa('omnia:wrong') }
@@ -158,6 +218,21 @@ function memberRow() {
     member_id: '2102313829312065536', name: '张三', phone_masked: '138****8000', source_updated_at: 1_790_000_000_000, synced_at: 1_790_000_000_001,
     snapshot_json: JSON.stringify({ memberCode: 'M001', memberType: 'VIP', balance: '12.34', couponBalance: '0', nameNormalized: '张三', phoneHmac: 'hidden', phoneLast4Hmac: 'hidden', brandLevels: { A: 'GOLD' }, brandLevelDescriptions: { 蓝月: '皇冠' }, unusedCoupons: [], quantityRights: [], amountRights: [], targetPlans: [] })
   };
+}
+
+function telegramEnvironment(calls) {
+  return {
+    DB: { prepare: () => ({ bind: () => ({ all: async () => ({ results: [memberRow()] }) }) }) },
+    OMNIA_QUERY_STORE_ID: 'store-01-test', OMNIA_SEARCH_HMAC_SECRET_BASE64: secret,
+    OMNIA_TELEGRAM_BOT_TOKEN: 'bot-token', OMNIA_TELEGRAM_WEBHOOK_SECRET: 'webhook-secret', OMNIA_TELEGRAM_ALLOWED_USER_ID: '7',
+    TELEGRAM_FETCH: async (url, options) => { calls.push({ url, body: JSON.parse(options.body) }); return new Response(JSON.stringify({ ok: true }), { status: 200 }); }
+  };
+}
+
+function telegramRequest(update) {
+  return new Request('https://cloud.example/telegram/webhook', {
+    method: 'POST', body: JSON.stringify(update), headers: { 'content-type': 'application/json', 'X-Telegram-Bot-Api-Secret-Token': 'webhook-secret' }
+  });
 }
 
 async function signedHeaders(path, payload) {
