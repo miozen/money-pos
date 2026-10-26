@@ -4,6 +4,7 @@ import com.money.feature.ums.application.cloudsync.MemberCloudSyncStatus;
 import com.money.feature.ums.application.cloudsync.MemberCloudSyncStatusService;
 import com.money.feature.ums.application.cloudsync.MemberCloudSyncConfigurationDTO;
 import com.money.feature.ums.application.cloudsync.MemberCloudSyncConfigurationService;
+import com.money.feature.ums.application.cloudsync.MemberCloudSyncSecretRevealDTO;
 import com.money.web.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +38,14 @@ public class UmsMemberCloudSyncController {
     @GetMapping("/config")
     @PreAuthorize("@rbac.hasPermission('omniaCloud:view')")
     public MemberCloudSyncConfigurationDTO configuration() { return configurationService.view(); }
+
+    @Operation(summary = "显示已保存的Omnia Cloud本机密钥，仅限本机管理员")
+    @PostMapping("/config/reveal-secrets")
+    @PreAuthorize("@rbac.hasRole('SUPER_ADMIN') and @rbac.hasPermission('omniaCloud:manage')")
+    public MemberCloudSyncSecretRevealDTO revealSecrets(HttpServletRequest httpRequest) {
+        requireLoopback(httpRequest);
+        return configurationService.revealSecrets();
+    }
 
     @Operation(summary = "保存Omnia Cloud本机配置，仅限本机管理员")
     @PostMapping("/config")

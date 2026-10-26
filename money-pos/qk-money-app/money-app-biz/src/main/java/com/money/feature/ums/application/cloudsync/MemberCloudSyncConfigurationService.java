@@ -33,6 +33,15 @@ public class MemberCloudSyncConfigurationService {
         return result;
     }
 
+    /** The controller restricts this value-bearing result to the local SUPER_ADMIN reveal action. */
+    public MemberCloudSyncSecretRevealDTO revealSecrets() {
+        CloudMemberSyncConfig config = config();
+        MemberCloudSyncSecretRevealDTO result = new MemberCloudSyncSecretRevealDTO();
+        result.setSigningSecretBase64(config.getSigningSecretBase64());
+        result.setSearchHmacSecretBase64(config.getSearchHmacSecretBase64());
+        return result;
+    }
+
     @Transactional
     public MemberCloudSyncConfigurationDTO save(MemberCloudSyncConfigurationDTO request) {
         CloudMemberSyncConfig config = config();

@@ -28,6 +28,7 @@ class UmsMemberCloudSyncRouteContractTest {
 
     @Test
     void localOperationalCommandsUseTheSameProtectedBoundary() {
+        assertProtected("revealSecrets", "/config/reveal-secrets");
         assertProtected("beginRepair", "/repair");
         assertProtected("dispatchNow", "/dispatch");
         assertProtected("testConnection", "/test-connection");
