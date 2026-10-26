@@ -14,8 +14,8 @@ continuing.
 | --- | --- |
 | Branch | `dev` |
 | ME-1.4 close commit | `108a866 docs(member): close target benefit fulfillment` |
-| Working tree | Local OMNIA-CLOUD-10 display-layout implementation is validated but not yet committed or deployed. |
-| Current phase | `OMNIA-CLOUD-10 member-query display layout; local validation complete` |
+| Working tree | Local OMNIA-CLOUD-10 deployment record pending commit/push. |
+| Current phase | `OMNIA-CLOUD-10 display layout deployed; webpage and Telegram visual acceptance pending` |
 | Current plan | `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md` |
 | Architecture fact | `MoneyPOS-Current-Architecture-and-Business-Scenarios.md` |
 | Frozen decisions | ME-1 checklist; `MoneyPOS-AI-Handoff.md`; applicable AD/ME decision records |
@@ -60,8 +60,9 @@ continuing.
 - User subsequently confirmed that custom domain `omnia-cloud.miozen.uk` remains available and the Telegram configuration was restored. Read-only checks observed `GET https://omnia-cloud.miozen.uk/ = 200` and unsigned `POST https://omnia-cloud.miozen.workers.dev/telegram/webhook = 401`; no credentials, membership read or D1 write occurred. Do not redeploy with a partial local Wrangler configuration.
 - User registered `https://omnia-cloud.miozen.uk/telegram/webhook` through Telegram `setWebhook`; `getWebhookInfo` returned that URL with `pending_update_count = 0`, and the allowed private Telegram user successfully queried a member. The direct browser `GET /telegram/webhook` 404 is expected because the endpoint only accepts Telegram `POST` updates. OMNIA-CLOUD-9 acceptance is complete.
 - OMNIA-CLOUD-10 is locally implemented under `MoneyPOS-OMNIA-CLOUD-10-Member-Query-Display-Layout-Implementation-Contract.md`. It only reformats the existing web and Telegram member-detail projection into basic information, brand level, assets, benefits and sync time. It renames displayed QUANTITY rights from “次数权益” to “寄存商品” and removes its unit; it does not change asset or rights values, D1, POS, sync, APIs, webhook or authorization.
-- Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`. It is not yet committed, deployed or visually accepted.
-- Exact next action: commit/push OMNIA-CLOUD-10. Deploy only with a full configuration that declares the existing custom domain, D1 binding, query partition and Telegram allowed-user variable while retaining Cloudflare Secrets; do not use a partial local Wrangler configuration. Then verify the web and allowed Telegram detail layouts without changing any member data.
+- OMNIA-CLOUD-10 is committed as `06d7d9f` (`feat(cloud): group member query details`) and pushed. Validation actually passed: Worker Node tests, `mvn -q package -DskipTests`, `scripts/test-architecture-scan.sh`, `scripts/architecture-scan.sh --check-new` and `git diff --check`.
+- Final Worker `3122d8fc-1adc-4e63-85fd-aac754bfb3a7` is deployed. The initial deployment omitted an explicit `workers_dev` setting and therefore temporarily disabled that POS sync endpoint; it was immediately redeployed with the same source and explicit `workers_dev = true`. Final read-only checks: custom-domain page `200`, `workers.dev` page `200`, unsigned custom-domain Webhook `401`, and page source has “寄存商品”/new asset layout but no “次数权益”. No membership data was read or written.
+- Exact next action: allowed user verifies the new detailed layout once through the custom-domain webpage and once through the Telegram private chat. If accepted, record the result and close OMNIA-CLOUD-10. Do not redeploy with a partial local Wrangler configuration.
 
 ## UMS-MERGE-0 contract state
 
